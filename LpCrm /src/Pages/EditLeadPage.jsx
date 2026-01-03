@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Save, User, Phone, Mail, MapPin, Tag, FileText, TrendingUp, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Save, User, Phone, Mail, MapPin, Tag, FileText, TrendingUp, Calendar, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 
-
-export default function AddLeadPage() {
+export default function EditLeadPage() {
+  const leadId = '123'; 
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -18,13 +19,9 @@ export default function AddLeadPage() {
     remarks: ''
   });
 
-  const { accessToken, refreshAccessToken } = useAuth();
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
+  const [loading, setLoading] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
-  const navigate = useNavigate();
-
 
   const statusOptions = ['Enquiry', 'Qualified', 'Converted', 'Lost'];
   const sourceOptions = ['WhatsApp', 'Instagram', 'Website', 'Walk-in', 'Automation', 'Other'];
@@ -38,6 +35,45 @@ export default function AddLeadPage() {
     'Cloud Computing',
     'Cybersecurity'
   ];
+
+  // Fetch lead data on component mount
+  useEffect(() => {
+    const fetchLeadData = async () => {
+      setLoading(true);
+      try {
+        const mockLeadData = {
+          name: 'John Doe',
+          phone: '+1234567890',
+          email: 'john.doe@example.com',
+          location: 'New York, USA',
+          priority: 'High',
+          status: 'Qualified',
+          program: 'Web Development',
+          source: 'Instagram',
+          customSource: '',
+          remarks: 'Interested in full-stack development course. Has prior experience with HTML/CSS.'
+        };
+
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Check if source is custom (not in predefined options)
+        const isCustomSource = !sourceOptions.includes(mockLeadData.source);
+        
+        setFormData({
+          ...mockLeadData,
+          source: isCustomSource ? 'Other' : mockLeadData.source,
+          customSource: isCustomSource ? mockLeadData.source : ''
+        });
+      } catch (error) {
+        console.error('Error fetching lead data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeadData();
+  }, [leadId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -65,7 +101,9 @@ export default function AddLeadPage() {
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
 
     const leadData = {
       name: formData.name,
@@ -75,60 +113,25 @@ export default function AddLeadPage() {
       priority: formData.priority,
       status: formData.status,
       program: formData.program,
-      source: formData.source === 'Other'
-        ? formData.customSource
-        : formData.source,
+      source: formData.source === 'Other' ? formData.customSource : formData.source,
       remarks: formData.remarks,
+      updatedAt: new Date().toISOString()
     };
 
     try {
-      let token = accessToken;
-
-
-      if (!token) {
-        token = await refreshAccessToken();
-        if (!token) throw new Error('Authentication required');
-      }
-
-      console.log('Submitting lead with data:', token);
-      const res = await fetch(`${API_BASE_URL}/leads/create/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(leadData),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData?.detail || 'Failed to create lead');
-      }
+      console.log('Lead Data Updated:', leadData);
 
       setSubmitted(true);
 
+      // Redirect after 2 seconds
       setTimeout(() => {
-        setFormData({
-          name: '',
-          phone: '',
-          email: '',
-          location: '',
-          priority: 'Medium',
-          status: 'Enquiry',
-          program: '',
-          source: '',
-          customSource: '',
-          remarks: '',
-        });
-        setSubmitted(false);
+        console.log('Navigating back to leads page');
+        navigate('/leads');
       }, 2000);
-
-    } catch (err) {
-      console.error('Add lead error:', err);
-      alert(err.message || 'Something went wrong');
+    } catch (error) {
+      console.error('Error updating lead:', error);
     }
   };
-
 
   const handleBack = () => {
     const confirmed = window.confirm(
@@ -139,7 +142,17 @@ export default function AddLeadPage() {
     }
   };
 
-
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 font-medium">Loading lead data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -154,8 +167,8 @@ export default function AddLeadPage() {
               <ArrowLeft size={24} />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Add New Lead</h1>
-              <p className="text-sm text-gray-600">Fill in the details to add a new lead to your CRM</p>
+              <h1 className="text-2xl font-bold text-gray-900">Edit Lead</h1>
+              <p className="text-sm text-gray-600">Update lead information in your CRM</p>
             </div>
           </div>
         </div>
@@ -169,12 +182,12 @@ export default function AddLeadPage() {
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
                 </svg>
               </div>
               <div>
                 <p className="text-sm font-medium text-green-800">
-                  Lead added successfully!
+                  Lead updated successfully!
                 </p>
               </div>
             </div>
@@ -311,14 +324,15 @@ export default function AddLeadPage() {
                   {['High', 'Medium', 'Low'].map(p => (
                     <label
                       key={p}
-                      className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg cursor-pointer transition-all ${formData.priority === p
-                        ? p === 'High'
-                          ? 'border-red-500 bg-red-50 text-red-700'
-                          : p === 'Medium'
+                      className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg cursor-pointer transition-all ${
+                        formData.priority === p
+                          ? p === 'High'
+                            ? 'border-red-500 bg-red-50 text-red-700'
+                            : p === 'Medium'
                             ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
                             : 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-300 hover:border-gray-400'
-                        }`}
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
                     >
                       <input
                         type="radio"
@@ -401,7 +415,7 @@ export default function AddLeadPage() {
               className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors duration-200"
             >
               <Save size={20} />
-              Save Lead
+              Update Lead
             </button>
             <button
               onClick={handleBack}
@@ -417,12 +431,12 @@ export default function AddLeadPage() {
           <div className="flex gap-3">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
               </svg>
             </div>
             <div>
               <p className="text-sm text-blue-700">
-                <strong>Note:</strong> Fields marked with <span className="text-red-500">*</span> are required. Make sure to fill them before saving the lead.
+                <strong>Note:</strong> Fields marked with <span className="text-red-500">*</span> are required. Make sure to fill them before updating the lead.
               </p>
             </div>
           </div>

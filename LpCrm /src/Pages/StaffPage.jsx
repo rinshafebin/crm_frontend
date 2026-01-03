@@ -1,13 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import Navbar from '../Components/Navbar';
+import { Search, Plus, Mail, Phone, MapPin, Edit, Trash2, Eye, UserCheck, UserX, Users, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-
-import StaffHeader from '../Components/staff/StaffHeader';
-import StaffStats from '../Components/staff/StaffStats';
-import StaffFilters from '../Components/staff/StaffFilters';
-import StaffGrid from '../Components/staff/StaffGrid';
-import StaffPagination from '../Components/staff/StaffPagination';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -26,16 +21,18 @@ export default function StaffPage() {
     currentPage: 1,
   });
 
-  /* ---------------- AUTH CHECK ---------------- */
+  
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       navigate('/login');
     }
   }, [authLoading, isAuthenticated, navigate]);
 
-  /* ---------------- AUTH FETCH ---------------- */
+  // Auth fetch wrapper
   const authFetch = useCallback(
     async (url, options = {}, retry = true) => {
+      if (!accessToken) throw new Error('No access token');
+
       const res = await fetch(url, {
         ...options,
         credentials: 'include',
@@ -50,118 +47,349 @@ export default function StaffPage() {
         if (!newToken) throw new Error('Session expired');
         return authFetch(url, options, false);
       }
+
       return res;
     },
     [accessToken, refreshAccessToken]
   );
 
-  /* ---------------- FETCH STAFF ---------------- */
-  const fetchStaff = useCallback(
-    async (page = 1, search = '') => {
-      if (!accessToken) return;
+  // Fetch staff members
+  const fetchStaff = useCallback(async (page = 1, search = '') => {
+    if (!accessToken) return;
 
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({ page });
-        if (search) params.append('search', search);
+    setLoading(true);
+    try {
+      const queryParams = new URLSearchParams();
+      if (search) queryParams.append('search', search);
+      queryParams.append('page', page);
 
-        const res = await authFetch(`${API_BASE_URL}/staffs/?${params}`);
-        const data = await res.json();
+      const res = await authFetch(`${API_BASE_URL}/staffs/?${queryParams.toString()}`);
+      const data = await res.json();
 
-        const mapped = data.results.map((staff) => ({
-          id: staff.id,
-          name: `${staff.first_name || ''} ${staff.last_name || ''}`.trim() || staff.username,
-          role: staff.role,
-          department: staff.team || 'Unassigned',
-          email: staff.email,
-          phone: staff.phone,
-          location: staff.location,
-          status: staff.is_active ? 'active' : 'inactive',
-          joinDate: new Date(staff.date_joined).toLocaleDateString('en-US', {
-            month: 'short',
-            day: '2-digit',
-            year: 'numeric',
-          }),
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${staff.username}`,
-        }));
+      // Map backend data to frontend format
+      const mappedStaff = data.results.map((staff) => ({
+        id: staff.id,
+        name: `${staff.first_name || ''} ${staff.last_name || ''}`.trim() || staff.username,
+        role: staff.role,
+        department: staff.team || 'Unassigned',
+        email: staff.email,
+        phone: staff.phone ,
+        location: staff.location ,
+        status: staff.is_active ? 'active' : 'inactive',
+        joinDate: new Date(staff.date_joined).toLocaleDateString('en-US', {
+          month: 'short',
+          day: '2-digit',
+          year: 'numeric',
+        }),
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${staff.username}`,
+      }));
 
-        setStaffMembers(mapped);
-        setPagination({
-          count: data.count,
-          next: data.next,
-          previous: data.previous,
-          currentPage: page,
-        });
-      } finally {
-        setLoading(false);
-      }
-    },
-    [accessToken, authFetch]
-  );
+      setStaffMembers(mappedStaff);
+      setPagination({
+        count: data.count,
+        next: data.next,
+        previous: data.previous,
+        currentPage: page,
+      });
+    } catch (err) {
+      console.error('Failed to load staff:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [accessToken, authFetch]);
 
+  // Initial fetch
   useEffect(() => {
-    if (!authLoading && accessToken) fetchStaff(1, searchTerm);
+    if (authLoading || !accessToken) return;
+    fetchStaff(1, searchTerm);
   }, [authLoading, accessToken]);
 
+  // Handle search with debounce
   useEffect(() => {
-    const t = setTimeout(() => fetchStaff(1, searchTerm), 500);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => {
+      if (!authLoading && accessToken) {
+        fetchStaff(1, searchTerm);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  /* ---------------- DERIVED DATA ---------------- */
+  // Delete staff member
+  const handleDelete = async (staffId) => {
+    if (!window.confirm('Are you sure you want to delete this staff member?')) return;
+
+    try {
+      await authFetch(`${API_BASE_URL}/staffs/${staffId}/delete/`, {
+        method: 'DELETE',
+      });
+      
+      // Refresh the list
+      fetchStaff(pagination.currentPage, searchTerm);
+      alert('Staff member deleted successfully');
+    } catch (err) {
+      console.error('Failed to delete staff:', err);
+      alert('Failed to delete staff member');
+    }
+  };
+
+  // Filter by department (frontend filtering)
   const filteredStaff = useMemo(() => {
     if (filterDepartment === 'all') return staffMembers;
-    return staffMembers.filter(s => s.department === filterDepartment);
+    return staffMembers.filter((staff) => staff.department === filterDepartment);
   }, [staffMembers, filterDepartment]);
 
-  const departments = useMemo(
-    () => [...new Set(staffMembers.map(s => s.department))].filter(d => d !== 'Unassigned'),
-    [staffMembers]
-  );
+  // Get unique departments
+  const departments = useMemo(() => {
+    const depts = new Set(staffMembers.map((s) => s.department));
+    return Array.from(depts).filter(d => d !== 'Unassigned');
+  }, [staffMembers]);
 
+  // Calculate stats
+  const stats = useMemo(() => {
+    const activeCount = staffMembers.filter(s => s.status === 'active').length;
+    const inactiveCount = staffMembers.filter(s => s.status === 'inactive').length;
+    
+    return [
+      { label: 'Total Staff', value: pagination.count.toString(), color: 'bg-blue-500', icon: Users },
+      { label: 'Active', value: activeCount.toString(), color: 'bg-green-500', icon: CheckCircle },
+      { label: 'On Leave', value: '0', color: 'bg-yellow-500', icon: Clock },
+      { label: 'Inactive', value: inactiveCount.toString(), color: 'bg-red-500', icon: XCircle }
+    ];
+  }, [staffMembers, pagination.count]);
+
+  // Pagination handlers
+  const handlePreviousPage = () => {
+    if (pagination.previous) {
+      fetchStaff(pagination.currentPage - 1, searchTerm);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (pagination.next) {
+      fetchStaff(pagination.currentPage + 1, searchTerm);
+    }
+  };
+
+  const handlePageClick = (page) => {
+    fetchStaff(page, searchTerm);
+  };
+
+  if (authLoading) {
+    return <div className="p-10 text-center">Checking session…</div>;
+  }
+
+  // Calculate total pages
   const totalPages = Math.ceil(pagination.count / 10);
-
-  /* ---------------- DELETE ---------------- */
-  const handleDelete = useCallback(async (id) => {
-    if (!window.confirm('Are you sure?')) return;
-    await authFetch(`${API_BASE_URL}/staffs/${id}/delete/`, { method: 'DELETE' });
-    fetchStaff(pagination.currentPage, searchTerm);
-  }, [authFetch, fetchStaff, pagination.currentPage, searchTerm]);
-
-  if (authLoading) return <div className="p-10 text-center">Checking session…</div>;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-
+      
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <StaffHeader onAdd={() => navigate('/staff/create')} />
+        {/* Page Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Staff Management</h1>
+              <p className="text-gray-600 mt-2">Manage your team members and their roles</p>
+            </div>
+            <button 
+              onClick={() => navigate('/staff/create')}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors duration-200"
+            >
+              <Plus size={20} />
+              Add Staff Member
+            </button>
+          </div>
+        </div>
 
-        <StaffStats staff={staffMembers} total={pagination.count} />
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {stats.map((stat, index) => {
+            const IconComponent = stat.icon;
+            return (
+              <div key={index} className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
+                    <h3 className="text-2xl font-bold text-gray-900 mt-2">{stat.value}</h3>
+                  </div>
+                  <div className={`${stat.color} w-12 h-12 rounded-lg flex items-center justify-center`}>
+                    <IconComponent className="text-white" size={24} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
-        <StaffFilters
-          searchTerm={searchTerm}
-          onSearch={setSearchTerm}
-          department={filterDepartment}
-          onDepartmentChange={setFilterDepartment}
-          departments={departments}
-        />
+        {/* Filters and Search */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="Search staff by name, role, or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
 
-        <StaffGrid
-          loading={loading}
-          staff={filteredStaff}
-          onView={(id) => navigate(`/staff/${id}`)}
-          onEdit={(id) => navigate(`/staff/${id}/edit`)}
-          onDelete={handleDelete}
-        />
+            <select
+              value={filterDepartment}
+              onChange={(e) => setFilterDepartment(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="all">All Departments</option>
+              {departments.map((dept) => (
+                <option key={dept} value={dept}>{dept}</option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-        <StaffPagination
-          totalPages={totalPages}
-          pagination={pagination}
-          onPrev={() => fetchStaff(pagination.currentPage - 1, searchTerm)}
-          onNext={() => fetchStaff(pagination.currentPage + 1, searchTerm)}
-          onPage={(p) => fetchStaff(p, searchTerm)}
-        />
+        {/* Loading State */}
+        {loading ? (
+          <div className="text-center py-10 text-gray-500">
+            Loading staff members…
+          </div>
+        ) : filteredStaff.length === 0 ? (
+          <div className="text-center py-10 text-gray-500">
+            No staff members found
+          </div>
+        ) : (
+          <>
+            {/* Staff Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredStaff.map((staff) => (
+                <div key={staff.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden">
+                  <div className="p-6">
+                    {/* Avatar and Status */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={staff.avatar} 
+                          alt={staff.name}
+                          className="w-16 h-16 rounded-full bg-gray-200"
+                        />
+                        <div>
+                          <h3 className="font-bold text-gray-900">{staff.name}</h3>
+                          <p className="text-sm text-gray-600">{staff.role}</p>
+                        </div>
+                      </div>
+                      {staff.status === 'active' ? (
+                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                          <UserCheck size={12} />
+                          Active
+                        </span>
+                      ) : (
+                        <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                          <UserX size={12} />
+                          Inactive
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Department */}
+                    <div className="mb-4">
+                      <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">
+                        {staff.department}
+                      </span>
+                    </div>
+
+                    {/* Contact Info */}
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Mail size={14} className="text-gray-400" />
+                        <span className="truncate">{staff.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Phone size={14} className="text-gray-400" />
+                        {staff.phone}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <MapPin size={14} className="text-gray-400" />
+                        <span className="truncate">{staff.location}</span>
+                      </div>
+                    </div>
+
+                    {/* Join Date */}
+                    <div className="text-xs text-gray-500 mb-4">
+                      Joined: {staff.joinDate}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 pt-4 border-t border-gray-200">
+                      <button 
+                        onClick={() => navigate(`/staff/${staff.id}`)}
+                        className="flex-1 px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                      >
+                        <Eye size={16} />
+                        View
+                      </button>
+                      <button 
+                        onClick={() => navigate(`/staff/${staff.id}/edit`)}
+                        className="flex-1 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                      >
+                        <Edit size={16} />
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(staff.id)}
+                        className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center">
+                <div className="flex gap-2">
+                  <button 
+                    onClick={handlePreviousPage}
+                    disabled={!pagination.previous}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Previous
+                  </button>
+                  
+                  {[...Array(Math.min(totalPages, 5))].map((_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageClick(pageNum)}
+                        className={`px-4 py-2 rounded-lg transition-colors duration-200 ${
+                          pagination.currentPage === pageNum
+                            ? 'bg-indigo-600 text-white'
+                            : 'border border-gray-300 hover:bg-white'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  
+                  <button 
+                    onClick={handleNextPage}
+                    disabled={!pagination.next}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

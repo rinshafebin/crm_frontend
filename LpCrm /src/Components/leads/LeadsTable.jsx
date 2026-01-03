@@ -1,7 +1,16 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Calendar, Edit, Trash2, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
 
 const LeadsTable = ({ leads, statusColors }) => {
+  const navigate = useNavigate();
+
+  const handleEdit = (id) => {
+    navigate(`/leads/edit/${id}`);
+  };
+
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="overflow-x-auto">
@@ -57,12 +66,13 @@ const LeadsTable = ({ leads, statusColors }) => {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
-                    <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors duration-200">
-                      <Eye size={18} />
-                    </button>
-                    <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200">
+                    <button
+                      onClick={() => handleEdit(lead.id)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                    >
                       <Edit size={18} />
                     </button>
+
                     <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
                       <Trash2 size={18} />
                     </button>

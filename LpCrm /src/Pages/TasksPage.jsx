@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbar from '../components/Navbar';
+import Navbar from '../Components/Navbar';
 import { Search, Plus, Calendar, Clock, User, Flag, CheckCircle, Circle, AlertCircle, ListTodo, Loader, CheckCheck, AlertTriangle } from 'lucide-react';
 
 export default function TasksPage() {

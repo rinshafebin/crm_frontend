@@ -1,3 +1,4 @@
+// src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
 const AuthContext = createContext(null);
@@ -63,15 +64,17 @@ export const AuthProvider = ({ children }) => {
       const storedUser = localStorage.getItem('user');
       
       if (storedUser) {
-        // User data exists, restore it
-        setUser(JSON.parse(storedUser));
-        
         // Try to get a fresh access token using the refresh cookie
         const newAccessToken = await refreshAccessToken();
         
-        if (!newAccessToken) {
-          // Refresh failed, user needs to login again
-          console.log('Session expired, please login again');
+        if (newAccessToken) {
+          // ✅ Only restore user if token refresh succeeded
+          setUser(JSON.parse(storedUser));
+        } else {
+          // ❌ Token refresh failed - clear everything
+          localStorage.removeItem('user');
+          setUser(null);
+          setAccessToken(null);
         }
       }
       
@@ -79,9 +82,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     initAuth();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
-
+  }, []); 
   return (
     <AuthContext.Provider
       value={{

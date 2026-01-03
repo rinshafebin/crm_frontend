@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, User, ArrowRight, GraduationCap } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, ArrowRight, GraduationCap, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
@@ -11,12 +11,26 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(''); // ✅ Add error state
+  const [errors, setErrors] = useState({}); // Changed to object for field-specific errors
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  const handleUsernameChange = useCallback((e) => setUsername(e.target.value), []);
-  const handlePasswordChange = useCallback((e) => setPassword(e.target.value), []);
+  const handleUsernameChange = useCallback((e) => {
+    setUsername(e.target.value);
+    // Clear username error when user types
+    if (errors.username) {
+      setErrors(prev => ({ ...prev, username: null }));
+    }
+  }, [errors.username]);
+
+  const handlePasswordChange = useCallback((e) => {
+    setPassword(e.target.value);
+    // Clear password error when user types
+    if (errors.password) {
+      setErrors(prev => ({ ...prev, password: null }));
+    }
+  }, [errors.password]);
+
   const togglePasswordVisibility = useCallback(() => setShowPassword(prev => !prev), []);
   const toggleRememberMe = useCallback(() => setRememberMe(prev => !prev), []);
 
@@ -24,7 +38,7 @@ export default function LoginPage() {
     async (e) => {
       e.preventDefault();
       setIsLoading(true);
-      setError(''); 
+      setErrors({}); // Clear all errors
 
       try {
         const response = await fetch(`${API_BASE_URL}/login/`, {
@@ -39,14 +53,33 @@ export default function LoginPage() {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.detail || 'Login failed');
+          // Handle different error formats from backend
+          if (data.non_field_errors) {
+            // General authentication errors
+            setErrors({ general: data.non_field_errors[0] || 'Login failed' });
+          } else if (data.detail) {
+            // Single detail message
+            setErrors({ general: data.detail });
+          } else {
+            // Field-specific errors (username, password, etc.)
+            const formattedErrors = {};
+            Object.keys(data).forEach(key => {
+              if (Array.isArray(data[key])) {
+                formattedErrors[key] = data[key][0];
+              } else {
+                formattedErrors[key] = data[key];
+              }
+            });
+            setErrors(formattedErrors);
+          }
+          return;
         }
 
         login({ access: data.access, user: data.user });        
         navigate('/');
       } catch (err) {
         console.error('Login error:', err.message);
-        setError(err.message);
+        setErrors({ general: 'Network error. Please try again.' });
       } finally {
         setIsLoading(false);
       }
@@ -120,10 +153,11 @@ export default function LoginPage() {
               <p className="text-gray-600">Sign in to access your dashboard</p>
             </div>
 
-            {/* ✅ ADD: Error message display */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-                <p className="text-red-600 text-sm">{error}</p>
+            {/* General Error Message */}
+            {errors.general && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+                <p className="text-red-600 text-sm">{errors.general}</p>
               </div>
             )}
 
@@ -133,7 +167,7 @@ export default function LoginPage() {
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">Username</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <User className="text-black-400" size={20} />
+                    <User className={errors.username ? "text-red-400" : "text-gray-400"} size={20} />
                   </div>
                   <input
                     id="username"
@@ -141,9 +175,19 @@ export default function LoginPage() {
                     value={username}
                     onChange={handleUsernameChange}
                     required
-                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                    className={`w-full pl-12 pr-4 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm ${
+                      errors.username 
+                        ? 'border-red-300 focus:ring-red-500' 
+                        : 'border-gray-300 focus:ring-indigo-500'
+                    }`}
                   />
                 </div>
+                {errors.username && (
+                  <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle size={14} />
+                    {errors.username}
+                  </p>
+                )}
               </div>
 
               {/* Password */}
@@ -151,7 +195,7 @@ export default function LoginPage() {
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock className="text-black-400" size={20} />
+                    <Lock className={errors.password ? "text-red-400" : "text-gray-400"} size={20} />
                   </div>
                   <input
                     id="password"
@@ -159,7 +203,11 @@ export default function LoginPage() {
                     value={password}
                     onChange={handlePasswordChange}
                     required
-                    className="w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                    className={`w-full pl-12 pr-12 py-3 border rounded-xl focus:ring-2 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm ${
+                      errors.password 
+                        ? 'border-red-300 focus:ring-red-500' 
+                        : 'border-gray-300 focus:ring-indigo-500'
+                    }`}
                   />
                   <button
                     type="button"
@@ -169,6 +217,12 @@ export default function LoginPage() {
                     {showPassword ? <EyeOff className="text-gray-400" size={20} /> : <Eye className="text-gray-400" size={20} />}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle size={14} />
+                    {errors.password}
+                  </p>
+                )}
               </div>
 
               {/* Remember Me */}

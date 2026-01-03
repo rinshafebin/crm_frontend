@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbar from '../components/Navbar';
+import Navbar from '../Components/Navbar';
 import { Plus } from 'lucide-react';
 import StatsCards from '../Components/students/StatsCards'
 import SearchFilters from '../Components/students/SearchFilters'

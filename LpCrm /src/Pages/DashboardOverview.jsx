@@ -11,7 +11,7 @@ import {
 import StatsGrid from '../components/dashboard/StatsGrid';
 import RecentActivities from '../components/dashboard/RecentActivities';
 import UpcomingTasks from '../components/dashboard/UpcomingTasks';
-import Navbar from '../components/Navbar';
+import Navbar from '../Components/Navbar';
 
 export default function DashboardOverview() {
   const stats = useMemo(() => [

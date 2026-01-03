@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import Navbar from '../components/Navbar';
+import Navbar from '../Components/Navbar'
 import NotificationsHeader from '../Components/notifications/NotificationsHeader';
 import NotificationsStats from '../components/notifications/NotificationsStats';
 import NotificationsFilter from '../components/notifications/NotificationsFilter';
