@@ -10,8 +10,8 @@ export default function AddLeadPage() {
     phone: '',
     email: '',
     location: '',
-    priority: 'Medium',
-    status: 'Enquiry',
+    priority: 'MEDIUM',
+    status: 'ENQUIRY',
     program: '',
     source: '',
     customSource: '',
@@ -26,8 +26,28 @@ export default function AddLeadPage() {
   const navigate = useNavigate();
 
 
-  const statusOptions = ['Enquiry', 'Qualified', 'Converted', 'Lost'];
-  const sourceOptions = ['WhatsApp', 'Instagram', 'Website', 'Walk-in', 'Automation', 'Other'];
+  const statusOptions = [
+    { value: 'ENQUIRY', label: 'Enquiry' },
+    { value: 'QUALIFIED', label: 'Qualified' },
+    { value: 'CONVERTED', label: 'Converted' },
+    { value: 'LOST', label: 'Lost' }
+  ];
+  
+  const sourceOptions = [
+    { value: 'WHATSAPP', label: 'WhatsApp' },
+    { value: 'INSTAGRAM', label: 'Instagram' },
+    { value: 'WEBSITE', label: 'Website' },
+    { value: 'WALK_IN', label: 'Walk-in' },
+    { value: 'AUTOMATION', label: 'Automation' },
+    { value: 'OTHER', label: 'Other' }
+  ];
+  
+  const priorityOptions = [
+    { value: 'HIGH', label: 'High' },
+    { value: 'MEDIUM', label: 'Medium' },
+    { value: 'LOW', label: 'Low' }
+  ];
+  
   const programOptions = [
     'Blockchain Development',
     'Digital Marketing',
@@ -50,47 +70,45 @@ export default function AddLeadPage() {
   const validateForm = () => {
     const newErrors = {};
 
+    // Required fields
     if (!formData.name.trim()) newErrors.name = 'Name is required';
+    else if (formData.name.trim().length < 3)
+      newErrors.name = 'Name must be at least 3 characters long';
+
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
+    else if (!/^\d{10,}$/.test(formData.phone.trim()))
+      newErrors.phone = 'Phone number must be at least 10 digits and digits only';
+
     if (!formData.source) newErrors.source = 'Source is required';
-    if (formData.source === 'Other' && !formData.customSource.trim()) {
+    if (formData.source === 'OTHER' && !formData.customSource.trim())
       newErrors.customSource = 'Please specify custom source';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) return; 
 
     const leadData = {
-      name: formData.name,
-      phone: formData.phone,
-      email: formData.email,
-      location: formData.location,
+      name: formData.name.trim(),
+      phone: formData.phone.trim(),
+      source: formData.source,
+      custom_source: formData.source === 'OTHER' ? formData.customSource.trim() : '',
+      email: formData.email?.trim() || null,
+      program: formData.program || null,
+      location: formData.location?.trim() || null,
       priority: formData.priority,
       status: formData.status,
-      program: formData.program,
-      source: formData.source === 'Other'
-        ? formData.customSource
-        : formData.source,
-      remarks: formData.remarks,
+      remarks: formData.remarks?.trim() || '',
     };
 
     try {
       let token = accessToken;
+      if (!token) token = await refreshAccessToken();
+      if (!token) throw new Error('Authentication required');
 
-
-      if (!token) {
-        token = await refreshAccessToken();
-        if (!token) throw new Error('Authentication required');
-      }
-
-      console.log('Submitting lead with data:', token);
       const res = await fetch(`${API_BASE_URL}/leads/create/`, {
         method: 'POST',
         headers: {
@@ -107,14 +125,15 @@ export default function AddLeadPage() {
 
       setSubmitted(true);
 
+      // Reset form after success
       setTimeout(() => {
         setFormData({
           name: '',
           phone: '',
           email: '',
           location: '',
-          priority: 'Medium',
-          status: 'Enquiry',
+          priority: 'MEDIUM',
+          status: 'ENQUIRY',
           program: '',
           source: '',
           customSource: '',
@@ -128,6 +147,7 @@ export default function AddLeadPage() {
       alert(err.message || 'Something went wrong');
     }
   };
+
 
 
   const handleBack = () => {
@@ -297,7 +317,7 @@ export default function AddLeadPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   {statusOptions.map(status => (
-                    <option key={status} value={status}>{status}</option>
+                    <option key={status.value} value={status.value}>{status.label}</option>
                   ))}
                 </select>
               </div>
@@ -308,13 +328,13 @@ export default function AddLeadPage() {
                   Priority Level
                 </label>
                 <div className="grid grid-cols-3 gap-4">
-                  {['High', 'Medium', 'Low'].map(p => (
+                  {priorityOptions.map(p => (
                     <label
-                      key={p}
-                      className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg cursor-pointer transition-all ${formData.priority === p
-                        ? p === 'High'
+                      key={p.value}
+                      className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg cursor-pointer transition-all ${formData.priority === p.value
+                        ? p.value === 'HIGH'
                           ? 'border-red-500 bg-red-50 text-red-700'
-                          : p === 'Medium'
+                          : p.value === 'MEDIUM'
                             ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
                             : 'border-green-500 bg-green-50 text-green-700'
                         : 'border-gray-300 hover:border-gray-400'
@@ -323,12 +343,12 @@ export default function AddLeadPage() {
                       <input
                         type="radio"
                         name="priority"
-                        value={p}
-                        checked={formData.priority === p}
+                        value={p.value}
+                        checked={formData.priority === p.value}
                         onChange={handleInputChange}
                         className="w-4 h-4"
                       />
-                      <span className="font-medium">{p}</span>
+                      <span className="font-medium">{p.label}</span>
                     </label>
                   ))}
                 </div>
@@ -347,14 +367,14 @@ export default function AddLeadPage() {
                 >
                   <option value="">Select source</option>
                   {sourceOptions.map(source => (
-                    <option key={source} value={source}>{source}</option>
+                    <option key={source.value} value={source.value}>{source.label}</option>
                   ))}
                 </select>
                 {errors.source && <p className="text-red-500 text-xs mt-1">{errors.source}</p>}
               </div>
 
               {/* Custom Source */}
-              {formData.source === 'Other' && (
+              {formData.source === 'OTHER' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Custom Source (Specify) <span className="text-red-500">*</span>

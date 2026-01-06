@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import Navbar from '../Components/Navbar';
 import LeadsPageHeader from '../components/leads/LeadsPageHeader';
 import LeadsStatsCards from '../components/leads/LeadsStatsCards';
@@ -8,25 +8,32 @@ import { Users, UserPlus, CheckCircle, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const PAGE_SIZE = 10;
 
 export default function LeadsPage() {
-  const {
-    accessToken,
-    refreshAccessToken,
-    loading: authLoading,
-  } = useAuth();
+  const { accessToken, refreshAccessToken, loading: authLoading } = useAuth();
 
   const [leads, setLeads] = useState([]);
+  const [stats, setStats] = useState({
+    new: 0,
+    qualified: 0,
+    converted: 0,
+  });
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(false);
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   const statusColors = useMemo(() => ({
     enquiry: 'bg-blue-100 text-blue-700',
     contacted: 'bg-yellow-100 text-yellow-700',
     qualified: 'bg-purple-100 text-purple-700',
     converted: 'bg-green-100 text-green-700',
-    lost: 'bg-red-100 text-red-700'
+    lost: 'bg-red-100 text-red-700',
   }), []);
 
   const authFetch = useCallback(
@@ -42,11 +49,9 @@ export default function LeadsPage() {
         },
       });
 
-      // Access token expired
       if (res.status === 401 && retry) {
         const newToken = await refreshAccessToken();
         if (!newToken) throw new Error('Session expired');
-
         return authFetch(url, options, false);
       }
 
@@ -61,26 +66,32 @@ export default function LeadsPage() {
     const fetchLeads = async () => {
       setLoading(true);
       try {
-        const res = await authFetch(`${API_BASE_URL}/leads/`);
+        const params = new URLSearchParams({
+          page,
+          ...(searchTerm && { search: searchTerm }),
+          ...(filterStatus !== 'all' && { status: filterStatus.toUpperCase() }),
+        });
+
+        const res = await authFetch(`${API_BASE_URL}/leads/?${params}`);
         const data = await res.json();
 
-        const mappedLeads = data.results.map((lead) => ({
-          id: lead.id,
-          name: lead.name,
-          phone: lead.phone,
-          email: '-',
-          location: '-',
-          status: lead.status.toLowerCase(),
-          source: lead.source,
-          interest: lead.program,
-          date: new Date(lead.created_at).toLocaleDateString('en-IN', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          }),
-        }));
+        setLeads(
+          data.results.leads.map((lead) => ({
+            id: lead.id,
+            name: lead.name,
+            phone: lead.phone,
+            email: lead.email || '-',
+            location: lead.location || '-',
+            status: lead.status.toLowerCase(),
+            source: lead.source,
+            interest: lead.program,
+            date: new Date(lead.created_at).toLocaleDateString('en-IN'),
+          }))
+        );
 
-        setLeads(mappedLeads);
+        setStats(data.results.stats);
+        setTotalCount(data.count);
+        setTotalPages(Math.ceil(data.count / PAGE_SIZE));
       } catch (err) {
         console.error('Failed to load leads:', err);
       } finally {
@@ -89,43 +100,14 @@ export default function LeadsPage() {
     };
 
     fetchLeads();
-  }, [authLoading, accessToken, authFetch]);
+  }, [authLoading, accessToken, authFetch, page, searchTerm, filterStatus]);
 
-
-  const filteredLeads = useMemo(() => {
-    return leads.filter((lead) => {
-      const matchesSearch =
-        lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lead.phone.includes(searchTerm);
-
-      const matchesStatus =
-        filterStatus === 'all' || lead.status === filterStatus;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [leads, searchTerm, filterStatus]);
-
-  const stats = useMemo(() => [
-    { label: 'Total Leads', value: leads.length, color: 'bg-blue-500', icon: Users },
-    {
-      label: 'New Leads',
-      value: leads.filter(l => l.status === 'enquiry').length,
-      color: 'bg-indigo-500',
-      icon: UserPlus
-    },
-    {
-      label: 'Qualified',
-      value: leads.filter(l => l.status === 'qualified').length,
-      color: 'bg-purple-500',
-      icon: CheckCircle
-    },
-    {
-      label: 'Converted',
-      value: leads.filter(l => l.status === 'converted').length,
-      color: 'bg-green-500',
-      icon: TrendingUp
-    }
-  ], [leads]);
+  const statsCards = useMemo(() => [
+    { label: 'Total Leads', value: totalCount, color: 'bg-blue-500', icon: Users },
+    { label: 'New Leads', value: stats.new, color: 'bg-indigo-500', icon: UserPlus },
+    { label: 'Qualified', value: stats.qualified, color: 'bg-purple-500', icon: CheckCircle },
+    { label: 'Converted', value: stats.converted, color: 'bg-green-500', icon: TrendingUp },
+  ], [totalCount, stats]);
 
   if (authLoading) {
     return <div className="p-10 text-center">Checking session…</div>;
@@ -139,24 +121,45 @@ export default function LeadsPage() {
         <LeadsPageHeader />
 
         {loading ? (
-          <div className="text-center py-10 text-gray-500">
-            Loading leads…
-          </div>
+          <div className="text-center py-10 text-gray-500">Loading leads…</div>
         ) : (
           <>
-            <LeadsStatsCards stats={stats} />
+            <LeadsStatsCards stats={statsCards} />
 
             <LeadsFilters
               searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
+              setSearchTerm={(v) => { setPage(1); setSearchTerm(v); }}
               filterStatus={filterStatus}
-              setFilterStatus={setFilterStatus}
+              setFilterStatus={(v) => { setPage(1); setFilterStatus(v); }}
             />
 
             <LeadsTable
-              leads={filteredLeads}
+              leads={leads}
               statusColors={statusColors}
             />
+
+            {/* Pagination */}
+            <div className="flex justify-between items-center mt-6">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage(p => p - 1)}
+                className="px-4 py-2 border rounded disabled:opacity-50"
+              >
+                Previous
+              </button>
+
+              <span className="text-sm text-gray-600">
+                Page {page} of {totalPages}
+              </span>
+
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage(p => p + 1)}
+                className="px-4 py-2 border rounded disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </>
         )}
       </div>

@@ -83,20 +83,6 @@ const LeadsTable = ({ leads, statusColors }) => {
           </tbody>
         </table>
       </div>
-
-      {/* Pagination */}
-      <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600">Showing 1 to 6 of 2,543 leads</p>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200">Previous</button>
-            <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200">1</button>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200">2</button>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200">3</button>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200">Next</button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

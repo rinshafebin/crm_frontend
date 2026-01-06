@@ -24,12 +24,13 @@ const LeadsFilters = ({ searchTerm, setSearchTerm, filterStatus, setFilterStatus
           className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           <option value="all">All Status</option>
-          <option value="new">New</option>
+          <option value="enquiry">Enquiry</option>
           <option value="contacted">Contacted</option>
           <option value="qualified">Qualified</option>
           <option value="converted">Converted</option>
           <option value="lost">Lost</option>
         </select>
+
 
         <button className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors duration-200">
           <Filter size={20} />
