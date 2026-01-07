@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
 import Login from './Pages/Login.jsx';
 import DashboardOverview from './Pages/DashboardOverview.jsx';
 import LeadsPage from './Pages/LeadsPage.jsx';
@@ -12,6 +11,8 @@ import NotificationsPage from './Pages/NotificationsPage.jsx';
 import AddLeadPage from './Pages/AddLeadPage.jsx';
 import AddStaffPage from './Pages/AddStaffPage.jsx';
 import EditLeadPage from './Pages/EditLeadPage.jsx';
+import EditStaffPage from './Pages/EditStaffPage.jsx';
+import TaskCreationForm from "./Pages/TaskCreationForm.jsx";
 
 import { useAuth } from './context/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -41,8 +42,10 @@ export default function App() {
 
         <Route path="/staff" element={<ProtectedRoute><StaffPage /></ProtectedRoute>} />
         <Route path="/staff/create" element={<ProtectedRoute><AddStaffPage /></ProtectedRoute>} />
+        <Route path="/staff/edit/:id" element={<ProtectedRoute><EditStaffPage /></ProtectedRoute>} />
 
         <Route path="/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
+        <Route path="/tasks/new" element={<ProtectedRoute><TaskCreationForm /></ProtectedRoute>} />
         <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
         <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />

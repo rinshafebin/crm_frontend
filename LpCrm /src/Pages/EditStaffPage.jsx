@@ -1,21 +1,68 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import StaffHeader from "../Components/staffs/newstaff/StaffHeader";
 import StaffActionButtons from "../Components/staffs/newstaff/StaffActionButtons";
 import PersonalInfoSection from "../Components/staffs/newstaff/PersonalInfoSection";
 import ProfessionalInfoSection from "../Components/staffs/newstaff/ProfessionalInfoSection";
-import SecuritySection from "../Components/staffs/newstaff/SecuritySection";
-import { initialFormData } from "../Components/utils/staffConstants";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-export default function AddStaffPage() {
+export default function EditStaffPage() {
+  const { id } = useParams();
   const { accessToken } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    username: '',
+    email: '',
+    phone: '',
+    location: '',
+    role: '',
+    team: '',
+    isActive: true
+  });
+  const [loading, setLoading] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchStaffDetails = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/staffs/${id}/`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!res.ok) {
+          console.error('Failed to fetch staff details');
+          navigate('/staff');
+          return;
+        }
+
+        const data = await res.json();
+        setFormData({
+          firstName: data.first_name || '',
+          lastName: data.last_name || '',
+          username: data.username || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          location: data.location || '',
+          role: data.role || '',
+          team: data.team || '',
+          isActive: data.is_active ?? true
+        });
+        setLoading(false);
+      } catch (err) {
+        console.error('Network error:', err);
+        navigate('/staff');
+      }
+    };
+
+    fetchStaffDetails();
+  }, [id, API_BASE_URL, accessToken, navigate]);
 
   const handleInputChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
@@ -41,14 +88,6 @@ export default function AddStaffPage() {
     }
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
     if (!formData.role) newErrors.role = 'Role is required';
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -69,12 +108,11 @@ export default function AddStaffPage() {
       role: formData.role,
       team: formData.team,
       is_active: formData.isActive,
-      password: formData.password
     };
 
     try {
-      const res = await fetch(`${API_BASE_URL}/staffs/create/`, {
-        method: 'POST',
+      const res = await fetch(`${API_BASE_URL}/staffs/${id}/update/`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
@@ -84,19 +122,18 @@ export default function AddStaffPage() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        console.error('Failed to add staff:', errorData);
+        console.error('Failed to update staff:', errorData);
         setErrors(errorData);
         return;
       }
 
       const data = await res.json();
-      console.log('Staff added:', data);
+      console.log('Staff updated:', data);
 
       setSubmitted(true);
       setTimeout(() => {
-        setFormData(initialFormData);
-        setSubmitted(false);
-      }, 2000);
+        navigate('/staff');
+      }, 1500);
 
     } catch (err) {
       console.error('Network error:', err);
@@ -112,10 +149,21 @@ export default function AddStaffPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading staff details...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <StaffHeader onBack={handleBack} />
+      <StaffHeader onBack={handleBack} title="Edit Staff Member" subtitle="Update staff member details" />
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -130,7 +178,7 @@ export default function AddStaffPage() {
               </div>
               <div>
                 <p className="text-sm font-medium text-green-800">
-                  Staff member added successfully!
+                  Staff member updated successfully!
                 </p>
               </div>
             </div>
@@ -151,15 +199,10 @@ export default function AddStaffPage() {
             onChange={handleInputChange}
           />
 
-          <SecuritySection
-            formData={formData}
-            errors={errors}
-            onChange={handleInputChange}
-          />
-
           <StaffActionButtons
             onSubmit={handleSubmit}
             onCancel={handleBack}
+            isEdit={true}
           />
         </div>
 
@@ -173,7 +216,7 @@ export default function AddStaffPage() {
             </div>
             <div>
               <p className="text-sm text-blue-700">
-                <strong>Note:</strong> Fields marked with <span className="text-red-500">*</span> are required. The staff member will receive login credentials via email once their account is created.
+                <strong>Note:</strong> Fields marked with <span className="text-red-500">*</span> are required. Password cannot be changed from this page.
               </p>
             </div>
           </div>

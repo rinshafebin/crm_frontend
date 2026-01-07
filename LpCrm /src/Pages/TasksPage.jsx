@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import Navbar from '../Components/Navbar';
+import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Calendar, Clock, User, Flag, CheckCircle, Circle, AlertCircle, ListTodo, Loader, CheckCheck, AlertTriangle } from 'lucide-react';
 
 export default function TasksPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
+  const navigate = useNavigate();
+
 
   const tasks = [
     {
@@ -121,7 +124,7 @@ export default function TasksPage() {
               <h1 className="text-3xl font-bold text-gray-900">Tasks Management</h1>
               <p className="text-gray-600 mt-2">Organize and track all your tasks</p>
             </div>
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors duration-200">
+            <button onClick={() => navigate('/tasks/new')} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors duration-200">
               <Plus size={20} />
               Create New Task
             </button>

@@ -324,14 +324,7 @@ export default function StaffPage() {
                     {/* Action Buttons */}
                     <div className="flex gap-2 pt-4 border-t border-gray-200">
                       <button 
-                        onClick={() => navigate(`/staff/${staff.id}`)}
-                        className="flex-1 px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-                      >
-                        <Eye size={16} />
-                        View
-                      </button>
-                      <button 
-                        onClick={() => navigate(`/staff/${staff.id}/edit`)}
+                        onClick={() => navigate(`/staff/edit/${staff.id}`)}
                         className="flex-1 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
                       >
                         <Edit size={16} />

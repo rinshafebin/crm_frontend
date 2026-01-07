@@ -1,16 +1,15 @@
-// src/components/staff/ProfessionalInfoSection.jsx
 import React from 'react';
 import { Briefcase, Shield, Users } from 'lucide-react';
 import { roleOptions, teamOptions } from '../../utils/staffConstants';
 
-export default function ProfessionalInfoSection({ formData, errors, onChange }) {
+const ProfessionalInfoSection = React.memo(({ formData, errors, onChange }) => {
   return (
-    <div className="mb-8 pt-8 border-t border-gray-200">
+    <div className="mb-6 sm:mb-8 pt-6 sm:pt-8 border-t border-gray-200">
       <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
         <Briefcase size={20} className="text-indigo-600" />
         Professional Information
       </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {/* Role */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
@@ -21,7 +20,7 @@ export default function ProfessionalInfoSection({ formData, errors, onChange }) 
             name="role"
             value={formData.role}
             onChange={onChange}
-            className={`w-full px-4 py-2 border ${errors.role ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+            className={`w-full px-3 sm:px-4 py-2 border ${errors.role ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base`}
           >
             <option value="">Select a role</option>
             {roleOptions.map(role => (
@@ -41,7 +40,7 @@ export default function ProfessionalInfoSection({ formData, errors, onChange }) 
             name="team"
             value={formData.team}
             onChange={onChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base"
           >
             <option value="">Select a team</option>
             {teamOptions.map(team => (
@@ -51,7 +50,7 @@ export default function ProfessionalInfoSection({ formData, errors, onChange }) 
         </div>
 
         {/* Status */}
-        <div className="flex items-center md:col-span-2">
+        <div className="flex items-center sm:col-span-2">
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -68,4 +67,8 @@ export default function ProfessionalInfoSection({ formData, errors, onChange }) 
       </div>
     </div>
   );
-}
+});
+
+ProfessionalInfoSection.displayName = 'ProfessionalInfoSection';
+
+export default ProfessionalInfoSection;
