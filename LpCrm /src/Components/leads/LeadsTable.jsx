@@ -1,9 +1,10 @@
 import React from 'react';
-import { Mail, Phone, MapPin, Calendar, Edit, Trash2, Eye } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Edit, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 
-const LeadsTable = ({ leads, statusColors }) => {
+
+const LeadsTable = ({ leads, statusColors, onDeleteLead }) => {
   const navigate = useNavigate();
 
   const handleEdit = (id) => {
@@ -73,7 +74,10 @@ const LeadsTable = ({ leads, statusColors }) => {
                       <Edit size={18} />
                     </button>
 
-                    <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
+                    <button
+                      onClick={() => onDeleteLead(lead.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                    >
                       <Trash2 size={18} />
                     </button>
                   </div>

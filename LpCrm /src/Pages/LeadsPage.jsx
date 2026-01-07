@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import Navbar from '../Components/Navbar';
-import LeadsPageHeader from '../components/leads/LeadsPageHeader';
-import LeadsStatsCards from '../components/leads/LeadsStatsCards';
-import LeadsFilters from '../components/leads/LeadsFilters';
-import LeadsTable from '../components/leads/LeadsTable';
+import LeadsPageHeader from '../Components/leads/LeadsPageHeader';
+import LeadsStatsCards from '../Components/leads/LeadsStatsCards';
+import LeadsFilters from '../Components/leads/LeadsFilters';
+import LeadsTable from '../Components/leads/LeadsTable';
 import { Users, UserPlus, CheckCircle, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -60,6 +60,34 @@ export default function LeadsPage() {
     [accessToken, refreshAccessToken]
   );
 
+  const handleDeleteLead = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this lead?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const res = await authFetch(
+        `${API_BASE_URL}/leads/${id}/`,
+        { method: 'DELETE' }
+      );
+
+      if (!res.ok) {
+        throw new Error('Delete failed');
+      }
+
+      // ✅ Update UI immediately
+      setLeads(prev => prev.filter(lead => lead.id !== id));
+      setTotalCount(prev => prev - 1);
+
+      alert('Lead deleted successfully');
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Failed to delete lead');
+    }
+  };
+
+
   useEffect(() => {
     if (authLoading || !accessToken) return;
 
@@ -80,8 +108,8 @@ export default function LeadsPage() {
             id: lead.id,
             name: lead.name,
             phone: lead.phone,
-            email: lead.email || '-',
-            location: lead.location || '-',
+            email: lead.email,
+            location: lead.location,
             status: lead.status.toLowerCase(),
             source: lead.source,
             interest: lead.program,
@@ -136,6 +164,7 @@ export default function LeadsPage() {
             <LeadsTable
               leads={leads}
               statusColors={statusColors}
+              onDeleteLead={handleDeleteLead}
             />
 
             {/* Pagination */}

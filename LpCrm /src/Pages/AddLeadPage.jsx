@@ -1,8 +1,12 @@
+// src/pages/AddLeadPage.jsx
 import React, { useState } from 'react';
-import { ArrowLeft, Save, User, Phone, Mail, MapPin, Tag, FileText, TrendingUp, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
+import LeadHeader from '../Components/leads/newlead/LeadHeader';
+import ContactInfoSection from '../Components/leads/newlead/ContactSection';
+import LeadDetailsSection from '../Components/leads/newlead/LeadDetailsSection';
+import AdditionalInfoSection from '../Components/leads/newlead/AdditionalInfoSection';
+import ActionButtons from '../Components/leads/newlead/ActionButtons';
 
 export default function AddLeadPage() {
   const [formData, setFormData] = useState({
@@ -24,40 +28,6 @@ export default function AddLeadPage() {
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
-
-
-  const statusOptions = [
-    { value: 'ENQUIRY', label: 'Enquiry' },
-    { value: 'QUALIFIED', label: 'Qualified' },
-    { value: 'CONVERTED', label: 'Converted' },
-    { value: 'LOST', label: 'Lost' }
-  ];
-  
-  const sourceOptions = [
-    { value: 'WHATSAPP', label: 'WhatsApp' },
-    { value: 'INSTAGRAM', label: 'Instagram' },
-    { value: 'WEBSITE', label: 'Website' },
-    { value: 'WALK_IN', label: 'Walk-in' },
-    { value: 'AUTOMATION', label: 'Automation' },
-    { value: 'OTHER', label: 'Other' }
-  ];
-  
-  const priorityOptions = [
-    { value: 'HIGH', label: 'High' },
-    { value: 'MEDIUM', label: 'Medium' },
-    { value: 'LOW', label: 'Low' }
-  ];
-  
-  const programOptions = [
-    'Blockchain Development',
-    'Digital Marketing',
-    'UI/UX Design',
-    'Web Development',
-    'Data Science',
-    'Mobile App Development',
-    'Cloud Computing',
-    'Cybersecurity'
-  ];
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -87,9 +57,8 @@ export default function AddLeadPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-
   const handleSubmit = async () => {
-    if (!validateForm()) return; 
+    if (!validateForm()) return;
 
     const leadData = {
       name: formData.name.trim(),
@@ -148,8 +117,6 @@ export default function AddLeadPage() {
     }
   };
 
-
-
   const handleBack = () => {
     const confirmed = window.confirm(
       'Are you sure you want to go back? Any unsaved changes will be lost.'
@@ -159,27 +126,9 @@ export default function AddLeadPage() {
     }
   };
 
-
-
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleBack}
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft size={24} />
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Add New Lead</h1>
-              <p className="text-sm text-gray-600">Fill in the details to add a new lead to your CRM</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <LeadHeader onBack={handleBack} />
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -203,233 +152,27 @@ export default function AddLeadPage() {
 
         {/* Form Card */}
         <div className="bg-white rounded-lg shadow-md p-8">
-          {/* Contact Information Section */}
-          <div className="mb-8">
-            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <User size={20} className="text-indigo-600" />
-              Contact Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Name */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="Enter lead's full name"
-                  className={`w-full px-4 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                />
-                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-              </div>
+          <ContactInfoSection 
+            formData={formData} 
+            errors={errors} 
+            onChange={handleInputChange} 
+          />
 
-              {/* Phone */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Phone size={16} className="text-gray-400" />
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="Enter phone number"
-                  className={`w-full px-4 py-2 border ${errors.phone ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                />
-                {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-              </div>
+          <LeadDetailsSection 
+            formData={formData} 
+            errors={errors} 
+            onChange={handleInputChange} 
+          />
 
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Mail size={16} className="text-gray-400" />
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="email@example.com"
-                  className={`w-full px-4 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                />
-                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-              </div>
+          <AdditionalInfoSection 
+            formData={formData} 
+            onChange={handleInputChange} 
+          />
 
-              {/* Location */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <MapPin size={16} className="text-gray-400" />
-                  Location
-                </label>
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  placeholder="Enter location"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Lead Details Section */}
-          <div className="mb-8 pt-8 border-t border-gray-200">
-            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <TrendingUp size={20} className="text-indigo-600" />
-              Lead Details
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Program */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Tag size={16} className="text-gray-400" />
-                  Program/Course
-                </label>
-                <select
-                  name="program"
-                  value={formData.program}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="">Select a program</option>
-                  {programOptions.map(program => (
-                    <option key={program} value={program}>{program}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Status */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Calendar size={16} className="text-gray-400" />
-                  Status
-                </label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  {statusOptions.map(status => (
-                    <option key={status.value} value={status.value}>{status.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Priority */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Priority Level
-                </label>
-                <div className="grid grid-cols-3 gap-4">
-                  {priorityOptions.map(p => (
-                    <label
-                      key={p.value}
-                      className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg cursor-pointer transition-all ${formData.priority === p.value
-                        ? p.value === 'HIGH'
-                          ? 'border-red-500 bg-red-50 text-red-700'
-                          : p.value === 'MEDIUM'
-                            ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
-                            : 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-300 hover:border-gray-400'
-                        }`}
-                    >
-                      <input
-                        type="radio"
-                        name="priority"
-                        value={p.value}
-                        checked={formData.priority === p.value}
-                        onChange={handleInputChange}
-                        className="w-4 h-4"
-                      />
-                      <span className="font-medium">{p.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Source */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Lead Source <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="source"
-                  value={formData.source}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-2 border ${errors.source ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                >
-                  <option value="">Select source</option>
-                  {sourceOptions.map(source => (
-                    <option key={source.value} value={source.value}>{source.label}</option>
-                  ))}
-                </select>
-                {errors.source && <p className="text-red-500 text-xs mt-1">{errors.source}</p>}
-              </div>
-
-              {/* Custom Source */}
-              {formData.source === 'OTHER' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Custom Source (Specify) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="customSource"
-                    value={formData.customSource}
-                    onChange={handleInputChange}
-                    placeholder="Enter custom source"
-                    className={`w-full px-4 py-2 border ${errors.customSource ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                  />
-                  {errors.customSource && <p className="text-red-500 text-xs mt-1">{errors.customSource}</p>}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Additional Information Section */}
-          <div className="mb-8 pt-8 border-t border-gray-200">
-            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <FileText size={20} className="text-indigo-600" />
-              Additional Information
-            </h2>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Remarks / Notes
-              </label>
-              <textarea
-                name="remarks"
-                value={formData.remarks}
-                onChange={handleInputChange}
-                rows="4"
-                placeholder="Add any additional notes or remarks about this lead..."
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-              />
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-6 border-t border-gray-200">
-            <button
-              onClick={handleSubmit}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors duration-200"
-            >
-              <Save size={20} />
-              Save Lead
-            </button>
-            <button
-              onClick={handleBack}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
-            >
-              Cancel
-            </button>
-          </div>
+          <ActionButtons 
+            onSave={handleSubmit} 
+            onCancel={handleBack} 
+          />
         </div>
 
         {/* Info Card */}

@@ -1,43 +1,16 @@
+// src/pages/AddStaffPage.jsx
 import React, { useState } from 'react';
-import { ArrowLeft, Save, User, Mail, Phone, MapPin, Briefcase, Users, Calendar, Shield } from 'lucide-react';
+import StaffHeader from '../Components/staffs/newstaff/StaffHeader';
+import PersonalInfoSection from '../Components/staffs/newstaff/ PersonalInfoSection'
+import ProfessionalInfoSection from '../Components/staffs/newstaff/ PersonalInfoSection'
+import SecuritySection from '../Components/staffs/newstaff/SecuritySection'
+import StaffActionButtons from '../Components/staffs/newstaff/StaffActionButtons'
+import { initialFormData } from '../Components/utils/staffConstants'
 
 export default function AddStaffPage() {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    username: '',
-    email: '',
-    phone: '',
-    location: '',
-    role: '',
-    team: '',
-    dateJoined: new Date().toISOString().split('T')[0],
-    isActive: true,
-    password: '',
-    confirmPassword: ''
-  });
-
+  const [formData, setFormData] = useState(initialFormData);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
-
-  const roleOptions = [
-    'Administrator',
-    'Manager',
-    'Team Lead',
-    'Senior Staff',
-    'Staff',
-    'Intern'
-  ];
-
-  const teamOptions = [
-    'Sales',
-    'Marketing',
-    'Development',
-    'Support',
-    'HR',
-    'Finance',
-    'Operations'
-  ];
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -104,20 +77,7 @@ export default function AddStaffPage() {
 
     // Reset form after 2 seconds
     setTimeout(() => {
-      setFormData({
-        firstName: '',
-        lastName: '',
-        username: '',
-        email: '',
-        phone: '',
-        location: '',
-        role: '',
-        team: '',
-        dateJoined: new Date().toISOString().split('T')[0],
-        isActive: true,
-        password: '',
-        confirmPassword: ''
-      });
+      setFormData(initialFormData);
       setSubmitted(false);
     }, 2000);
   };
@@ -132,22 +92,7 @@ export default function AddStaffPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleBack}
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft size={24} />
-            </button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Add New Staff Member</h1>
-              <p className="text-sm text-gray-600">Fill in the details to add a new team member</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <StaffHeader onBack={handleBack} />
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -171,251 +116,28 @@ export default function AddStaffPage() {
 
         {/* Form Card */}
         <div className="bg-white rounded-lg shadow-md p-8">
-          {/* Personal Information Section */}
-          <div className="mb-8">
-            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <User size={20} className="text-indigo-600" />
-              Personal Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* First Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  placeholder="Enter first name"
-                  className={`w-full px-4 py-2 border ${errors.firstName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                />
-                {errors.firstName && <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>}
-              </div>
+          <PersonalInfoSection 
+            formData={formData}
+            errors={errors}
+            onChange={handleInputChange}
+          />
 
-              {/* Last Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  placeholder="Enter last name"
-                  className={`w-full px-4 py-2 border ${errors.lastName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                />
-                {errors.lastName && <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>}
-              </div>
+          <ProfessionalInfoSection 
+            formData={formData}
+            errors={errors}
+            onChange={handleInputChange}
+          />
 
-              {/* Username */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Username <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  placeholder="Enter username"
-                  className={`w-full px-4 py-2 border ${errors.username ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                />
-                {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username}</p>}
-              </div>
+          <SecuritySection 
+            formData={formData}
+            errors={errors}
+            onChange={handleInputChange}
+          />
 
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Mail size={16} className="text-gray-400" />
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="email@example.com"
-                  className={`w-full px-4 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                />
-                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-              </div>
-
-              {/* Phone */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Phone size={16} className="text-gray-400" />
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+1 (555) 000-0000"
-                  className={`w-full px-4 py-2 border ${errors.phone ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                />
-                {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-              </div>
-
-              {/* Location */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <MapPin size={16} className="text-gray-400" />
-                  Location
-                </label>
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  placeholder="Enter location"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Professional Information Section */}
-          <div className="mb-8 pt-8 border-t border-gray-200">
-            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Briefcase size={20} className="text-indigo-600" />
-              Professional Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Role */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Shield size={16} className="text-gray-400" />
-                  Role <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-2 border ${errors.role ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                >
-                  <option value="">Select a role</option>
-                  {roleOptions.map(role => (
-                    <option key={role} value={role}>{role}</option>
-                  ))}
-                </select>
-                {errors.role && <p className="text-red-500 text-xs mt-1">{errors.role}</p>}
-              </div>
-
-              {/* Team */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Users size={16} className="text-gray-400" />
-                  Team/Department <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="team"
-                  value={formData.team}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-2 border ${errors.team ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                >
-                  <option value="">Select a team</option>
-                  {teamOptions.map(team => (
-                    <option key={team} value={team}>{team}</option>
-                  ))}
-                </select>
-                {errors.team && <p className="text-red-500 text-xs mt-1">{errors.team}</p>}
-              </div>
-
-              {/* Date Joined */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <Calendar size={16} className="text-gray-400" />
-                  Date Joined
-                </label>
-                <input
-                  type="date"
-                  name="dateJoined"
-                  value={formData.dateJoined}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-
-              {/* Status */}
-              <div className="flex items-center pt-8">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="isActive"
-                    checked={formData.isActive}
-                    onChange={handleInputChange}
-                    className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-2 focus:ring-indigo-500"
-                  />
-                  <span className="text-sm font-medium text-gray-700">
-                    Active Status (Staff member is active)
-                  </span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Security Section */}
-          <div className="mb-8 pt-8 border-t border-gray-200">
-            <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Shield size={20} className="text-indigo-600" />
-              Security Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Password */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="Enter password"
-                  className={`w-full px-4 py-2 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                />
-                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-                <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
-              </div>
-
-              {/* Confirm Password */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirm Password <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  placeholder="Confirm password"
-                  className={`w-full px-4 py-2 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                />
-                {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-6 border-t border-gray-200">
-            <button
-              onClick={handleSubmit}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors duration-200"
-            >
-              <Save size={20} />
-              Save Staff Member
-            </button>
-            <button
-              onClick={handleBack}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
-            >
-              Cancel
-            </button>
-          </div>
+          <StaffActionButtons 
+            onSubmit={handleSubmit}
+            onCancel={handleBack}
+          />
         </div>
 
         {/* Info Card */}

@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Save, User, Phone, Mail, MapPin, Tag, FileText, TrendingUp, Calendar, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function EditLeadPage() {
-  const leadId = '123'; 
+  const { accessToken, refreshAccessToken } = useAuth();
+  const { id: leadId } = useParams();
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -26,133 +30,140 @@ export default function EditLeadPage() {
   const statusOptions = ['Enquiry', 'Qualified', 'Converted', 'Lost'];
   const sourceOptions = ['WhatsApp', 'Instagram', 'Website', 'Walk-in', 'Automation', 'Other'];
   const programOptions = [
-    'Blockchain Development',
-    'Digital Marketing',
-    'UI/UX Design',
-    'Web Development',
-    'Data Science',
-    'Mobile App Development',
-    'Cloud Computing',
-    'Cybersecurity'
+    'Blockchain Development', 'Digital Marketing', 'UI/UX Design',
+    'Web Development', 'Data Science', 'Mobile App Development',
+    'Cloud Computing', 'Cybersecurity'
   ];
 
-  // Fetch lead data on component mount
+  // --- Auth fetch with token refresh ---
+  const authFetch = useCallback(async (url, options = {}, retry = true) => {
+    if (!accessToken) throw new Error('No access token');
+
+    const res = await fetch(url, {
+      ...options,
+      credentials: 'include',
+      headers: {
+        ...(options.headers || {}),
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+    });
+
+    if (res.status === 401 && retry) {
+      const newToken = await refreshAccessToken();
+      if (!newToken) throw new Error('Session expired');
+      return authFetch(url, options, false);
+    }
+
+    return res;
+  }, [accessToken, refreshAccessToken]);
+
+
   useEffect(() => {
     const fetchLeadData = async () => {
       setLoading(true);
       try {
-        const mockLeadData = {
-          name: 'John Doe',
-          phone: '+1234567890',
-          email: 'john.doe@example.com',
-          location: 'New York, USA',
-          priority: 'High',
-          status: 'Qualified',
-          program: 'Web Development',
-          source: 'Instagram',
-          customSource: '',
-          remarks: 'Interested in full-stack development course. Has prior experience with HTML/CSS.'
-        };
+        const res = await authFetch(`${API_BASE_URL}/leads/${leadId}/`);
+        if (!res.ok) throw new Error('Failed to fetch lead');
+        const lead = await res.json();
 
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Handle custom source
+        const isCustomSource = !sourceOptions.includes(lead.source);
 
-        // Check if source is custom (not in predefined options)
-        const isCustomSource = !sourceOptions.includes(mockLeadData.source);
-        
         setFormData({
-          ...mockLeadData,
-          source: isCustomSource ? 'Other' : mockLeadData.source,
-          customSource: isCustomSource ? mockLeadData.source : ''
+          name: lead.name || '',
+          phone: lead.phone || '',
+          email: lead.email || '',
+          location: lead.location || '',
+          priority: lead.priority || 'Medium',
+          status: lead.status || 'Enquiry',
+          program: lead.program || '',
+          source: isCustomSource ? 'Other' : lead.source,
+          customSource: isCustomSource ? lead.source : '',
+          remarks: lead.remarks || ''
         });
-      } catch (error) {
-        console.error('Error fetching lead data:', error);
+      } catch (err) {
+        console.error(err);
+        alert('Failed to load lead data');
       } finally {
         setLoading(false);
       }
     };
 
     fetchLeadData();
-  }, [leadId]);
+  }, [leadId, authFetch]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const validateForm = () => {
     const newErrors = {};
-
     if (!formData.name.trim()) newErrors.name = 'Name is required';
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
     if (!formData.source) newErrors.source = 'Source is required';
-    if (formData.source === 'Other' && !formData.customSource.trim()) {
-      newErrors.customSource = 'Please specify custom source';
-    }
-
+    if (formData.source === 'Other' && !formData.customSource.trim()) newErrors.customSource = 'Please specify custom source';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // --- Submit updated lead to backend ---
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
-    const leadData = {
+    const payload = {
       name: formData.name,
       phone: formData.phone,
       email: formData.email,
       location: formData.location,
       priority: formData.priority,
-      status: formData.status,
+      status: formData.status.toUpperCase(),
       program: formData.program,
-      source: formData.source === 'Other' ? formData.customSource : formData.source,
-      remarks: formData.remarks,
-      updatedAt: new Date().toISOString()
+      source: formData.source === 'Other'
+        ? formData.customSource
+        : formData.source,
+      remarks: formData.remarks
     };
 
+    // 🔒 IMPORTANT FIX (ADD THIS HERE)
+    if (!payload.email || payload.email.trim() === '') {
+      delete payload.email;
+    }
+
     try {
-      console.log('Lead Data Updated:', leadData);
+      const res = await authFetch(`${API_BASE_URL}/leads/${leadId}/`, {
+        method: 'PATCH',
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error('Failed to update lead');
 
       setSubmitted(true);
-
-      // Redirect after 2 seconds
-      setTimeout(() => {
-        console.log('Navigating back to leads page');
-        navigate('/leads');
-      }, 2000);
-    } catch (error) {
-      console.error('Error updating lead:', error);
+      setTimeout(() => navigate('/leads'), 1500);
+    } catch (err) {
+      console.error(err);
+      alert('Error updating lead');
     }
   };
 
+
   const handleBack = () => {
-    const confirmed = window.confirm(
-      'Are you sure you want to go back? Any unsaved changes will be lost.'
-    );
-    if (confirmed) {
+    if (window.confirm('Are you sure you want to go back? Unsaved changes will be lost.')) {
       navigate('/leads');
     }
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 font-medium">Loading lead data...</p>
-        </div>
+        <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
       </div>
     );
   }
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -182,7 +193,7 @@ export default function EditLeadPage() {
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
               </div>
               <div>
@@ -324,15 +335,14 @@ export default function EditLeadPage() {
                   {['High', 'Medium', 'Low'].map(p => (
                     <label
                       key={p}
-                      className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg cursor-pointer transition-all ${
-                        formData.priority === p
-                          ? p === 'High'
-                            ? 'border-red-500 bg-red-50 text-red-700'
-                            : p === 'Medium'
+                      className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg cursor-pointer transition-all ${formData.priority === p
+                        ? p === 'High'
+                          ? 'border-red-500 bg-red-50 text-red-700'
+                          : p === 'Medium'
                             ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
                             : 'border-green-500 bg-green-50 text-green-700'
-                          : 'border-gray-300 hover:border-gray-400'
-                      }`}
+                        : 'border-gray-300 hover:border-gray-400'
+                        }`}
                     >
                       <input
                         type="radio"
@@ -431,7 +441,7 @@ export default function EditLeadPage() {
           <div className="flex gap-3">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
             </div>
             <div>

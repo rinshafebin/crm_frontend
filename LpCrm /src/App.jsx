@@ -40,7 +40,7 @@ export default function App() {
         <Route path="/addnewlead" element={<ProtectedRoute><AddLeadPage /></ProtectedRoute>} />
 
         <Route path="/staff" element={<ProtectedRoute><StaffPage /></ProtectedRoute>} />
-        <Route path="/staff/add" element={<ProtectedRoute><AddStaffPage /></ProtectedRoute>} />
+        <Route path="/staff/create" element={<ProtectedRoute><AddStaffPage /></ProtectedRoute>} />
 
         <Route path="/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
         <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
