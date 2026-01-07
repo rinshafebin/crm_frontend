@@ -1,6 +1,6 @@
 // src/components/staff/ProfessionalInfoSection.jsx
 import React from 'react';
-import { Briefcase, Shield, Users, Calendar } from 'lucide-react';
+import { Briefcase, Shield, Users } from 'lucide-react';
 import { roleOptions, teamOptions } from '../../utils/staffConstants';
 
 export default function ProfessionalInfoSection({ formData, errors, onChange }) {
@@ -25,7 +25,7 @@ export default function ProfessionalInfoSection({ formData, errors, onChange }) 
           >
             <option value="">Select a role</option>
             {roleOptions.map(role => (
-              <option key={role} value={role}>{role}</option>
+              <option key={role.value} value={role.value}>{role.label}</option>
             ))}
           </select>
           {errors.role && <p className="text-red-500 text-xs mt-1">{errors.role}</p>}
@@ -35,39 +35,23 @@ export default function ProfessionalInfoSection({ formData, errors, onChange }) 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
             <Users size={16} className="text-gray-400" />
-            Team/Department <span className="text-red-500">*</span>
+            Team/Department
           </label>
           <select
             name="team"
             value={formData.team}
             onChange={onChange}
-            className={`w-full px-4 py-2 border ${errors.team ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <option value="">Select a team</option>
             {teamOptions.map(team => (
               <option key={team} value={team}>{team}</option>
             ))}
           </select>
-          {errors.team && <p className="text-red-500 text-xs mt-1">{errors.team}</p>}
-        </div>
-
-        {/* Date Joined */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-            <Calendar size={16} className="text-gray-400" />
-            Date Joined
-          </label>
-          <input
-            type="date"
-            name="dateJoined"
-            value={formData.dateJoined}
-            onChange={onChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
         </div>
 
         {/* Status */}
-        <div className="flex items-center pt-8">
+        <div className="flex items-center md:col-span-2">
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"

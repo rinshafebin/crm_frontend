@@ -1,16 +1,22 @@
-// src/pages/AddStaffPage.jsx
-import React, { useState } from 'react';
-import StaffHeader from '../Components/staffs/newstaff/StaffHeader';
-import PersonalInfoSection from '../Components/staffs/newstaff/ PersonalInfoSection'
-import ProfessionalInfoSection from '../Components/staffs/newstaff/ PersonalInfoSection'
-import SecuritySection from '../Components/staffs/newstaff/SecuritySection'
-import StaffActionButtons from '../Components/staffs/newstaff/StaffActionButtons'
-import { initialFormData } from '../Components/utils/staffConstants'
+import React, { useState } from "react";
+import StaffHeader from "../Components/staffs/newstaff/StaffHeader";
+import StaffActionButtons from "../Components/staffs/newstaff/StaffActionButtons";
+import PersonalInfoSection from "../Components/staffs/newstaff/PersonalInfoSection";
+import ProfessionalInfoSection from "../Components/staffs/newstaff/ProfessionalInfoSection";
+import SecuritySection from "../Components/staffs/newstaff/SecuritySection";
+import { initialFormData } from "../Components/utils/staffConstants";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function AddStaffPage() {
+  const { accessToken } = useAuth();
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
   const [formData, setFormData] = useState(initialFormData);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
+
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -18,7 +24,6 @@ export default function AddStaffPage() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -37,7 +42,6 @@ export default function AddStaffPage() {
     }
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
     if (!formData.role) newErrors.role = 'Role is required';
-    if (!formData.team) newErrors.team = 'Team is required';
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
@@ -51,12 +55,11 @@ export default function AddStaffPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
 
-    // Prepare data for submission
     const staffData = {
       first_name: formData.firstName,
       last_name: formData.lastName,
@@ -66,26 +69,48 @@ export default function AddStaffPage() {
       location: formData.location,
       role: formData.role,
       team: formData.team,
-      date_joined: formData.dateJoined,
       is_active: formData.isActive,
       password: formData.password
     };
 
-    console.log('Staff Data Submitted:', staffData);
+    try {
+      const res = await fetch(`${API_BASE_URL}/staffs/create/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(staffData),
+      });
 
-    setSubmitted(true);
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('Failed to add staff:', errorData);
+        setErrors(errorData); // Optional: show backend errors
+        return;
+      }
 
-    // Reset form after 2 seconds
-    setTimeout(() => {
-      setFormData(initialFormData);
-      setSubmitted(false);
-    }, 2000);
+      const data = await res.json();
+      console.log('Staff added:', data);
+
+      setSubmitted(true);
+      setTimeout(() => {
+        setFormData(initialFormData);
+        setSubmitted(false);
+      }, 2000);
+
+    } catch (err) {
+      console.error('Network error:', err);
+    }
   };
 
+
   const handleBack = () => {
-    if (window.confirm('Are you sure you want to go back? Any unsaved changes will be lost.')) {
-      console.log('Navigating back to staff page');
-      // In real app: navigate('/staff')
+    const confirmed = window.confirm(
+      'Are you sure you want to go back? Any unsaved changes will be lost.'
+    );
+    if (confirmed) {
+      navigate('/staff');
     }
   };
 
@@ -102,7 +127,7 @@ export default function AddStaffPage() {
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
               </div>
               <div>
@@ -116,25 +141,25 @@ export default function AddStaffPage() {
 
         {/* Form Card */}
         <div className="bg-white rounded-lg shadow-md p-8">
-          <PersonalInfoSection 
+          <PersonalInfoSection
             formData={formData}
             errors={errors}
             onChange={handleInputChange}
           />
 
-          <ProfessionalInfoSection 
+          <ProfessionalInfoSection
             formData={formData}
             errors={errors}
             onChange={handleInputChange}
           />
 
-          <SecuritySection 
+          <SecuritySection
             formData={formData}
             errors={errors}
             onChange={handleInputChange}
           />
 
-          <StaffActionButtons 
+          <StaffActionButtons
             onSubmit={handleSubmit}
             onCancel={handleBack}
           />
@@ -145,7 +170,7 @@ export default function AddStaffPage() {
           <div className="flex gap-3">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
             </div>
             <div>

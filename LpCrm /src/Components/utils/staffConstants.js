@@ -34,7 +34,6 @@ export const initialFormData = {
   location: '',
   role: '',
   team: '',
-  dateJoined: new Date().toISOString().split('T')[0],
   isActive: true,
   password: '',
   confirmPassword: ''
