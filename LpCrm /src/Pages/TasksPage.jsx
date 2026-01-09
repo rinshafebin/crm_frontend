@@ -1,121 +1,221 @@
-import React, { useState } from 'react';
 import Navbar from '../Components/Navbar';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Calendar, Clock, User, Flag, CheckCircle, Circle, AlertCircle, ListTodo, Loader, CheckCheck, AlertTriangle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
+
+import {
+  Search, Plus, Calendar, User, Flag,
+  CheckCircle, Circle, AlertCircle,
+  ListTodo, Loader, CheckCheck,
+  AlertTriangle, XCircle
+} from 'lucide-react';
 
 export default function TasksPage() {
+  const navigate = useNavigate();
+  const { accessToken, refreshAccessToken } = useAuth();
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  const [tasks, setTasks] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [count, setCount] = useState(0);
+  const [teamMembers, setTeamMembers] = useState([]);
+
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrev, setHasPrev] = useState(false);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
-  const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const tasks = [
-    {
-      id: 1,
-      title: 'Review student applications',
-      description: 'Review and approve pending student applications for the new semester',
-      assignedTo: 'Sarah Wilson',
-      dueDate: 'Dec 30, 2025',
-      priority: 'high',
-      status: 'in-progress',
-      category: 'Academic'
-    },
-    {
-      id: 2,
-      title: 'Prepare monthly report',
-      description: 'Compile and prepare the monthly performance report for management',
-      assignedTo: 'John Anderson',
-      dueDate: 'Dec 31, 2025',
-      priority: 'high',
-      status: 'pending',
-      category: 'Reporting'
-    },
-    {
-      id: 3,
-      title: 'Update course curriculum',
-      description: 'Update the web development course curriculum with new content',
-      assignedTo: 'Michael Brown',
-      dueDate: 'Jan 05, 2026',
-      priority: 'medium',
-      status: 'in-progress',
-      category: 'Academic'
-    },
-    {
-      id: 4,
-      title: 'Follow up with leads',
-      description: 'Contact all new leads from the past week',
-      assignedTo: 'Emily Davis',
-      dueDate: 'Dec 29, 2025',
-      priority: 'high',
-      status: 'pending',
-      category: 'Sales'
-    },
-    {
-      id: 5,
-      title: 'System maintenance',
-      description: 'Perform routine system maintenance and updates',
-      assignedTo: 'David Miller',
-      dueDate: 'Jan 02, 2026',
-      priority: 'low',
-      status: 'pending',
-      category: 'Technical'
-    },
-    {
-      id: 6,
-      title: 'Staff training session',
-      description: 'Conduct training session for new staff members',
-      assignedTo: 'Jessica Wilson',
-      dueDate: 'Dec 28, 2025',
-      priority: 'medium',
-      status: 'completed',
-      category: 'HR'
-    },
-    {
-      id: 7,
-      title: 'Marketing campaign planning',
-      description: 'Plan Q1 marketing campaigns and budget allocation',
-      assignedTo: 'Amanda Thompson',
-      dueDate: 'Jan 10, 2026',
-      priority: 'medium',
-      status: 'pending',
-      category: 'Marketing'
-    },
-    {
-      id: 8,
-      title: 'Client meeting preparation',
-      description: 'Prepare presentation materials for upcoming client meeting',
-      assignedTo: 'Robert Johnson',
-      dueDate: 'Dec 29, 2025',
-      priority: 'high',
-      status: 'in-progress',
-      category: 'Business'
-    }
-  ];
-
-  const stats = [
-    { label: 'Total Tasks', value: '127', color: 'bg-blue-500', icon: ListTodo },
-    { label: 'In Progress', value: '45', color: 'bg-yellow-500', icon: Loader },
-    { label: 'Completed', value: '68', color: 'bg-green-500', icon: CheckCheck },
-    { label: 'Overdue', value: '14', color: 'bg-red-500', icon: AlertTriangle }
-  ];
+  const statsData = stats ? [
+    { label: 'Total Tasks', value: stats.total, icon: ListTodo, color: 'bg-blue-500' },
+    { label: 'In Progress', value: stats.in_progress, icon: Loader, color: 'bg-yellow-500' },
+    { label: 'Completed', value: stats.completed, icon: CheckCheck, color: 'bg-green-500' },
+    { label: 'Overdue', value: stats.overdue, icon: AlertTriangle, color: 'bg-red-500' },
+  ] : [];
 
   const priorityColors = {
-    high: 'bg-red-100 text-red-700 border-red-300',
-    medium: 'bg-yellow-100 text-yellow-700 border-yellow-300',
-    low: 'bg-green-100 text-green-700 border-green-300'
+    URGENT: 'bg-red-100 text-red-700 border-red-300',
+    HIGH: 'bg-orange-100 text-orange-700 border-orange-300',
+    MEDIUM: 'bg-yellow-100 text-yellow-700 border-yellow-300',
+    LOW: 'bg-green-100 text-green-700 border-green-300'
   };
 
   const statusIcons = {
-    pending: <Circle className="text-gray-400" size={20} />,
-    'in-progress': <AlertCircle className="text-yellow-500" size={20} />,
-    completed: <CheckCircle className="text-green-500" size={20} />
+    PENDING: <Circle className="text-gray-400" size={20} />,
+    IN_PROGRESS: <AlertCircle className="text-yellow-500" size={20} />,
+    COMPLETED: <CheckCircle className="text-green-500" size={20} />,
+    OVERDUE: <AlertTriangle className="text-red-500" size={20} />,
+    CANCELLED: <XCircle className="text-gray-500" size={20} />
   };
+
+  const statusColors = {
+    PENDING: 'bg-gray-100 text-gray-700',
+    IN_PROGRESS: 'bg-yellow-100 text-yellow-700',
+    COMPLETED: 'bg-green-100 text-green-700',
+    OVERDUE: 'bg-red-100 text-red-700',
+    CANCELLED: 'bg-gray-100 text-gray-600'
+  };
+
+  // Fetch team members
+  useEffect(() => {
+    const fetchTeamMembers = async () => {
+      try {
+        let token = accessToken || await refreshAccessToken();
+        if (!token) return;
+
+        const response = await fetch(`${API_BASE_URL}/tasks/employees/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setTeamMembers(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch team members:', err);
+      }
+    };
+
+    fetchTeamMembers();
+  }, [accessToken, refreshAccessToken, API_BASE_URL]);
+
+  // Fetch tasks
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        let token = accessToken || await refreshAccessToken();
+        if (!token) throw new Error('Authentication required');
+
+        const response = await fetch(
+          `${API_BASE_URL}/tasks/?page=${page}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!response.ok) throw new Error('Failed to fetch tasks');
+
+        const data = await response.json();
+
+        setTasks(data.results);
+        setStats(data.stats);
+        setCount(data.count);
+        setHasNext(Boolean(data.next));
+        setHasPrev(Boolean(data.previous));
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, [page, accessToken, refreshAccessToken, API_BASE_URL]);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No deadline';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const handleMarkComplete = async (taskId) => {
+    try {
+      let token = accessToken || await refreshAccessToken();
+      if (!token) throw new Error('Authentication required');
+
+      const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/status/`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'COMPLETED',
+          notes: 'Marked as completed'
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to update task status');
+
+      // Refresh tasks
+      const tasksResponse = await fetch(
+        `${API_BASE_URL}/tasks/?page=${page}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (tasksResponse.ok) {
+        const data = await tasksResponse.json();
+        setTasks(data.results);
+        setStats(data.stats);
+      }
+    } catch (err) {
+      console.error('Error marking task as complete:', err);
+      alert('Failed to update task status');
+    }
+  };
+
+  const filteredTasks = tasks.filter(task => {
+    const matchesSearch =
+      task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      task.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      filterStatus === 'all' || task.status === filterStatus;
+
+    const matchesPriority =
+      filterPriority === 'all' || task.priority === filterPriority;
+
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex justify-center items-center h-[calc(100vh-64px)]">
+          <Loader className="animate-spin text-indigo-600" size={48} />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex justify-center items-center h-[calc(100vh-64px)]">
+          <p className="text-red-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">
@@ -124,7 +224,10 @@ export default function TasksPage() {
               <h1 className="text-3xl font-bold text-gray-900">Tasks Management</h1>
               <p className="text-gray-600 mt-2">Organize and track all your tasks</p>
             </div>
-            <button onClick={() => navigate('/tasks/new')} className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors duration-200">
+            <button
+              onClick={() => navigate('/tasks/new')}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors duration-200"
+            >
               <Plus size={20} />
               Create New Task
             </button>
@@ -133,7 +236,7 @@ export default function TasksPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => {
+          {statsData.map((stat, index) => {
             const IconComponent = stat.icon;
             return (
               <div key={index} className="bg-white rounded-lg shadow-md p-6">
@@ -171,9 +274,11 @@ export default function TasksPage() {
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
+              <option value="PENDING">Pending</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="OVERDUE">Overdue</option>
+              <option value="CANCELLED">Cancelled</option>
             </select>
 
             <select
@@ -182,77 +287,149 @@ export default function TasksPage() {
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="all">All Priority</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
+              <option value="URGENT">Urgent</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
             </select>
           </div>
         </div>
 
         {/* Tasks List */}
-        <div className="space-y-4">
-          {tasks.map((task) => (
-            <div key={task.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                {/* Task Info */}
-                <div className="flex items-start gap-4 flex-1">
-                  <div className="mt-1">
-                    {statusIcons[task.status]}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${priorityColors[task.priority]}`}>
-                        {task.priority.toUpperCase()}
-                      </span>
+        {filteredTasks.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-md p-12 text-center">
+            <ListTodo className="mx-auto text-gray-400 mb-4" size={48} />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks found</h3>
+            <p className="text-gray-600 mb-6">
+              {tasks.length === 0
+                ? "Get started by creating your first task"
+                : "Try adjusting your search or filters"}
+            </p>
+            {tasks.length === 0 && (
+              <button
+                onClick={() => navigate('/tasks/new')}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2"
+              >
+                <Plus size={20} />
+                Create Task
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredTasks.map((task) => (
+              <div key={task.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  {/* Task Info */}
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className="mt-1">
+                      {statusIcons[task.status]}
                     </div>
-                    <p className="text-gray-600 text-sm mb-3">{task.description}</p>
-                    
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <User size={16} className="text-gray-400" />
-                        {task.assignedTo}
+                    <div className="flex-1">
+                      <div className="flex items-start gap-3 mb-2 flex-wrap">
+                        <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${priorityColors[task.priority]}`}>
+                          {task.priority}
+                        </span>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[task.status]}`}>
+                          {task.status.replace('_', ' ')}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar size={16} className="text-gray-400" />
-                        {task.dueDate}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Flag size={16} className="text-gray-400" />
-                        {task.category}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{task.description}</p>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  <button className="px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors duration-200 text-sm font-medium">
-                    View Details
-                  </button>
-                  <button className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 text-sm font-medium">
-                    Edit
-                  </button>
-                  {task.status !== 'completed' && (
-                    <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm font-medium">
-                      Mark Complete
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <User size={16} className="text-gray-400" />
+                          <span className="font-medium">Assigned to:</span> {task.assigned_to_name}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <User size={16} className="text-gray-400" />
+                          <span className="font-medium">Assigned by:</span> {task.assigned_by_name}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar size={16} className="text-gray-400" />
+                          <span className="font-medium">Deadline:</span> {formatDate(task.deadline)}
+                        </div>
+                        {task.is_overdue && task.overdue_days > 0 && (
+                          <div className="flex items-center gap-2 text-red-600">
+                            <AlertTriangle size={16} />
+                            <span className="font-medium">{task.overdue_days} days overdue</span>
+                          </div>
+                        )}
+                        {!task.is_overdue && task.days_until_deadline > 0 && (
+                          <div className="flex items-center gap-2 text-blue-600">
+                            <Flag size={16} />
+                            <span className="font-medium">{task.days_until_deadline} days remaining</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => navigate(`/tasks/${task.id}`)}
+                      className="px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors duration-200 text-sm font-medium"
+                    >
+                      View Details
                     </button>
-                  )}
+                    <button
+                      onClick={() => navigate(`/tasks/${task.id}/edit`)}
+                      className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 text-sm font-medium"
+                    >
+                      Edit
+                    </button>
+                    {task.status !== 'COMPLETED' && task.status !== 'CANCELLED' && (
+                      <button
+                        onClick={() => handleMarkComplete(task.id)}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm font-medium"
+                      >
+                        Mark Complete
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Pagination */}
-        <div className="mt-8 flex items-center justify-center">
-          <div className="flex gap-2">
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200">Previous</button>
-            <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200">1</button>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200">2</button>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200">Next</button>
+        {(hasNext || hasPrev) && (
+          <div className="mt-6 flex justify-center gap-2">
+            <button
+              onClick={() => setPage(page - 1)}
+              disabled={!hasPrev}
+              className={`px-4 py-2 rounded-lg font-medium ${
+                hasPrev
+                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              Previous
+            </button>
+            <span className="px-4 py-2 text-gray-700 font-medium">Page {page}</span>
+            <button
+              onClick={() => setPage(page + 1)}
+              disabled={!hasNext}
+              className={`px-4 py-2 rounded-lg font-medium ${
+                hasNext
+                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              Next
+            </button>
           </div>
-        </div>
+        )}
+
+        {/* Results count */}
+        {filteredTasks.length > 0 && (
+          <div className="mt-6 text-center text-sm text-gray-600">
+            Showing {filteredTasks.length} of {tasks.length} tasks
+          </div>
+        )}
       </div>
     </div>
   );

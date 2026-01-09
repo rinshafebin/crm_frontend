@@ -13,7 +13,8 @@ import AddStaffPage from './Pages/AddStaffPage.jsx';
 import EditLeadPage from './Pages/EditLeadPage.jsx';
 import EditStaffPage from './Pages/EditStaffPage.jsx';
 import TaskCreationForm from "./Pages/TaskCreationForm.jsx";
-
+import TaskViewPage from "./Pages/TaskViewPage.jsx";
+import EditTaskPage from "./Pages/EditTaskPage.jsx";
 import { useAuth } from './context/AuthContext';
 import { Navigate } from 'react-router-dom';
 
@@ -46,6 +47,9 @@ export default function App() {
 
         <Route path="/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
         <Route path="/tasks/new" element={<ProtectedRoute><TaskCreationForm /></ProtectedRoute>} />
+        <Route path="/tasks/:id" element={<ProtectedRoute><TaskViewPage /></ProtectedRoute>} />
+        <Route path="/tasks/:id/edit" element={<ProtectedRoute><EditTaskPage /></ProtectedRoute>} />
+
         <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
         <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />

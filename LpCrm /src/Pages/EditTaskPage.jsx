@@ -1,21 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, User, Flag, FileText, ArrowLeft, AlertCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { 
+  Calendar, 
+  User, 
+  Flag, 
+  FileText, 
+  ArrowLeft, 
+  AlertCircle,
+  Loader,
+  Save
+} from 'lucide-react';
 
-export default function TaskCreationForm() {
+export default function EditTaskPage() {
+  const { id } = useParams();
   const navigate = useNavigate();
   const { accessToken, refreshAccessToken } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  
   const [teamMembers, setTeamMembers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [initialTask, setInitialTask] = useState(null);
 
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     assignTo: '',
     priority: 'MEDIUM',
+    status: 'PENDING',
     deadline: '',
   });
 
@@ -26,10 +40,80 @@ export default function TaskCreationForm() {
     { value: 'URGENT', label: 'Urgent', color: 'bg-red-50 border-red-300 text-red-700', icon: '⬤' },
   ];
 
+  const statuses = [
+    { value: 'PENDING', label: 'Pending', color: 'bg-gray-50 border-gray-300 text-gray-700' },
+    { value: 'IN_PROGRESS', label: 'In Progress', color: 'bg-yellow-50 border-yellow-300 text-yellow-700' },
+    { value: 'COMPLETED', label: 'Completed', color: 'bg-green-50 border-green-300 text-green-700' },
+    { value: 'CANCELLED', label: 'Cancelled', color: 'bg-slate-50 border-slate-300 text-slate-600' },
+  ];
+
   const getTodayDate = () => {
     const today = new Date();
     return today.toISOString().split('T')[0];
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        let token = accessToken;
+        
+        if (!token) {
+          token = await refreshAccessToken();
+          if (!token) throw new Error('Authentication required');
+        }
+
+        // Fetch task details
+        const taskResponse = await fetch(`${API_BASE_URL}/tasks/${id}/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!taskResponse.ok) {
+          throw new Error('Failed to fetch task details');
+        }
+
+        const taskData = await taskResponse.json();
+        setInitialTask(taskData);
+
+        // Convert date to YYYY-MM-DD format
+        const deadlineDate = taskData.deadline ? taskData.deadline.split('T')[0] : '';
+
+        setFormData({
+          title: taskData.title,
+          description: taskData.description,
+          assignTo: taskData.assigned_to.toString(),
+          priority: taskData.priority,
+          status: taskData.status,
+          deadline: deadlineDate,
+        });
+
+        // Fetch team members
+        const membersResponse = await fetch(`${API_BASE_URL}/employees/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!membersResponse.ok) {
+          throw new Error('Failed to fetch employees');
+        }
+
+        const membersData = await membersResponse.json();
+        setTeamMembers(membersData);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        alert('Failed to load task details. Please try again.');
+        navigate('/tasks');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id, accessToken, refreshAccessToken, API_BASE_URL, navigate]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -48,14 +132,6 @@ export default function TaskCreationForm() {
 
     if (!formData.deadline) {
       newErrors.deadline = 'Deadline is required';
-    } else {
-      const selectedDate = new Date(formData.deadline);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      if (selectedDate < today) {
-        newErrors.deadline = 'Deadline cannot be in the past';
-      }
     }
 
     setErrors(newErrors);
@@ -65,19 +141,18 @@ export default function TaskCreationForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate form
     if (!validateForm()) {
       return;
     }
 
-    setLoading(true);
+    setSubmitting(true);
 
     let token = accessToken;
     if (!token) {
       token = await refreshAccessToken();
       if (!token) {
         alert('Session expired. Please login again.');
-        setLoading(false);
+        setSubmitting(false);
         return;
       }
     }
@@ -88,13 +163,14 @@ export default function TaskCreationForm() {
         description: formData.description.trim(),
         assigned_to: parseInt(formData.assignTo, 10),
         priority: formData.priority,
+        status: formData.status,
         deadline: formData.deadline,
       };
 
-      console.log('Submitting payload:', payload);
+      console.log('Updating task with payload:', payload);
 
-      const res = await fetch(`${API_BASE_URL}/tasks/`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/tasks/${id}/`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
@@ -102,11 +178,10 @@ export default function TaskCreationForm() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
-        // Handle validation errors from backend
-        if (res.status === 400 && data) {
+      if (!response.ok) {
+        if (response.status === 400 && data) {
           const backendErrors = {};
           Object.keys(data).forEach(key => {
             if (Array.isArray(data[key])) {
@@ -118,107 +193,45 @@ export default function TaskCreationForm() {
           setErrors(backendErrors);
           throw new Error(Object.values(backendErrors).join(', '));
         }
-        throw new Error(data.detail || 'Task creation failed');
+        throw new Error(data.detail || 'Task update failed');
       }
 
-      alert('Task created successfully!');
-      handleCancel();
-      navigate('/tasks');
+      alert('Task updated successfully!');
+      navigate(`/tasks/${id}`);
     } catch (error) {
-      console.error('Error creating task:', error);
-      alert(error.message || 'Failed to create task. Please try again.');
+      console.error('Error updating task:', error);
+      alert(error.message || 'Failed to update task. Please try again.');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
-  };
-
-  useEffect(() => {
-    const fetchTeamMembers = async () => {
-      try {
-        let token = accessToken;
-        if (!token) {
-          token = await refreshAccessToken();
-          if (!token) {
-            console.log('No token available');
-            setTeamMembers([]);
-            return;
-          }
-        }
-
-        console.log('Fetching from:', `${API_BASE_URL}/tasks/employees/`);
-        
-        const res = await fetch(`${API_BASE_URL}/tasks/employees/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        console.log('Response status:', res.status);
-        
-        if (!res.ok) {
-          throw new Error(`Failed to fetch employees: ${res.status}`);
-        }
-
-        const data = await res.json();
-        console.log('Raw API response:', data);
-        console.log('Is array?', Array.isArray(data));
-        console.log('Data type:', typeof data);
-        
-        // Check if data has a results property (pagination)
-        let employeeList = data;
-        if (data && typeof data === 'object' && !Array.isArray(data)) {
-          if (data.results) {
-            employeeList = data.results;
-            console.log('Found paginated results:', employeeList);
-          } else if (data.data) {
-            employeeList = data.data;
-            console.log('Found data property:', employeeList);
-          }
-        }
-        
-        if (Array.isArray(employeeList)) {
-          console.log('Setting team members:', employeeList);
-          setTeamMembers(employeeList);
-        } else {
-          console.error('Team members data is not an array:', data);
-          setTeamMembers([]);
-        }
-      } catch (err) {
-        console.error('Error fetching team members:', err);
-        setTeamMembers([]);
-      }
-    };
-
-    fetchTeamMembers();
-  }, [accessToken, refreshAccessToken, API_BASE_URL]);
-
-  const handleCancel = () => {
-    setFormData({
-      title: '',
-      description: '',
-      assignTo: '',
-      priority: 'MEDIUM',
-      deadline: '',
-    });
-    setErrors({});
   };
 
   const handleFieldChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
-    // Clear error for this field when user starts typing
     if (errors[field]) {
       setErrors({ ...errors, [field]: '' });
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="animate-spin text-indigo-600 mx-auto mb-4" size={48} />
+          <p className="text-slate-600 font-medium">Loading task details...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 p-6 md:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Back Button */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(`/tasks/${id}`)}
           className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 transition-colors duration-200"
-          disabled={loading}
+          disabled={submitting}
         >
           <ArrowLeft size={20} />
           <span className="font-medium">Back</span>
@@ -226,10 +239,8 @@ export default function TaskCreationForm() {
 
         {/* Header */}
         <div className="mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">Create New Task</h1>
-            <p className="text-slate-600">Fill in the details to create a new task for your team</p>
-          </div>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">Edit Task</h1>
+          <p className="text-slate-600">Update the task details below</p>
         </div>
 
         {/* Form Card */}
@@ -250,7 +261,7 @@ export default function TaskCreationForm() {
                     errors.title ? 'border-red-500' : 'border-slate-200'
                   } rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-slate-900`}
                   placeholder="Enter a clear and concise task title"
-                  disabled={loading}
+                  disabled={submitting}
                 />
                 {errors.title && (
                   <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
@@ -274,7 +285,7 @@ export default function TaskCreationForm() {
                     errors.description ? 'border-red-500' : 'border-slate-200'
                   } rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none text-slate-900`}
                   placeholder="Provide detailed information about the task objectives and requirements"
-                  disabled={loading}
+                  disabled={submitting}
                 />
                 {errors.description && (
                   <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
@@ -296,35 +307,25 @@ export default function TaskCreationForm() {
                     value={formData.assignTo}
                     onChange={(e) => handleFieldChange('assignTo', e.target.value)}
                     className={`w-full px-4 py-3.5 bg-slate-50 border ${
-                      errors.assignTo || errors.assigned_to ? 'border-red-500' : 'border-slate-200'
+                      errors.assignTo ? 'border-red-500' : 'border-slate-200'
                     } rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all appearance-none bg-no-repeat bg-right pr-10 text-slate-900`}
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
                       backgroundPosition: 'right 1rem center'
                     }}
-                    disabled={loading}
+                    disabled={submitting}
                   >
                     <option value="">Select team member</option>
-                    {Array.isArray(teamMembers) && teamMembers.length > 0 && teamMembers.map((member) => (
+                    {teamMembers.map((member) => (
                       <option key={member.id} value={member.id}>
                         {member.username} — {member.role.replace(/_/g, ' ')}
                       </option>
                     ))}
                   </select>
-                  {/* Debug info - remove after testing */}
-                  <div className="text-xs text-gray-500 mt-1">
-                    Team members loaded: {teamMembers.length}
-                  </div>
                   {errors.assignTo && (
                     <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
                       <AlertCircle size={14} />
                       <span>{errors.assignTo}</span>
-                    </div>
-                  )}
-                  {errors.assigned_to && (
-                    <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
-                      <AlertCircle size={14} />
-                      <span>{errors.assigned_to}</span>
                     </div>
                   )}
                 </div>
@@ -343,7 +344,7 @@ export default function TaskCreationForm() {
                     className={`w-full px-4 py-3.5 bg-slate-50 border ${
                       errors.deadline ? 'border-red-500' : 'border-slate-200'
                     } rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-slate-900`}
-                    disabled={loading}
+                    disabled={submitting}
                   />
                   {errors.deadline && (
                     <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
@@ -368,7 +369,7 @@ export default function TaskCreationForm() {
                         formData.priority === priority.value
                           ? priority.color + ' shadow-md scale-105'
                           : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-sm'
-                      } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      } ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <input
                         type="radio"
@@ -377,10 +378,41 @@ export default function TaskCreationForm() {
                         checked={formData.priority === priority.value}
                         onChange={(e) => handleFieldChange('priority', e.target.value)}
                         className="absolute opacity-0"
-                        disabled={loading}
+                        disabled={submitting}
                       />
                       <span className="text-lg">{priority.icon}</span>
                       <span className="font-semibold text-sm">{priority.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-4">
+                  <AlertCircle className="w-4 h-4 text-indigo-600" />
+                  Task Status
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {statuses.map((status) => (
+                    <label
+                      key={status.value}
+                      className={`relative flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                        formData.status === status.value
+                          ? status.color + ' shadow-md scale-105'
+                          : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-sm'
+                      } ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <input
+                        type="radio"
+                        name="status"
+                        value={status.value}
+                        checked={formData.status === status.value}
+                        onChange={(e) => handleFieldChange('status', e.target.value)}
+                        className="absolute opacity-0"
+                        disabled={submitting}
+                      />
+                      <span className="font-semibold text-sm">{status.label}</span>
                     </label>
                   ))}
                 </div>
@@ -391,18 +423,19 @@ export default function TaskCreationForm() {
             <div className="bg-slate-50 px-8 py-6 flex items-center justify-end gap-4 border-t border-slate-200">
               <button
                 type="button"
-                onClick={handleCancel}
+                onClick={() => navigate(`/tasks/${id}`)}
                 className="px-6 py-3 text-slate-700 font-semibold rounded-xl hover:bg-slate-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={loading}
+                disabled={submitting}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-lg hover:shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                disabled={loading}
+                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-indigo-800 shadow-lg hover:shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                disabled={submitting}
               >
-                {loading ? 'Creating...' : 'Create Task'}
+                <Save size={18} />
+                {submitting ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
