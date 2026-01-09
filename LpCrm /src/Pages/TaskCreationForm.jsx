@@ -43,8 +43,9 @@ export default function TaskCreationForm() {
     }
 
     if (!formData.assignTo) {
-      newErrors.assignTo = 'Please select a team member';
+      newErrors.assigned_to = 'Please select a team member';
     }
+
 
     if (!formData.deadline) {
       newErrors.deadline = 'Deadline is required';
@@ -52,7 +53,7 @@ export default function TaskCreationForm() {
       const selectedDate = new Date(formData.deadline);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       if (selectedDate < today) {
         newErrors.deadline = 'Deadline cannot be in the past';
       }
@@ -105,7 +106,6 @@ export default function TaskCreationForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        // Handle validation errors from backend
         if (res.status === 400 && data) {
           const backendErrors = {};
           Object.keys(data).forEach(key => {
@@ -145,42 +145,34 @@ export default function TaskCreationForm() {
           }
         }
 
-        console.log('Fetching from:', `${API_BASE_URL}/tasks/employees/`);
-        
-        const res = await fetch(`${API_BASE_URL}/tasks/employees/`, {
+
+        const res = await fetch(`${API_BASE_URL}/employees/`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        console.log('Response status:', res.status);
-        
         if (!res.ok) {
           throw new Error(`Failed to fetch employees: ${res.status}`);
         }
 
         const data = await res.json();
-        console.log('Raw API response:', data);
-        console.log('Is array?', Array.isArray(data));
-        console.log('Data type:', typeof data);
-        
-        // Check if data has a results property (pagination)
+
         let employeeList = data;
         if (data && typeof data === 'object' && !Array.isArray(data)) {
-          if (data.results) {
+          if (data.results && Array.isArray(data.results)) {
             employeeList = data.results;
-            console.log('Found paginated results:', employeeList);
-          } else if (data.data) {
-            employeeList = data.data;
-            console.log('Found data property:', employeeList);
+          } else {
+            console.log('❌ No results or data property found');
           }
         }
-        
-        if (Array.isArray(employeeList)) {
-          console.log('Setting team members:', employeeList);
+
+        if (Array.isArray(employeeList) && employeeList.length > 0) {
+          console.log('✅ Setting team members:', employeeList);
+          console.log('👤 First member:', employeeList[0]);
           setTeamMembers(employeeList);
         } else {
-          console.error('Team members data is not an array:', data);
+          console.error('❌ Team members data is not a valid array:', employeeList);
           setTeamMembers([]);
         }
       } catch (err) {
@@ -246,9 +238,8 @@ export default function TaskCreationForm() {
                   type="text"
                   value={formData.title}
                   onChange={(e) => handleFieldChange('title', e.target.value)}
-                  className={`w-full px-4 py-3.5 bg-slate-50 border ${
-                    errors.title ? 'border-red-500' : 'border-slate-200'
-                  } rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-slate-900`}
+                  className={`w-full px-4 py-3.5 bg-slate-50 border ${errors.title ? 'border-red-500' : 'border-slate-200'
+                    } rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-slate-900`}
                   placeholder="Enter a clear and concise task title"
                   disabled={loading}
                 />
@@ -270,9 +261,8 @@ export default function TaskCreationForm() {
                   value={formData.description}
                   onChange={(e) => handleFieldChange('description', e.target.value)}
                   rows="5"
-                  className={`w-full px-4 py-3.5 bg-slate-50 border ${
-                    errors.description ? 'border-red-500' : 'border-slate-200'
-                  } rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none text-slate-900`}
+                  className={`w-full px-4 py-3.5 bg-slate-50 border ${errors.description ? 'border-red-500' : 'border-slate-200'
+                    } rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none text-slate-900`}
                   placeholder="Provide detailed information about the task objectives and requirements"
                   disabled={loading}
                 />
@@ -295,9 +285,8 @@ export default function TaskCreationForm() {
                   <select
                     value={formData.assignTo}
                     onChange={(e) => handleFieldChange('assignTo', e.target.value)}
-                    className={`w-full px-4 py-3.5 bg-slate-50 border ${
-                      errors.assignTo || errors.assigned_to ? 'border-red-500' : 'border-slate-200'
-                    } rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all appearance-none bg-no-repeat bg-right pr-10 text-slate-900`}
+                    className={`w-full px-4 py-3.5 bg-slate-50 border ${errors.assigned_to ? 'border-red-500' : 'border-slate-200'}
+                    rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all appearance-none bg-no-repeat bg-right pr-10 text-slate-900`}
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
                       backgroundPosition: 'right 1rem center'
@@ -311,16 +300,6 @@ export default function TaskCreationForm() {
                       </option>
                     ))}
                   </select>
-                  {/* Debug info - remove after testing */}
-                  <div className="text-xs text-gray-500 mt-1">
-                    Team members loaded: {teamMembers.length}
-                  </div>
-                  {errors.assignTo && (
-                    <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
-                      <AlertCircle size={14} />
-                      <span>{errors.assignTo}</span>
-                    </div>
-                  )}
                   {errors.assigned_to && (
                     <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
                       <AlertCircle size={14} />
@@ -340,9 +319,8 @@ export default function TaskCreationForm() {
                     value={formData.deadline}
                     onChange={(e) => handleFieldChange('deadline', e.target.value)}
                     min={getTodayDate()}
-                    className={`w-full px-4 py-3.5 bg-slate-50 border ${
-                      errors.deadline ? 'border-red-500' : 'border-slate-200'
-                    } rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-slate-900`}
+                    className={`w-full px-4 py-3.5 bg-slate-50 border ${errors.deadline ? 'border-red-500' : 'border-slate-200'
+                      } rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-slate-900`}
                     disabled={loading}
                   />
                   {errors.deadline && (
@@ -364,11 +342,10 @@ export default function TaskCreationForm() {
                   {priorities.map((priority) => (
                     <label
                       key={priority.value}
-                      className={`relative flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                        formData.priority === priority.value
-                          ? priority.color + ' shadow-md scale-105'
-                          : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-sm'
-                      } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className={`relative flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl border-2 cursor-pointer transition-all ${formData.priority === priority.value
+                        ? priority.color + ' shadow-md scale-105'
+                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-sm'
+                        } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <input
                         type="radio"

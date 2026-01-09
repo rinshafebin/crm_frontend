@@ -7,7 +7,7 @@ import {
   Search, Plus, Calendar, User, Flag,
   CheckCircle, Circle, AlertCircle,
   ListTodo, Loader, CheckCheck,
-  AlertTriangle, XCircle
+  AlertTriangle, XCircle, Filter, TrendingUp
 } from 'lucide-react';
 
 export default function TasksPage() {
@@ -18,7 +18,6 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState([]);
   const [stats, setStats] = useState(null);
   const [count, setCount] = useState(0);
-  const [teamMembers, setTeamMembers] = useState([]);
 
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
@@ -32,62 +31,35 @@ export default function TasksPage() {
   const [error, setError] = useState(null);
 
   const statsData = stats ? [
-    { label: 'Total Tasks', value: stats.total, icon: ListTodo, color: 'bg-blue-500' },
-    { label: 'In Progress', value: stats.in_progress, icon: Loader, color: 'bg-yellow-500' },
-    { label: 'Completed', value: stats.completed, icon: CheckCheck, color: 'bg-green-500' },
-    { label: 'Overdue', value: stats.overdue, icon: AlertTriangle, color: 'bg-red-500' },
+    { label: 'Total Tasks', value: stats.total, icon: ListTodo, color: 'bg-gradient-to-br from-blue-500 to-blue-600', lightBg: 'bg-blue-50', textColor: 'text-blue-600' },
+    { label: 'In Progress', value: stats.in_progress, icon: Loader, color: 'bg-gradient-to-br from-amber-500 to-amber-600', lightBg: 'bg-amber-50', textColor: 'text-amber-600' },
+    { label: 'Completed', value: stats.completed, icon: CheckCheck, color: 'bg-gradient-to-br from-emerald-500 to-emerald-600', lightBg: 'bg-emerald-50', textColor: 'text-emerald-600' },
+    { label: 'Overdue', value: stats.overdue, icon: AlertTriangle, color: 'bg-gradient-to-br from-red-500 to-red-600', lightBg: 'bg-red-50', textColor: 'text-red-600' },
   ] : [];
 
   const priorityColors = {
     URGENT: 'bg-red-100 text-red-700 border-red-300',
     HIGH: 'bg-orange-100 text-orange-700 border-orange-300',
-    MEDIUM: 'bg-yellow-100 text-yellow-700 border-yellow-300',
-    LOW: 'bg-green-100 text-green-700 border-green-300'
+    MEDIUM: 'bg-blue-100 text-blue-700 border-blue-300',
+    LOW: 'bg-emerald-100 text-emerald-700 border-emerald-300'
   };
 
   const statusIcons = {
-    PENDING: <Circle className="text-gray-400" size={20} />,
-    IN_PROGRESS: <AlertCircle className="text-yellow-500" size={20} />,
-    COMPLETED: <CheckCircle className="text-green-500" size={20} />,
+    PENDING: <Circle className="text-slate-400" size={20} />,
+    IN_PROGRESS: <AlertCircle className="text-amber-500" size={20} />,
+    COMPLETED: <CheckCircle className="text-emerald-500" size={20} />,
     OVERDUE: <AlertTriangle className="text-red-500" size={20} />,
-    CANCELLED: <XCircle className="text-gray-500" size={20} />
+    CANCELLED: <XCircle className="text-slate-500" size={20} />
   };
 
   const statusColors = {
-    PENDING: 'bg-gray-100 text-gray-700',
-    IN_PROGRESS: 'bg-yellow-100 text-yellow-700',
-    COMPLETED: 'bg-green-100 text-green-700',
-    OVERDUE: 'bg-red-100 text-red-700',
-    CANCELLED: 'bg-gray-100 text-gray-600'
+    PENDING: 'bg-slate-100 text-slate-700 border-slate-300',
+    IN_PROGRESS: 'bg-amber-100 text-amber-700 border-amber-300',
+    COMPLETED: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+    OVERDUE: 'bg-red-100 text-red-700 border-red-300',
+    CANCELLED: 'bg-slate-100 text-slate-600 border-slate-300'
   };
 
-  // Fetch team members
-  useEffect(() => {
-    const fetchTeamMembers = async () => {
-      try {
-        let token = accessToken || await refreshAccessToken();
-        if (!token) return;
-
-        const response = await fetch(`${API_BASE_URL}/tasks/employees/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setTeamMembers(data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch team members:', err);
-      }
-    };
-
-    fetchTeamMembers();
-  }, [accessToken, refreshAccessToken, API_BASE_URL]);
-
-  // Fetch tasks
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -154,7 +126,6 @@ export default function TasksPage() {
 
       if (!response.ok) throw new Error('Failed to update task status');
 
-      // Refresh tasks
       const tasksResponse = await fetch(
         `${API_BASE_URL}/tasks/?page=${page}`,
         {
@@ -192,10 +163,11 @@ export default function TasksPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
         <Navbar />
-        <div className="flex justify-center items-center h-[calc(100vh-64px)]">
-          <Loader className="animate-spin text-indigo-600" size={48} />
+        <div className="flex flex-col justify-center items-center h-[calc(100vh-64px)]">
+          <Loader className="animate-spin text-indigo-600 mb-4" size={48} />
+          <p className="text-slate-600 font-medium">Loading tasks...</p>
         </div>
       </div>
     );
@@ -203,30 +175,47 @@ export default function TasksPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
         <Navbar />
-        <div className="flex justify-center items-center h-[calc(100vh-64px)]">
-          <p className="text-red-600">{error}</p>
+        <div className="flex flex-col justify-center items-center h-[calc(100vh-64px)]">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md border border-red-100">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-8 h-8 text-red-600" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 text-center mb-2">Error Loading Tasks</h3>
+            <p className="text-slate-600 text-center mb-6">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold transition-all"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Tasks Management</h1>
-              <p className="text-gray-600 mt-2">Organize and track all your tasks</p>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-3 bg-indigo-100 rounded-xl">
+                  <ListTodo className="w-6 h-6 text-indigo-600" />
+                </div>
+                <h1 className="text-4xl font-bold text-slate-900">Tasks Management</h1>
+              </div>
+              <p className="text-slate-600 text-lg ml-[60px]">Organize, track, and manage all your tasks efficiently</p>
             </div>
             <button
               onClick={() => navigate('/tasks/new')}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors duration-200"
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-200 hover:shadow-xl"
             >
               <Plus size={20} />
               Create New Task
@@ -235,43 +224,46 @@ export default function TasksPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {statsData.map((stat, index) => {
             const IconComponent = stat.icon;
             return (
-              <div key={index} className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
-                    <h3 className="text-2xl font-bold text-gray-900 mt-2">{stat.value}</h3>
-                  </div>
-                  <div className={`${stat.color} w-12 h-12 rounded-lg flex items-center justify-center`}>
+              <div key={index} className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`${stat.color} w-14 h-14 rounded-xl flex items-center justify-center shadow-lg`}>
                     <IconComponent className="text-white" size={24} />
                   </div>
+                  <TrendingUp className={`${stat.textColor} w-5 h-5`} />
                 </div>
+                <p className="text-slate-600 text-sm font-medium mb-1">{stat.label}</p>
+                <h3 className="text-3xl font-bold text-slate-900">{stat.value}</h3>
               </div>
             );
           })}
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="w-5 h-5 text-indigo-600" />
+            <h2 className="text-lg font-semibold text-slate-900">Filter & Search</h2>
+          </div>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
               <input
                 type="text"
-                placeholder="Search tasks..."
+                placeholder="Search tasks by title or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
               />
             </div>
 
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium text-slate-700 bg-white"
             >
               <option value="all">All Status</option>
               <option value="PENDING">Pending</option>
@@ -284,7 +276,7 @@ export default function TasksPage() {
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium text-slate-700 bg-white"
             >
               <option value="all">All Priority</option>
               <option value="URGENT">Urgent</option>
@@ -297,69 +289,79 @@ export default function TasksPage() {
 
         {/* Tasks List */}
         {filteredTasks.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <ListTodo className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No tasks found</h3>
-            <p className="text-gray-600 mb-6">
+          <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-12 text-center">
+            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ListTodo className="text-slate-400" size={40} />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 mb-2">No tasks found</h3>
+            <p className="text-slate-600 mb-6 text-lg">
               {tasks.length === 0
-                ? "Get started by creating your first task"
-                : "Try adjusting your search or filters"}
+                ? "Get started by creating your first task to organize your work"
+                : "Try adjusting your search criteria or filters"}
             </p>
             {tasks.length === 0 && (
               <button
                 onClick={() => navigate('/tasks/new')}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2"
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold inline-flex items-center gap-2 shadow-lg shadow-indigo-200 hover:shadow-xl transition-all"
               >
                 <Plus size={20} />
-                Create Task
+                Create Your First Task
               </button>
             )}
           </div>
         ) : (
           <div className="space-y-4">
             {filteredTasks.map((task) => (
-              <div key={task.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div key={task.id} className="bg-white rounded-2xl shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300 p-6 hover:border-indigo-200">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                   {/* Task Info */}
                   <div className="flex items-start gap-4 flex-1">
-                    <div className="mt-1">
+                    <div className="mt-1 p-2 bg-slate-50 rounded-lg">
                       {statusIcons[task.status]}
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-start gap-3 mb-2 flex-wrap">
-                        <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${priorityColors[task.priority]}`}>
+                      <div className="flex items-start gap-3 mb-3 flex-wrap">
+                        <h3 className="text-xl font-bold text-slate-900 hover:text-indigo-600 transition-colors cursor-pointer" onClick={() => navigate(`/tasks/${task.id}`)}>
+                          {task.title}
+                        </h3>
+                        <span className={`px-3 py-1 rounded-lg text-xs font-semibold border ${priorityColors[task.priority]}`}>
                           {task.priority}
                         </span>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[task.status]}`}>
+                        <span className={`px-3 py-1 rounded-lg text-xs font-semibold border ${statusColors[task.status]}`}>
                           {task.status.replace('_', ' ')}
                         </span>
                       </div>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{task.description}</p>
+                      <p className="text-slate-600 text-sm mb-4 line-clamp-2 leading-relaxed">{task.description}</p>
 
-                      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <User size={16} className="text-gray-400" />
-                          <span className="font-medium">Assigned to:</span> {task.assigned_to_name}
+                      <div className="flex flex-wrap gap-4 text-sm">
+                        <div className="flex items-center gap-2 text-slate-600">
+                          <div className="p-1.5 bg-blue-50 rounded-lg">
+                            <User size={14} className="text-blue-600" />
+                          </div>
+                          <span className="font-medium">To:</span> <span className="text-slate-700">{task.assigned_to_name}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <User size={16} className="text-gray-400" />
-                          <span className="font-medium">Assigned by:</span> {task.assigned_by_name}
+                        <div className="flex items-center gap-2 text-slate-600">
+                          <div className="p-1.5 bg-purple-50 rounded-lg">
+                            <User size={14} className="text-purple-600" />
+                          </div>
+                          <span className="font-medium">By:</span> <span className="text-slate-700">{task.assigned_by_name}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Calendar size={16} className="text-gray-400" />
-                          <span className="font-medium">Deadline:</span> {formatDate(task.deadline)}
+                        <div className="flex items-center gap-2 text-slate-600">
+                          <div className="p-1.5 bg-rose-50 rounded-lg">
+                            <Calendar size={14} className="text-rose-600" />
+                          </div>
+                          <span className="font-medium">Due:</span> <span className="text-slate-700">{formatDate(task.deadline)}</span>
                         </div>
                         {task.is_overdue && task.overdue_days > 0 && (
-                          <div className="flex items-center gap-2 text-red-600">
-                            <AlertTriangle size={16} />
-                            <span className="font-medium">{task.overdue_days} days overdue</span>
+                          <div className="flex items-center gap-2 px-3 py-1 bg-red-50 rounded-lg border border-red-200">
+                            <AlertTriangle size={14} className="text-red-600" />
+                            <span className="font-semibold text-red-700">{task.overdue_days} days overdue</span>
                           </div>
                         )}
-                        {!task.is_overdue && task.days_until_deadline > 0 && (
-                          <div className="flex items-center gap-2 text-blue-600">
-                            <Flag size={16} />
-                            <span className="font-medium">{task.days_until_deadline} days remaining</span>
+                        {!task.is_overdue && task.days_until_deadline > 0 && task.days_until_deadline <= 3 && (
+                          <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 rounded-lg border border-amber-200">
+                            <Flag size={14} className="text-amber-600" />
+                            <span className="font-semibold text-amber-700">{task.days_until_deadline} days left</span>
                           </div>
                         )}
                       </div>
@@ -367,23 +369,23 @@ export default function TasksPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap lg:flex-col lg:items-stretch">
                     <button
                       onClick={() => navigate(`/tasks/${task.id}`)}
-                      className="px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors duration-200 text-sm font-medium"
+                      className="flex-1 lg:flex-none px-4 py-2.5 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-200 text-sm font-semibold border border-indigo-200 hover:border-indigo-300"
                     >
                       View Details
                     </button>
                     <button
                       onClick={() => navigate(`/tasks/${task.id}/edit`)}
-                      className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 text-sm font-medium"
+                      className="flex-1 lg:flex-none px-4 py-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 text-sm font-semibold border border-blue-200 hover:border-blue-300"
                     >
                       Edit
                     </button>
                     {task.status !== 'COMPLETED' && task.status !== 'CANCELLED' && (
                       <button
                         onClick={() => handleMarkComplete(task.id)}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 text-sm font-medium"
+                        className="flex-1 lg:flex-none px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white rounded-xl transition-all duration-200 text-sm font-semibold shadow-lg shadow-emerald-200 hover:shadow-xl"
                       >
                         Mark Complete
                       </button>
@@ -397,26 +399,28 @@ export default function TasksPage() {
 
         {/* Pagination */}
         {(hasNext || hasPrev) && (
-          <div className="mt-6 flex justify-center gap-2">
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
               onClick={() => setPage(page - 1)}
               disabled={!hasPrev}
-              className={`px-4 py-2 rounded-lg font-medium ${
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
                 hasPrev
-                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  ? 'bg-white border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 shadow-md hover:shadow-lg'
+                  : 'bg-slate-100 text-slate-400 cursor-not-allowed border-2 border-slate-200'
               }`}
             >
               Previous
             </button>
-            <span className="px-4 py-2 text-gray-700 font-medium">Page {page}</span>
+            <div className="px-6 py-3 bg-white border-2 border-indigo-200 text-slate-700 font-bold rounded-xl shadow-md">
+              Page {page}
+            </div>
             <button
               onClick={() => setPage(page + 1)}
               disabled={!hasNext}
-              className={`px-4 py-2 rounded-lg font-medium ${
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
                 hasNext
-                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-200 hover:shadow-xl'
+                  : 'bg-slate-100 text-slate-400 cursor-not-allowed border-2 border-slate-200'
               }`}
             >
               Next
@@ -426,8 +430,12 @@ export default function TasksPage() {
 
         {/* Results count */}
         {filteredTasks.length > 0 && (
-          <div className="mt-6 text-center text-sm text-gray-600">
-            Showing {filteredTasks.length} of {tasks.length} tasks
+          <div className="mt-6 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm">
+              <span className="text-sm font-medium text-slate-600">
+                Showing <span className="font-bold text-indigo-600">{filteredTasks.length}</span> of <span className="font-bold text-indigo-600">{tasks.length}</span> tasks
+              </span>
+            </div>
           </div>
         )}
       </div>
