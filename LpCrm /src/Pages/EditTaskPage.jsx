@@ -102,7 +102,7 @@ export default function EditTaskPage() {
         }
 
         const membersData = await membersResponse.json();
-        setTeamMembers(membersData);
+        setTeamMembers(membersData.results || []);
       } catch (err) {
         console.error('Error fetching data:', err);
         alert('Failed to load task details. Please try again.');

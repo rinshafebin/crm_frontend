@@ -1,4 +1,4 @@
-import Navbar from '../Components/Navbar';
+import Navbar from '../Components/layouts/Navbar';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
@@ -377,7 +377,7 @@ export default function TasksPage() {
                       View Details
                     </button>
                     <button
-                      onClick={() => navigate(`/tasks/${task.id}/edit`)}
+                      onClick={() => navigate(`/tasks/edit/${task.id}`)}
                       className="flex-1 lg:flex-none px-4 py-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 text-sm font-semibold border border-blue-200 hover:border-blue-300"
                     >
                       Edit

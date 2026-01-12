@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import Navbar from '../Components/Navbar';
+import Navbar from '../Components/layouts/Navbar';
 import LeadsPageHeader from '../Components/leads/LeadsPageHeader';
 import LeadsStatsCards from '../Components/leads/LeadsStatsCards';
 import LeadsFilters from '../Components/leads/LeadsFilters';

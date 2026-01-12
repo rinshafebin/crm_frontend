@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbar from '../Components/Navbar';
+import Navbar from '../Components/layouts/Navbar';
 import { Calendar, FileText, Download, FolderOpen, TrendingUp, Clock, CheckCircle } from 'lucide-react';
 
 export default function ReportsPage() {

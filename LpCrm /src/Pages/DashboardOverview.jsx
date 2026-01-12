@@ -8,19 +8,62 @@ import {
   DollarSign,
 } from 'lucide-react';
 
-import StatsGrid from '../components/dashboard/StatsGrid';
-import RecentActivities from '../components/dashboard/RecentActivities';
-import UpcomingTasks from '../components/dashboard/UpcomingTasks';
-import Navbar from '../Components/Navbar';
+import StatsGrid from '../Components/dashboard/StatsGrid';
+import RecentActivities from '../Components/dashboard/RecentActivities';
+import UpcomingTasks from '../Components/dashboard/UpcomingTasks';
+import Navbar from '../Components/layouts/Navbar';
+
 
 export default function DashboardOverview() {
   const stats = useMemo(() => [
-    { title: 'Total Leads', value: '2,543', change: '+12.5%', trend: 'up', icon: Users, color: 'bg-blue-500' },
-    { title: 'Active Staff', value: '48', change: '+3', trend: 'up', icon: UserCheck, color: 'bg-green-500' },
-    { title: 'Total Students', value: '1,847', change: '+8.2%', trend: 'up', icon: GraduationCap, color: 'bg-purple-500' },
-    { title: 'Pending Tasks', value: '127', change: '-5', trend: 'down', icon: ListTodo, color: 'bg-orange-500' },
-    { title: 'Revenue', value: '$89,432', change: '+15.3%', trend: 'up', icon: DollarSign, color: 'bg-indigo-500' },
-    { title: 'Conversion Rate', value: '68%', change: '+2.4%', trend: 'up', icon: TrendingUp, color: 'bg-pink-500' },
+    { 
+      title: 'Total Leads', 
+      value: '2,543', 
+      change: '+12.5%', 
+      trend: 'up', 
+      icon: Users, 
+      color: 'bg-blue-500' 
+    },
+    { 
+      title: 'Active Staff', 
+      value: '48', 
+      change: '+3', 
+      trend: 'up', 
+      icon: UserCheck, 
+      color: 'bg-green-500' 
+    },
+    { 
+      title: 'Total Students', 
+      value: '1,847', 
+      change: '+8.2%', 
+      trend: 'up', 
+      icon: GraduationCap, 
+      color: 'bg-purple-500' 
+    },
+    { 
+      title: 'Pending Tasks', 
+      value: '127', 
+      change: '-5', 
+      trend: 'down', 
+      icon: ListTodo, 
+      color: 'bg-orange-500' 
+    },
+    { 
+      title: 'Revenue', 
+      value: '$89,432', 
+      change: '+15.3%', 
+      trend: 'up', 
+      icon: DollarSign, 
+      color: 'bg-indigo-500' 
+    },
+    { 
+      title: 'Conversion Rate', 
+      value: '68%', 
+      change: '+2.4%', 
+      trend: 'up', 
+      icon: TrendingUp, 
+      color: 'bg-pink-500' 
+    },
   ], []);
 
   const recentActivities = useMemo(() => [
@@ -41,7 +84,9 @@ export default function DashboardOverview() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
+      
       <div className="max-w-7xl mx-auto px-4 py-6 lg:py-8">
+        {/* Page Header */}
         <div className="mb-6">
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
             Dashboard Overview
@@ -51,8 +96,10 @@ export default function DashboardOverview() {
           </p>
         </div>
 
+        {/* Stats Grid */}
         <StatsGrid stats={stats} />
 
+        {/* Activities and Tasks */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <RecentActivities activities={recentActivities} />
           <UpcomingTasks tasks={upcomingTasks} />

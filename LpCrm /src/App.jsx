@@ -18,11 +18,11 @@ import EditTaskPage from "./Pages/EditTaskPage.jsx";
 import { useAuth } from './context/AuthContext';
 import { Navigate } from 'react-router-dom';
 
-/* 🔐 Protected Route */
+
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
-  if (loading) return null; // or loader
+  if (loading) return null; 
 
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
@@ -48,7 +48,7 @@ export default function App() {
         <Route path="/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
         <Route path="/tasks/new" element={<ProtectedRoute><TaskCreationForm /></ProtectedRoute>} />
         <Route path="/tasks/:id" element={<ProtectedRoute><TaskViewPage /></ProtectedRoute>} />
-        <Route path="/tasks/:id/edit" element={<ProtectedRoute><EditTaskPage /></ProtectedRoute>} />
+        <Route path="/tasks/edit/:id" element={<ProtectedRoute><EditTaskPage /></ProtectedRoute>} />
 
         <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
         <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />

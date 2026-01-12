@@ -1,9 +1,8 @@
-// src/components/Navbar.jsx
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Bell, LogOut, Menu, X } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { getMenuForRole } from '../config/roles';
+import { useAuth } from '../../context/AuthContext'
+import { getMenuForRole } from '../../config/roles';
 
 const Navbar = () => {
   const navigate = useNavigate();

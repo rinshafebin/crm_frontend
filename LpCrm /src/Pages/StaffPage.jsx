@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../Components/Navbar';
+import Navbar from '../Components/layouts/Navbar';
 import { Search, Plus, Mail, Phone, MapPin, Edit, Trash2, Eye, UserCheck, UserX, Users, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,7 +21,7 @@ export default function StaffPage() {
     currentPage: 1,
   });
 
-  
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       navigate('/login');
@@ -70,11 +70,11 @@ export default function StaffPage() {
       const mappedStaff = data.results.map((staff) => ({
         id: staff.id,
         name: `${staff.first_name || ''} ${staff.last_name || ''}`.trim() || staff.username,
-        role: staff.role,
+        role: staff.role?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()),
         department: staff.team || 'Unassigned',
         email: staff.email,
-        phone: staff.phone ,
-        location: staff.location ,
+        phone: staff.phone,
+        location: staff.location,
         status: staff.is_active ? 'active' : 'inactive',
         joinDate: new Date(staff.date_joined).toLocaleDateString('en-US', {
           month: 'short',
@@ -123,7 +123,7 @@ export default function StaffPage() {
       await authFetch(`${API_BASE_URL}/staffs/${staffId}/delete/`, {
         method: 'DELETE',
       });
-      
+
       // Refresh the list
       fetchStaff(pagination.currentPage, searchTerm);
       alert('Staff member deleted successfully');
@@ -149,7 +149,7 @@ export default function StaffPage() {
   const stats = useMemo(() => {
     const activeCount = staffMembers.filter(s => s.status === 'active').length;
     const inactiveCount = staffMembers.filter(s => s.status === 'inactive').length;
-    
+
     return [
       { label: 'Total Staff', value: pagination.count.toString(), color: 'bg-blue-500', icon: Users },
       { label: 'Active', value: activeCount.toString(), color: 'bg-green-500', icon: CheckCircle },
@@ -185,7 +185,7 @@ export default function StaffPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">
@@ -194,7 +194,7 @@ export default function StaffPage() {
               <h1 className="text-3xl font-bold text-gray-900">Staff Management</h1>
               <p className="text-gray-600 mt-2">Manage your team members and their roles</p>
             </div>
-            <button 
+            <button
               onClick={() => navigate('/staff/create')}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors duration-200"
             >
@@ -270,14 +270,17 @@ export default function StaffPage() {
                     {/* Avatar and Status */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <img 
-                          src={staff.avatar} 
+                        <img
+                          src={staff.avatar}
                           alt={staff.name}
                           className="w-16 h-16 rounded-full bg-gray-200"
                         />
                         <div>
                           <h3 className="font-bold text-gray-900">{staff.name}</h3>
-                          <p className="text-sm text-gray-600">{staff.role}</p>
+                          <span className="inline-block mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700">
+                            {staff.role}
+                          </span>
+
                         </div>
                       </div>
                       {staff.status === 'active' ? (
@@ -323,14 +326,14 @@ export default function StaffPage() {
 
                     {/* Action Buttons */}
                     <div className="flex gap-2 pt-4 border-t border-gray-200">
-                      <button 
+                      <button
                         onClick={() => navigate(`/staff/edit/${staff.id}`)}
                         className="flex-1 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
                       >
                         <Edit size={16} />
                         Edit
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete(staff.id)}
                         className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
                       >
@@ -346,32 +349,31 @@ export default function StaffPage() {
             {totalPages > 1 && (
               <div className="mt-8 flex items-center justify-center">
                 <div className="flex gap-2">
-                  <button 
+                  <button
                     onClick={handlePreviousPage}
                     disabled={!pagination.previous}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
-                  
+
                   {[...Array(Math.min(totalPages, 5))].map((_, i) => {
                     const pageNum = i + 1;
                     return (
                       <button
                         key={pageNum}
                         onClick={() => handlePageClick(pageNum)}
-                        className={`px-4 py-2 rounded-lg transition-colors duration-200 ${
-                          pagination.currentPage === pageNum
+                        className={`px-4 py-2 rounded-lg transition-colors duration-200 ${pagination.currentPage === pageNum
                             ? 'bg-indigo-600 text-white'
                             : 'border border-gray-300 hover:bg-white'
-                        }`}
+                          }`}
                       >
                         {pageNum}
                       </button>
                     );
                   })}
-                  
-                  <button 
+
+                  <button
                     onClick={handleNextPage}
                     disabled={!pagination.next}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"

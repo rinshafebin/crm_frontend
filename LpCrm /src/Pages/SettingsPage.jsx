@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbar from '../Components/Navbar';
+import Navbar from '../Components/layouts/Navbar';
 import { User, Lock, Bell, Globe, Palette, Database, Shield, Mail, CreditCard, Save } from 'lucide-react';
 
 export default function SettingsPage() {

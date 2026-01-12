@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import Navbar from '../Components/Navbar'
+import Navbar from '../Components/layouts/Navbar';
 import NotificationsHeader from '../Components/notifications/NotificationsHeader';
-import NotificationsStats from '../components/notifications/NotificationsStats';
-import NotificationsFilter from '../components/notifications/NotificationsFilter';
-import NotificationItem from '../components/notifications/NotificationItem';
+import NotificationsStats from '../Components/notifications/NotificationsStats';
+import NotificationsFilter from '../Components/notifications/NotificationsFilter';
+import NotificationItem from '../Components/notifications/NotificationItem';
 import { Bell, Users, AlertCircle, Calendar, CheckCheck, FileText, Info, Mail, CheckCircle } from 'lucide-react';
 
 const initialNotifications = [

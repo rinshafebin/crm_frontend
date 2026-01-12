@@ -1,17 +1,19 @@
 import React, { memo } from 'react';
 import { Calendar } from 'lucide-react';
+import { Card, Button } from '../ui'
 
 const RecentActivities = memo(({ activities }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+    <Card padding="md">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg sm:text-xl font-bold text-gray-900">
           Recent Activities
         </h2>
-        <button className="text-indigo-600 text-sm font-medium hover:text-indigo-700">
+        <Button variant="ghost" size="sm">
           View All
-        </button>
+        </Button>
       </div>
+      
       <div className="space-y-4">
         {activities.map((activity, index) => (
           <div
@@ -35,8 +37,9 @@ const RecentActivities = memo(({ activities }) => {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 });
 
+RecentActivities.displayName = 'RecentActivities';
 export default RecentActivities;
