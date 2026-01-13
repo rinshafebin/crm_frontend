@@ -17,6 +17,7 @@ import TaskViewPage from "./Pages/TaskViewPage.jsx";
 import EditTaskPage from "./Pages/EditTaskPage.jsx";
 import { useAuth } from './context/AuthContext';
 import { Navigate } from 'react-router-dom';
+import ReportViewPage from "./Pages/ReportViewPage.jsx";
 
 
 const ProtectedRoute = ({ children }) => {
@@ -51,6 +52,10 @@ export default function App() {
         <Route path="/tasks/edit/:id" element={<ProtectedRoute><EditTaskPage /></ProtectedRoute>} />
 
         <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+        <Route path="/reports/view/:id" element={<ProtectedRoute><ReportViewPage /></ProtectedRoute>} />
+
+
+
         <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
