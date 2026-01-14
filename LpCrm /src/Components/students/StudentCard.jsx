@@ -2,10 +2,11 @@ import React from 'react';
 import { Mail, Phone, BookOpen, Calendar, Edit, Trash2, Eye, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-
 const statusColors = {
   ACTIVE: 'bg-green-100 text-green-700',
   COMPLETED: 'bg-blue-100 text-blue-700',
+  PAUSED: 'bg-yellow-100 text-yellow-700',
+  DROPPED: 'bg-red-100 text-red-700',
   INACTIVE: 'bg-red-100 text-red-700',
 };
 
@@ -15,7 +16,6 @@ const StudentCard = React.memo(({ student }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 p-6">
-      
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -24,19 +24,17 @@ const StudentCard = React.memo(({ student }) => {
             alt={student.name}
             className="w-16 h-16 rounded-full bg-gray-200"
           />
-
           <div>
             <h3 className="font-bold text-gray-900 text-lg">
               {student.name}
             </h3>
             <span
-              className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[student.status]}`}
+              className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[student.status] || 'bg-gray-100 text-gray-700'}`}
             >
               {student.status}
             </span>
           </div>
         </div>
-
         <div className="text-right text-sm text-gray-600">
           <User size={16} className="inline mr-1" />
           {student.trainer_name}
@@ -54,7 +52,6 @@ const StudentCard = React.memo(({ student }) => {
             Class: {student.student_class}
           </span>
         </div>
-
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Calendar size={16} className="text-gray-400" />
           Admitted: {student.admission_date}
@@ -82,17 +79,28 @@ const StudentCard = React.memo(({ student }) => {
 
       {/* Actions */}
       <div className="flex gap-2">
-        <button onClick={()=>navigate(`/students/view/${student.id}`)} className="flex-1 px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center justify-center gap-2 text-sm font-medium">
+        <button 
+          onClick={() => navigate(`/students/view/${student.id}`)} 
+          className="flex-1 px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors"
+        >
           <Eye size={16} />
           View
         </button>
-
-        <button onClick={()=>navigate(`/students/edit/${student.id}`)} className="flex-1 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex items-center justify-center gap-2 text-sm font-medium">
+        <button 
+          onClick={() => navigate(`/students/edit/${student.id}`)} 
+          className="flex-1 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors"
+        >
           <Edit size={16} />
           Edit
         </button>
-
-        <button className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg">
+        <button 
+          className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          onClick={() => {
+            if (window.confirm('Are you sure you want to delete this student?')) {
+              console.log('Delete student:', student.id);
+            }
+          }}
+        >
           <Trash2 size={16} />
         </button>
       </div>

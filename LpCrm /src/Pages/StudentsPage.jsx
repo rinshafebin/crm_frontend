@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from "axios";
 import Navbar from '../Components/layouts/Navbar';
 import { Plus } from 'lucide-react';
@@ -27,6 +28,7 @@ const BATCH_CHOICES = [
 ];
 
 export default function StudentsPage() {
+  const navigate = useNavigate();
   const { accessToken, refreshAccessToken } = useAuth();
 
   const [students, setStudents] = useState([]);
@@ -100,7 +102,10 @@ export default function StudentsPage() {
             <h1 className="text-3xl font-bold text-gray-900">Students Management</h1>
             <p className="text-gray-600 mt-2">Manage student enrollments and track progress</p>
           </div>
-          <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg flex items-center gap-2">
+          <button 
+            onClick={() => navigate('/students/add')}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
+          >
             <Plus size={20} />
             Add New Student
           </button>

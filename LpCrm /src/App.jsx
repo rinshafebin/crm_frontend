@@ -17,6 +17,7 @@ import ReportViewPage from "./Pages/ReportViewPage.jsx";
 import StudentsPage from './Pages/StudentsPage.jsx';
 import StudentEditPage from "./Pages/StudentEditPage.jsx";
 import StudentViewPage from "./Pages/StudentViewPage.jsx";
+import AddStudentPage from "./Pages/AddStudentPage.jsx";
 import SettingsPage from './Pages/SettingsPage.jsx';
 import NotificationsPage from './Pages/NotificationsPage.jsx';
 
@@ -49,8 +50,10 @@ export default function App() {
         <Route path="/reports/view/:id" element={<ProtectedRoute><ReportViewPage /></ProtectedRoute>} />
         
         <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
+        <Route path="/students/add" element={<ProtectedRoute><AddStudentPage /></ProtectedRoute>} />
         <Route path="/students/view/:id" element={<ProtectedRoute><StudentViewPage /></ProtectedRoute>} />
         <Route path="/students/edit/:id" element={<ProtectedRoute><StudentEditPage /></ProtectedRoute>} />
+        
         
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />

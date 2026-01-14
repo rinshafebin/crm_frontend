@@ -1,9 +1,10 @@
-// StudentViewPage.jsx
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Mail, Phone, BookOpen, Calendar, User, Edit2 } from 'lucide-react';
 import Navbar from '../Components/layouts/Navbar';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useParams, useNavigate } from 'react-router-dom';
+
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -14,7 +15,9 @@ const statusColors = {
   DROPPED: 'bg-red-100 text-red-700',
 };
 
-export default function StudentViewPage({ studentId, onBack, onEdit }) {
+export default function StudentViewPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const { accessToken, refreshAccessToken } = useAuth();
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,26 +25,28 @@ export default function StudentViewPage({ studentId, onBack, onEdit }) {
 
   useEffect(() => {
     fetchStudent();
-  }, [studentId]);
+  }, [id]);
 
   const fetchStudent = async () => {
     try {
       setLoading(true);
       let token = accessToken || await refreshAccessToken();
-      
-      const response = await axios.get(`${API_BASE_URL}/students/${studentId}/`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+
+      const response = await axios.get(
+        `${API_BASE_URL}/students/${id}/`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
       setStudent(response.data);
-      setError(null);
     } catch (err) {
-      console.error('Failed to fetch student:', err);
       setError('Failed to load student details');
     } finally {
       setLoading(false);
     }
   };
+
 
   if (loading) {
     return (
@@ -70,16 +75,17 @@ export default function StudentViewPage({ studentId, onBack, onEdit }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
           <button
-            onClick={onBack}
+            onClick={() => navigate('/students')}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
           >
-            <ArrowLeft size={20} />
+          <ArrowLeft size={20} />
             Back to Students
           </button>
+
           <button
             onClick={() => onEdit(student.id)}
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors"
@@ -88,7 +94,6 @@ export default function StudentViewPage({ studentId, onBack, onEdit }) {
             Edit Student
           </button>
         </div>
-
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6">
             <div className="flex items-center gap-4">

@@ -167,7 +167,7 @@ export default function LoginPage() {
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">Username</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <User className={errors.username ? "text-red-400" : "text-gray-400"} size={20} />
+                    <User className="text-black" size={20} />
                   </div>
                   <input
                     id="username"
@@ -195,7 +195,7 @@ export default function LoginPage() {
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Lock className={errors.password ? "text-red-400" : "text-gray-400"} size={20} />
+                    <Lock className="text-black" size={20} />
                   </div>
                   <input
                     id="password"
