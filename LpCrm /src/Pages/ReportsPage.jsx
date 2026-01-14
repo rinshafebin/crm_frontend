@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../Components/layouts/Navbar';
+import Pagination from '../Components/common/Pagination'; // assuming you have a Pagination component
 import { Calendar, FileText, Download, FolderOpen, TrendingUp, Clock, CheckCircle, Eye, Check } from 'lucide-react';
 
 export default function ReportsPage() {
@@ -13,7 +14,11 @@ export default function ReportsPage() {
   const [recentReports, setRecentReports] = useState([]);
   const [statsData, setStatsData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
+  const PAGE_SIZE = 10;
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
   // Fetch stats
@@ -29,32 +34,33 @@ export default function ReportsPage() {
     }
   };
 
-  // Fetch reports
-  const fetchReports = async () => {
+  // Fetch reports with pagination
+  const fetchReports = async (pageNumber = 1) => {
     if (!accessToken) return;
+    setLoading(true);
     try {
       const res = await axios.get(`${API_BASE}/admin/reports/`, {
+        params: { page: pageNumber, page_size: PAGE_SIZE, date_range: dateRange },
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      setRecentReports(res.data.results);
+
+      setRecentReports(res.data.results || []);
+      setTotalCount(res.data.count || 0);
+      setTotalPages(Math.ceil((res.data.count || 0) / PAGE_SIZE));
     } catch (err) {
       console.error('Failed to fetch reports:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchStats();
-    fetchReports();
   }, [accessToken]);
 
-  // Loading state
-  if (!statsData) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Loading report stats...</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchReports(page);
+  }, [accessToken, page, dateRange]);
 
   // Approve report
   const handleApproveReport = async (reportId) => {
@@ -66,7 +72,7 @@ export default function ReportsPage() {
         { approved: true },
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
-      fetchReports();
+      fetchReports(page); // refresh current page after approval
       fetchStats(); // refresh stats after approval
       alert('Report approved successfully!');
     } catch (err) {
@@ -81,25 +87,25 @@ export default function ReportsPage() {
   const stats = [
     {
       label: 'Total Reports',
-      value: statsData.total,
+      value: statsData?.total || 0,
       color: 'bg-blue-500',
       icon: FolderOpen
     },
     {
       label: 'This Month',
-      value: statsData.this_month,
+      value: statsData?.this_month || 0,
       color: 'bg-green-500',
       icon: TrendingUp
     },
     {
       label: 'Approved',
-      value: statsData.approved,
+      value: statsData?.approved || 0,
       color: 'bg-emerald-500',
       icon: CheckCircle
     },
     {
       label: 'Pending',
-      value: statsData.pending,
+      value: statsData?.pending || 0,
       color: 'bg-yellow-500',
       icon: Clock
     }
@@ -265,6 +271,16 @@ export default function ReportsPage() {
           </div>
         </div>
       </div>
+
+      {/* Pagination */}
+      <div className="mt-4 flex justify-center">
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={(newPage) => setPage(newPage)}
+        />
+      </div>
+
 
 
     </div>

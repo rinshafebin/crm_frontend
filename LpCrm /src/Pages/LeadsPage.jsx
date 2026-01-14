@@ -6,6 +6,8 @@ import LeadsFilters from '../Components/leads/LeadsFilters';
 import LeadsTable from '../Components/leads/LeadsTable';
 import { Users, UserPlus, CheckCircle, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import Pagination from '../Components/common/Pagination';
+
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const PAGE_SIZE = 10;
@@ -166,29 +168,14 @@ export default function LeadsPage() {
               statusColors={statusColors}
               onDeleteLead={handleDeleteLead}
             />
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              className="mt-8"
+            />
 
-            {/* Pagination */}
-            <div className="flex justify-between items-center mt-6">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage(p => p - 1)}
-                className="px-4 py-2 border rounded disabled:opacity-50"
-              >
-                Previous
-              </button>
 
-              <span className="text-sm text-gray-600">
-                Page {page} of {totalPages}
-              </span>
-
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage(p => p + 1)}
-                className="px-4 py-2 border rounded disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
           </>
         )}
       </div>

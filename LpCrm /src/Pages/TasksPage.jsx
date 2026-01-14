@@ -197,46 +197,40 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+   <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-3 bg-indigo-100 rounded-xl">
-                  <ListTodo className="w-6 h-6 text-indigo-600" />
-                </div>
-                <h1 className="text-4xl font-bold text-slate-900">Tasks Management</h1>
-              </div>
-              <p className="text-slate-600 text-lg ml-[60px]">Organize, track, and manage all your tasks efficiently</p>
-            </div>
-            <button
-              onClick={() => navigate('/tasks/new')}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-200 hover:shadow-xl"
-            >
-              <Plus size={20} />
-              Create New Task
-            </button>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Tasks Management</h1>
+            <p className="text-gray-600 mt-2">Organize and track all your tasks</p>
           </div>
+          <button
+            onClick={() => navigate('/tasks/new')}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors duration-200"
+          >
+            <Plus size={20} />
+            Create New Task
+          </button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statsData.map((stat, index) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {statsData.map((stat, idx) => {
             const IconComponent = stat.icon;
             return (
-              <div key={index} className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`${stat.color} w-14 h-14 rounded-xl flex items-center justify-center shadow-lg`}>
+              <div key={idx} className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
+                    <h3 className="text-2xl font-bold text-gray-900 mt-2">{stat.value}</h3>
+                  </div>
+                  <div className={`${stat.color} w-12 h-12 rounded-lg flex items-center justify-center`}>
                     <IconComponent className="text-white" size={24} />
                   </div>
-                  <TrendingUp className={`${stat.textColor} w-5 h-5`} />
                 </div>
-                <p className="text-slate-600 text-sm font-medium mb-1">{stat.label}</p>
-                <h3 className="text-3xl font-bold text-slate-900">{stat.value}</h3>
               </div>
             );
           })}

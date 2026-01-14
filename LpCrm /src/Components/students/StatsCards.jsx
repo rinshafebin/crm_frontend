@@ -28,11 +28,12 @@ export default function StatsCards() {
       let token = accessToken || await refreshAccessToken();
       if (!token) return;
 
-      const res = await axios.get(`${API_BASE_URL}/students/?page_size=10000`, {
+      const res = await axios.get(`${API_BASE_URL}/students/stats/`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true
       });
 
+      setStats(res.data);
       const students = res.data.results;
 
       const total = students.length;

@@ -1,5 +1,7 @@
 import React from 'react';
 import { Mail, Phone, BookOpen, Calendar, Edit, Trash2, Eye, User } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
 
 const statusColors = {
   ACTIVE: 'bg-green-100 text-green-700',
@@ -8,6 +10,7 @@ const statusColors = {
 };
 
 const StudentCard = React.memo(({ student }) => {
+  const navigate = useNavigate();
   const avatar = `https://api.dicebear.com/7.x/initials/svg?seed=${student.name}`;
 
   return (
@@ -79,12 +82,12 @@ const StudentCard = React.memo(({ student }) => {
 
       {/* Actions */}
       <div className="flex gap-2">
-        <button className="flex-1 px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center justify-center gap-2 text-sm font-medium">
+        <button onClick={()=>navigate(`/students/view/${student.id}`)} className="flex-1 px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center justify-center gap-2 text-sm font-medium">
           <Eye size={16} />
           View
         </button>
 
-        <button className="flex-1 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex items-center justify-center gap-2 text-sm font-medium">
+        <button onClick={()=>navigate(`/students/edit/${student.id}`)} className="flex-1 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg flex items-center justify-center gap-2 text-sm font-medium">
           <Edit size={16} />
           Edit
         </button>

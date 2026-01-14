@@ -1,8 +1,23 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../Components/layouts/Navbar';
-import { Search, Plus, Mail, Phone, MapPin, Edit, Trash2, Eye, UserCheck, UserX, Users, CheckCircle, Clock, XCircle } from 'lucide-react';
+import {
+  Search,
+  Plus,
+  Mail,
+  Phone,
+  MapPin,
+  Edit,
+  Trash2,
+  UserCheck,
+  UserX,
+  Users,
+  CheckCircle,
+  Clock,
+  XCircle,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import Pagination from '../Components/common/Pagination';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -21,7 +36,7 @@ export default function StaffPage() {
     currentPage: 1,
   });
 
-
+  // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       navigate('/login');
@@ -53,67 +68,73 @@ export default function StaffPage() {
     [accessToken, refreshAccessToken]
   );
 
-  // Fetch staff members
-  const fetchStaff = useCallback(async (page = 1, search = '') => {
-    if (!accessToken) return;
+  // Fetch staff members with pagination, search, and department filter
+  const fetchStaff = useCallback(
+    async (page = 1, search = '', team = '') => {
+      if (!accessToken) return;
 
-    setLoading(true);
-    try {
-      const queryParams = new URLSearchParams();
-      if (search) queryParams.append('search', search);
-      queryParams.append('page', page);
+      setLoading(true);
+      try {
+        const queryParams = new URLSearchParams();
+        if (search) queryParams.append('search', search);
+        if (team && team !== 'all') queryParams.append('team', team);
+        queryParams.append('page', page);
 
-      const res = await authFetch(`${API_BASE_URL}/staffs/?${queryParams.toString()}`);
-      const data = await res.json();
+        const res = await authFetch(`${API_BASE_URL}/staff/team/?${queryParams.toString()}`);
+        const data = await res.json();
 
-      // Map backend data to frontend format
-      const mappedStaff = data.results.map((staff) => ({
-        id: staff.id,
-        name: `${staff.first_name || ''} ${staff.last_name || ''}`.trim() || staff.username,
-        role: staff.role?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()),
-        department: staff.team || 'Unassigned',
-        email: staff.email,
-        phone: staff.phone,
-        location: staff.location,
-        status: staff.is_active ? 'active' : 'inactive',
-        joinDate: new Date(staff.date_joined).toLocaleDateString('en-US', {
-          month: 'short',
-          day: '2-digit',
-          year: 'numeric',
-        }),
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${staff.username}`,
-      }));
+        const mappedStaff = data.results.map((staff) => ({
+          id: staff.id,
+          name: `${staff.first_name || ''} ${staff.last_name || ''}`.trim() || staff.username,
+          role: staff.role
+            ?.replace(/_/g, ' ')
+            .toLowerCase()
+            .replace(/\b\w/g, (c) => c.toUpperCase()),
+          department: staff.team || 'Unassigned',
+          email: staff.email,
+          phone: staff.phone,
+          location: staff.location,
+          status: staff.is_active ? 'active' : 'inactive',
+          joinDate: new Date(staff.date_joined).toLocaleDateString('en-US', {
+            month: 'short',
+            day: '2-digit',
+            year: 'numeric',
+          }),
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${staff.username}`,
+        }));
 
-      setStaffMembers(mappedStaff);
-      setPagination({
-        count: data.count,
-        next: data.next,
-        previous: data.previous,
-        currentPage: page,
-      });
-    } catch (err) {
-      console.error('Failed to load staff:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [accessToken, authFetch]);
+        setStaffMembers(mappedStaff);
+        setPagination({
+          count: data.count,
+          next: data.next,
+          previous: data.previous,
+          currentPage: page,
+        });
+      } catch (err) {
+        console.error('Failed to load staff:', err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [accessToken, authFetch]
+  );
 
   // Initial fetch
   useEffect(() => {
     if (authLoading || !accessToken) return;
-    fetchStaff(1, searchTerm);
-  }, [authLoading, accessToken]);
+    fetchStaff(1, searchTerm, filterDepartment);
+  }, [authLoading, accessToken, filterDepartment]);
 
-  // Handle search with debounce
+  // Search debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!authLoading && accessToken) {
-        fetchStaff(1, searchTerm);
+        fetchStaff(1, searchTerm, filterDepartment);
       }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchTerm]);
+  }, [searchTerm, filterDepartment, accessToken, authLoading]);
 
   // Delete staff member
   const handleDelete = async (staffId) => {
@@ -124,8 +145,7 @@ export default function StaffPage() {
         method: 'DELETE',
       });
 
-      // Refresh the list
-      fetchStaff(pagination.currentPage, searchTerm);
+      fetchStaff(pagination.currentPage, searchTerm, filterDepartment);
       alert('Staff member deleted successfully');
     } catch (err) {
       console.error('Failed to delete staff:', err);
@@ -133,53 +153,32 @@ export default function StaffPage() {
     }
   };
 
-  // Filter by department (frontend filtering)
-  const filteredStaff = useMemo(() => {
-    if (filterDepartment === 'all') return staffMembers;
-    return staffMembers.filter((staff) => staff.department === filterDepartment);
-  }, [staffMembers, filterDepartment]);
-
-  // Get unique departments
+  // Departments for filter dropdown
   const departments = useMemo(() => {
     const depts = new Set(staffMembers.map((s) => s.department));
-    return Array.from(depts).filter(d => d !== 'Unassigned');
+    return Array.from(depts).filter((d) => d !== 'Unassigned');
   }, [staffMembers]);
 
-  // Calculate stats
+  // Stats cards
   const stats = useMemo(() => {
-    const activeCount = staffMembers.filter(s => s.status === 'active').length;
-    const inactiveCount = staffMembers.filter(s => s.status === 'inactive').length;
+    const activeCount = staffMembers.filter((s) => s.status === 'active').length;
+    const inactiveCount = staffMembers.filter((s) => s.status === 'inactive').length;
 
     return [
       { label: 'Total Staff', value: pagination.count.toString(), color: 'bg-blue-500', icon: Users },
       { label: 'Active', value: activeCount.toString(), color: 'bg-green-500', icon: CheckCircle },
       { label: 'On Leave', value: '0', color: 'bg-yellow-500', icon: Clock },
-      { label: 'Inactive', value: inactiveCount.toString(), color: 'bg-red-500', icon: XCircle }
+      { label: 'Inactive', value: inactiveCount.toString(), color: 'bg-red-500', icon: XCircle },
     ];
   }, [staffMembers, pagination.count]);
 
   // Pagination handlers
-  const handlePreviousPage = () => {
-    if (pagination.previous) {
-      fetchStaff(pagination.currentPage - 1, searchTerm);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (pagination.next) {
-      fetchStaff(pagination.currentPage + 1, searchTerm);
-    }
-  };
-
   const handlePageClick = (page) => {
-    fetchStaff(page, searchTerm);
+    fetchStaff(page, searchTerm, filterDepartment);
   };
 
-  if (authLoading) {
-    return <div className="p-10 text-center">Checking session…</div>;
-  }
+  if (authLoading) return <div className="p-10 text-center">Checking session…</div>;
 
-  // Calculate total pages
   const totalPages = Math.ceil(pagination.count / 10);
 
   return (
@@ -188,28 +187,26 @@ export default function StaffPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Staff Management</h1>
-              <p className="text-gray-600 mt-2">Manage your team members and their roles</p>
-            </div>
-            <button
-              onClick={() => navigate('/staff/create')}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors duration-200"
-            >
-              <Plus size={20} />
-              Add Staff Member
-            </button>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Staff Management</h1>
+            <p className="text-gray-600 mt-2">Manage your team members and their roles</p>
           </div>
+          <button
+            onClick={() => navigate('/staff/create')}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors duration-200"
+          >
+            <Plus size={20} />
+            Add Staff Member
+          </button>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => {
+          {stats.map((stat, idx) => {
             const IconComponent = stat.icon;
             return (
-              <div key={index} className="bg-white rounded-lg shadow-md p-6">
+              <div key={idx} className="bg-white rounded-lg shadow-md p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
@@ -225,85 +222,75 @@ export default function StaffPage() {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Search staff by name, role, or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-
-            <select
-              value={filterDepartment}
-              onChange={(e) => setFilterDepartment(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="all">All Departments</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>{dept}</option>
-              ))}
-            </select>
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6 flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              placeholder="Search staff by name, role, or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
           </div>
+
+          <select
+            value={filterDepartment}
+            onChange={(e) => setFilterDepartment(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="all">All Departments</option>
+            {departments.map((dept) => (
+              <option key={dept} value={dept}>
+                {dept}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Loading State */}
+        {/* Loading / No Staff */}
         {loading ? (
-          <div className="text-center py-10 text-gray-500">
-            Loading staff members…
-          </div>
-        ) : filteredStaff.length === 0 ? (
-          <div className="text-center py-10 text-gray-500">
-            No staff members found
-          </div>
+          <div className="text-center py-10 text-gray-500">Loading staff members…</div>
+        ) : staffMembers.length === 0 ? (
+          <div className="text-center py-10 text-gray-500">No staff members found</div>
         ) : (
           <>
             {/* Staff Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredStaff.map((staff) => (
-                <div key={staff.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden">
+              {staffMembers.map((staff) => (
+                <div
+                  key={staff.id}
+                  className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden"
+                >
                   <div className="p-6">
-                    {/* Avatar and Status */}
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={staff.avatar}
-                          alt={staff.name}
-                          className="w-16 h-16 rounded-full bg-gray-200"
-                        />
+                        <img src={staff.avatar} alt={staff.name} className="w-16 h-16 rounded-full bg-gray-200" />
                         <div>
                           <h3 className="font-bold text-gray-900">{staff.name}</h3>
                           <span className="inline-block mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700">
                             {staff.role}
                           </span>
-
                         </div>
                       </div>
+
                       {staff.status === 'active' ? (
                         <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                          <UserCheck size={12} />
-                          Active
+                          <UserCheck size={12} /> Active
                         </span>
                       ) : (
                         <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                          <UserX size={12} />
-                          Inactive
+                          <UserX size={12} /> Inactive
                         </span>
                       )}
                     </div>
 
-                    {/* Department */}
                     <div className="mb-4">
                       <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">
                         {staff.department}
                       </span>
                     </div>
 
-                    {/* Contact Info */}
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Mail size={14} className="text-gray-400" />
@@ -319,19 +306,14 @@ export default function StaffPage() {
                       </div>
                     </div>
 
-                    {/* Join Date */}
-                    <div className="text-xs text-gray-500 mb-4">
-                      Joined: {staff.joinDate}
-                    </div>
+                    <div className="text-xs text-gray-500 mb-4">Joined: {staff.joinDate}</div>
 
-                    {/* Action Buttons */}
                     <div className="flex gap-2 pt-4 border-t border-gray-200">
                       <button
                         onClick={() => navigate(`/staff/edit/${staff.id}`)}
                         className="flex-1 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
                       >
-                        <Edit size={16} />
-                        Edit
+                        <Edit size={16} /> Edit
                       </button>
                       <button
                         onClick={() => handleDelete(staff.id)}
@@ -345,44 +327,14 @@ export default function StaffPage() {
               ))}
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-8 flex items-center justify-center">
-                <div className="flex gap-2">
-                  <button
-                    onClick={handlePreviousPage}
-                    disabled={!pagination.previous}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-
-                  {[...Array(Math.min(totalPages, 5))].map((_, i) => {
-                    const pageNum = i + 1;
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => handlePageClick(pageNum)}
-                        className={`px-4 py-2 rounded-lg transition-colors duration-200 ${pagination.currentPage === pageNum
-                            ? 'bg-indigo-600 text-white'
-                            : 'border border-gray-300 hover:bg-white'
-                          }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-
-                  <button
-                    onClick={handleNextPage}
-                    disabled={!pagination.next}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-white transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* {totalPages > 1 && ( */}
+              <Pagination
+                currentPage={pagination.currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageClick}
+                className="mt-4"
+              />
+            {/* )} */}
           </>
         )}
       </div>

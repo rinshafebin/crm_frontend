@@ -1,14 +1,14 @@
 import React, { useCallback } from 'react';
 import { Search } from 'lucide-react';
 
-const StudentsSearchFilters = React.memo(({ 
-  searchTerm, 
-  setSearchTerm, 
-  filterCourse, 
-  setFilterCourse, 
-  filterStatus, 
-  setFilterStatus, 
-  courses 
+const StudentsSearchFilters = React.memo(({
+  searchTerm,
+  setSearchTerm,
+  filterCourse,
+  setFilterCourse,
+  filterStatus,
+  setFilterStatus,
+  courses
 }) => {
 
   const handleSearchChange = useCallback((e) => {
@@ -29,9 +29,9 @@ const StudentsSearchFilters = React.memo(({
 
         {/* Search */}
         <div className="flex-1 relative">
-          <Search 
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" 
-            size={20} 
+          <Search
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            size={20}
           />
           <input
             type="text"
@@ -48,15 +48,16 @@ const StudentsSearchFilters = React.memo(({
           value={filterCourse}
           onChange={handleCourseChange}
           className="px-4 py-2 border border-gray-300 rounded-lg bg-white
-                     focus:outline-none focus:ring-2 focus:ring-indigo-500"
+             focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           <option value="all">All Courses</option>
           {courses.map((course) => (
-            <option key={course} value={course}>
-              {course}
+            <option key={course.value} value={course.value}>
+              {course.label}
             </option>
           ))}
         </select>
+
 
         {/* Status Filter */}
         <select
