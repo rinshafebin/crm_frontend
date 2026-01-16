@@ -10,7 +10,7 @@ import {
 
 
 export const roleNavigation = {
-  ADMIN: [
+  ADMIN : [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
@@ -91,6 +91,8 @@ export const roleNavigation = {
   ],
 };
 
+
 export const getMenuForRole = (role) => {
-  return roleNavigation[role] || [];
+  if (!role) return [];
+  return roleNavigation[role.toUpperCase()] || [];
 };

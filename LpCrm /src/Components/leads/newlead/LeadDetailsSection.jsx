@@ -25,8 +25,14 @@ export default function LeadDetailsSection({ formData, errors, onChange }) {
           >
             <option value="">Select a program</option>
             {programOptions.map(program => (
-              <option key={program} value={program}>{program}</option>
+              <option
+                key={program.value}
+                value={program.value}
+              >
+                {program.label}
+              </option>
             ))}
+
           </select>
         </div>
 

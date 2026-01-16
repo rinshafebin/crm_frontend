@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const LeadsPageHeader = () => {
@@ -7,18 +7,27 @@ const LeadsPageHeader = () => {
 
   return (
     <div className="mb-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Leads Management</h1>
-          <p className="text-gray-600 mt-2">Manage and track all your leads</p>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
+              Leads Management
+            </h1>
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+          </div>
+          <p className="text-gray-600 text-lg font-medium">
+            Manage and track all your leads with powerful insights
+          </p>
         </div>
 
         <button
           onClick={() => navigate('/addnewlead')}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-colors duration-200"
+          className="group relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 overflow-hidden"
         >
-          <Plus size={20} />
-          Add New Lead
+          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+          <Plus size={20} className="relative z-10 group-hover:rotate-90 transition-transform duration-300" />
+          <span className="relative z-10">Add New Lead</span>
+          <Sparkles size={16} className="relative z-10 opacity-70 group-hover:opacity-100 transition-opacity" />
         </button>
       </div>
     </div>

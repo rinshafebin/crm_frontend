@@ -1,84 +1,112 @@
 import React from 'react';
-import { Mail, Phone, MapPin, Calendar, Edit, Trash2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Edit, Trash2, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-
-
-const LeadsTable = ({ leads, statusColors, onDeleteLead }) => {
+const LeadsTable = ({ leads, statusColors, onDeleteLead, onEdit }) => {
   const navigate = useNavigate();
 
-  const handleEdit = (id) => {
-    navigate(`/leads/edit/${id}`);
-  };
-
+  if (leads.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12">
+        <div className="text-center">
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Mail className="w-10 h-10 text-gray-400" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No leads found</h3>
+          <p className="text-gray-500">Try adjusting your filters or add a new lead to get started</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-gray-200">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Lead Info</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Contact</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Source</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Date</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Lead Info</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Contact</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Source</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
-            {leads.map((lead) => (
-              <tr key={lead.id} className="hover:bg-gray-50 transition-colors duration-150">
-                <td className="px-6 py-4">
+          <tbody className="divide-y divide-gray-100">
+            {leads.map((lead, index) => (
+              <tr 
+                key={lead.id} 
+                className="group hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <td className="px-6 py-5">
                   <div>
-                    <p className="font-semibold text-gray-900">{lead.name}</p>
-                    <p className="text-sm text-gray-600">{lead.interest}</p>
+                    <p className="font-bold text-gray-900 text-base group-hover:text-blue-700 transition-colors">
+                      {lead.name}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                      <ExternalLink size={12} className="opacity-50" />
+                      {lead.interest}
+                    </p>
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Mail size={14} />
-                      {lead.email}
+                <td className="px-6 py-5">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Mail size={14} className="text-blue-600" />
+                      </div>
+                      <span className="font-medium">{lead.email}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Phone size={14} />
-                      {lead.phone}
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <div className="w-7 h-7 bg-green-100 rounded-lg flex items-center justify-center">
+                        <Phone size={14} className="text-green-600" />
+                      </div>
+                      <span className="font-medium">{lead.phone}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <MapPin size={14} />
-                      {lead.location}
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <MapPin size={14} className="text-purple-600" />
+                      </div>
+                      <span className="font-medium">{lead.location}</span>
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[lead.status]}`}>
+                <td className="px-6 py-5">
+                  <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide shadow-sm ${statusColors[lead.status]}`}>
                     {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
                   </span>
                 </td>
-                <td className="px-6 py-4">
-                  <span className="text-sm text-gray-700">{lead.source}</span>
+                <td className="px-6 py-5">
+                  <span className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1.5 rounded-lg">
+                    {lead.source}
+                  </span>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar size={14} />
+                <td className="px-6 py-5">
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                    <div className="w-7 h-7 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <Calendar size={14} className="text-orange-600" />
+                    </div>
                     {lead.date}
                   </div>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-5">
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleEdit(lead.id)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                      onClick={() => navigate(`/leads/edit/${lead.id}`)}
+                      className="group/btn p-2.5 text-blue-600 hover:bg-blue-100 rounded-xl transition-all duration-200 hover:shadow-md hover:scale-110"
+                      title="Edit lead"
                     >
-                      <Edit size={18} />
+                      <Edit size={18} className="group-hover/btn:rotate-12 transition-transform" />
                     </button>
 
                     <button
                       onClick={() => onDeleteLead(lead.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                      className="group/btn p-2.5 text-red-600 hover:bg-red-100 rounded-xl transition-all duration-200 hover:shadow-md hover:scale-110"
+                      title="Delete lead"
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={18} className="group-hover/btn:rotate-12 transition-transform" />
                     </button>
                   </div>
                 </td>

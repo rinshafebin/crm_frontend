@@ -6,18 +6,23 @@ const LeadsStatsCards = ({ stats }) => {
       {stats.map((stat, index) => {
         const Icon = stat.icon;
         return (
-          <div key={index} className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">{stat.label}</p>
-                <h3 className="text-2xl font-bold text-gray-900 mt-2">
-                  {stat.value}
+          <div 
+            key={index} 
+            className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-2xl hover:border-blue-200 transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-gray-600 text-sm font-semibold tracking-wide uppercase mb-3">
+                  {stat.label}
+                </p>
+                <h3 className="text-4xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                  {stat.value.toLocaleString()}
                 </h3>
               </div>
 
               {/* Icon */}
-              <div className={`${stat.color} w-12 h-12 rounded-lg flex items-center justify-center`}>
-                <Icon className="text-white" size={22} />
+              <div className={`${stat.color} w-14 h-14 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                <Icon className="text-white" size={24} />
               </div>
             </div>
           </div>

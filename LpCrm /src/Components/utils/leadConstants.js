@@ -22,13 +22,30 @@ export const priorityOptions = [
   { value: 'LOW', label: 'Low' }
 ];
 
+// export const programOptions = [
+//   'Blockchain Development',
+//   'Digital Marketing',
+//   'UI/UX Design',
+//   'Web Development',
+//   'Data Science',
+//   'Mobile App Development',
+//   'Cloud Computing',
+//   'Cybersecurity'
+// ];
+
 export const programOptions = [
-  'Blockchain Development',
-  'Digital Marketing',
-  'UI/UX Design',
-  'Web Development',
-  'Data Science',
-  'Mobile App Development',
-  'Cloud Computing',
-  'Cybersecurity'
+  { value: 'A1', label: 'A1 (Beginner)' },
+  { value: 'A2', label: 'A2 (Elementary)' },
+  { value: 'B1', label: 'B1 (Intermediate)' },
+  { value: 'B2', label: 'B2 (Upper Intermediate)' },
+
+  { value: 'A1 ONLINE', label: 'A1 (Online)' },
+  { value: 'A2 ONLINE', label: 'A2 (Online)' },
+  { value: 'B1 ONLINE', label: 'B1 (Online)' },
+  { value: 'B2 ONLINE', label: 'B2 (Online)' },
+
+  { value: 'A1 EXAM PREPERATION', label: 'A1 (Exam Preparation)' },
+  { value: 'A2 EXAM PREPERATION', label: 'A2 (Exam Preparation)' },
+  { value: 'B1 EXAM PREPERATION', label: 'B1 (Exam Preparation)' },
+  { value: 'B2 EXAM PREPERATION', label: 'B2 (Exam Preparation)' }
 ];
