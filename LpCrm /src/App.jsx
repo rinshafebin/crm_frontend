@@ -20,6 +20,8 @@ import StudentViewPage from "./Pages/StudentViewPage.jsx";
 import AddStudentPage from "./Pages/AddStudentPage.jsx";
 import SettingsPage from './Pages/SettingsPage.jsx';
 import NotificationsPage from './Pages/NotificationsPage.jsx';
+import MyReportsPage from "./Pages/MyReportsPage.jsx";
+import MyTasksPage from "./Pages/MyTasksPage.jsx";
 
 const ProtectedRoute = ({ children }) => 
   { const { isAuthenticated, loading } = useAuth(); 
@@ -41,13 +43,15 @@ export default function App() {
         <Route path="/staff/create" element={<ProtectedRoute><AddStaffPage /></ProtectedRoute>} />
         <Route path="/staff/edit/:id" element={<ProtectedRoute><EditStaffPage /></ProtectedRoute>} />
 
-        <Route path="/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
+        <Route path="/staff/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
         <Route path="/tasks/new" element={<ProtectedRoute><TaskCreationForm /></ProtectedRoute>} />
         <Route path="/tasks/:id" element={<ProtectedRoute><TaskViewPage /></ProtectedRoute>} />
         <Route path="/tasks/edit/:id" element={<ProtectedRoute><EditTaskPage /></ProtectedRoute>} />
+        <Route path="/mytasks" element={<ProtectedRoute><MyTasksPage /></ProtectedRoute>} />
 
-        <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+        <Route path="/daily/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
         <Route path="/reports/view/:id" element={<ProtectedRoute><ReportViewPage /></ProtectedRoute>} />
+        <Route path="/myreports/" element={<ProtectedRoute><MyReportsPage /></ProtectedRoute>} />
         
         <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
         <Route path="/students/add" element={<ProtectedRoute><AddStudentPage /></ProtectedRoute>} />

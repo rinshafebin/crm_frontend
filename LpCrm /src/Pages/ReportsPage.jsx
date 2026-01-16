@@ -63,21 +63,52 @@ export default function ReportsPage() {
   }, [accessToken, page, dateRange]);
 
   // Approve report
+  // Approve report
   const handleApproveReport = async (reportId) => {
     if (!accessToken) return;
     setLoading(true);
+
     try {
+      // Optionally, update UI immediately (optimistic update)
+      setRecentReports(prev =>
+        prev.map(r =>
+          r.id === reportId ? { ...r, approved: true } : r
+        )
+      );
+
+      setStatsData(prevStats => ({
+        ...prevStats,
+        approved: (prevStats?.approved || 0) + 1,
+        pending: (prevStats?.pending || 0) - 1
+      }));
+
+      // Make the API call to approve report
       await axios.patch(
         `${API_BASE}/admin/reports/${reportId}/approve/`,
         { approved: true },
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
-      fetchReports(page);
-      fetchStats();
+
+      // Optional: refetch reports to sync fully with backend
+      await fetchReports(page);
+      await fetchStats();
+
       alert('Report approved successfully!');
     } catch (err) {
       console.error('Failed to approve report:', err);
       alert('Failed to approve report');
+
+      // Rollback UI if API fails
+      setRecentReports(prev =>
+        prev.map(r =>
+          r.id === reportId ? { ...r, approved: false } : r
+        )
+      );
+      setStatsData(prevStats => ({
+        ...prevStats,
+        approved: (prevStats?.approved || 1) - 1,
+        pending: (prevStats?.pending || 0) + 1
+      }));
     } finally {
       setLoading(false);
     }
@@ -116,7 +147,7 @@ export default function ReportsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <Navbar />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-8">
@@ -191,7 +222,7 @@ export default function ReportsPage() {
               View All →
             </button>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-indigo-100">
