@@ -92,7 +92,6 @@ export default function TaskCreationForm() {
         deadline: formData.deadline,
       };
 
-      console.log('Submitting payload:', payload);
 
       const res = await fetch(`${API_BASE_URL}/tasks/`, {
         method: 'POST',
@@ -125,7 +124,6 @@ export default function TaskCreationForm() {
       handleCancel();
       navigate('/tasks');
     } catch (error) {
-      console.error('Error creating task:', error);
       alert(error.message || 'Failed to create task. Please try again.');
     } finally {
       setLoading(false);
@@ -139,7 +137,6 @@ export default function TaskCreationForm() {
         if (!token) {
           token = await refreshAccessToken();
           if (!token) {
-            console.log('No token available');
             setTeamMembers([]);
             return;
           }
@@ -168,15 +165,11 @@ export default function TaskCreationForm() {
         }
 
         if (Array.isArray(employeeList) && employeeList.length > 0) {
-          console.log('✅ Setting team members:', employeeList);
-          console.log('👤 First member:', employeeList[0]);
           setTeamMembers(employeeList);
         } else {
-          console.error('❌ Team members data is not a valid array:', employeeList);
           setTeamMembers([]);
         }
       } catch (err) {
-        console.error('Error fetching team members:', err);
         setTeamMembers([]);
       }
     };

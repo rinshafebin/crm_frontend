@@ -234,7 +234,7 @@ export default function DashboardOverview() {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent">
+                <h1 className="text-4xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                   {userRole.toUpperCase()} Dashboard
                 </h1>
                 <span className={`px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg ${getRoleBadgeColor(userRole)}`}>
