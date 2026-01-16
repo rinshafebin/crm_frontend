@@ -22,11 +22,15 @@ import SettingsPage from './Pages/SettingsPage.jsx';
 import NotificationsPage from './Pages/NotificationsPage.jsx';
 import MyReportsPage from "./Pages/MyReportsPage.jsx";
 import MyTasksPage from "./Pages/MyTasksPage.jsx";
+import AttendanceMarkingPage from './Pages/AttendanceMarkingPage';
+import StudentAttendanceRecordsPage from './Pages/StudentAttendanceRecordsPage';
 
-const ProtectedRoute = ({ children }) => 
-  { const { isAuthenticated, loading } = useAuth(); 
-  if (loading) return null; 
-  return isAuthenticated ? children : <Navigate to="/login" replace />; };
+
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return null;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
+};
 
 export default function App() {
   return (
@@ -52,13 +56,14 @@ export default function App() {
         <Route path="/daily/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
         <Route path="/reports/view/:id" element={<ProtectedRoute><ReportViewPage /></ProtectedRoute>} />
         <Route path="/myreports/" element={<ProtectedRoute><MyReportsPage /></ProtectedRoute>} />
-        
+
         <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
         <Route path="/students/add" element={<ProtectedRoute><AddStudentPage /></ProtectedRoute>} />
         <Route path="/students/view/:id" element={<ProtectedRoute><StudentViewPage /></ProtectedRoute>} />
         <Route path="/students/edit/:id" element={<ProtectedRoute><StudentEditPage /></ProtectedRoute>} />
-        
-        
+        <Route path="/attendance/mark" element={<ProtectedRoute><AttendanceMarkingPage /></ProtectedRoute>} />
+        <Route path="/students/:studentId/attendance" element={<ProtectedRoute><StudentAttendanceRecordsPage /></ProtectedRoute>} />
+
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
         <Route path="*" element={<div>404 Not Found</div>} />

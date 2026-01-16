@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, Phone, BookOpen, Calendar, Edit, Trash2, Eye, User } from 'lucide-react';
+import { Mail, Phone, BookOpen, Calendar, Edit, Trash2, Eye, User, ClipboardCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const statusColors = {
@@ -80,23 +80,33 @@ const StudentCard = React.memo(({ student }) => {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <button 
           onClick={() => navigate(`/students/view/${student.id}`)} 
-          className="flex-1 px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold transition-all border border-indigo-200 hover:border-indigo-300"
+          className="px-4 py-2 text-indigo-600 hover:bg-indigo-50 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold transition-all border border-indigo-200 hover:border-indigo-300"
         >
           <Eye size={16} />
           View
         </button>
         <button 
           onClick={() => navigate(`/students/edit/${student.id}`)} 
-          className="flex-1 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold transition-all border border-blue-200 hover:border-blue-300"
+          className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold transition-all border border-blue-200 hover:border-blue-300"
         >
           <Edit size={16} />
           Edit
         </button>
+        
+        {/* ATTENDANCE BUTTON - NOTICE THE TEMPLATE LITERAL WITH student.id */}
         <button 
-          className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-all border border-red-200 hover:border-red-300"
+          onClick={() => navigate(`/students/${student.id}/attendance`)} 
+          className="px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold transition-all border border-purple-200 hover:border-purple-300"
+        >
+          <ClipboardCheck size={16} />
+          Attendance
+        </button>
+        
+        <button 
+          className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold transition-all border border-red-200 hover:border-red-300"
           onClick={() => {
             if (window.confirm('Are you sure you want to delete this student?')) {
               console.log('Delete student:', student.id);
@@ -104,6 +114,7 @@ const StudentCard = React.memo(({ student }) => {
           }}
         >
           <Trash2 size={16} />
+          Delete
         </button>
       </div>
     </div>

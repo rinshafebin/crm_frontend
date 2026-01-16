@@ -1,4 +1,3 @@
-// src/config/roles.js
 import {
   Users,
   UserCheck,
@@ -6,7 +5,9 @@ import {
   FileText,
   GraduationCap,
   Settings,
+  CalendarCheck, 
 } from "lucide-react";
+
 
 export const roleNavigation = {
   ADMIN: [
@@ -60,9 +61,11 @@ export const roleNavigation = {
   TRAINER: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
+    { id: "markAttendance", label: "Mark Attendance", icon: CalendarCheck, path: "/attendance/mark" },
     { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
     { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
   ],
+
 
   BDM: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },

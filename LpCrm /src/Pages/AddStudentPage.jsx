@@ -86,15 +86,11 @@ export default function AddStudentPage() {
           return;
         }
 
-        console.log('Fetching trainers from:', `${API_BASE_URL}/trainers/`);
         const res = await axios.get(`${API_BASE_URL}/trainers/`, {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         });
 
-        console.log('Trainers response:', res.data);
-
-        // Handle both paginated and non-paginated responses
         let trainersData = [];
         if (res.data.results) {
           trainersData = res.data.results;
@@ -103,8 +99,6 @@ export default function AddStudentPage() {
         } else {
           console.error('Unexpected response format:', res.data);
         }
-
-        console.log('Trainers data to set:', trainersData);
         setTrainers(trainersData);
       } catch (err) {
         console.error('Failed to load trainers:', err);
@@ -174,8 +168,6 @@ export default function AddStudentPage() {
         }
         return acc;
       }, {});
-
-      console.log('Submitting student data:', submitData);
 
       await axios.post(`${API_BASE_URL}/students/`, submitData, {
         headers: { Authorization: `Bearer ${token}` },
