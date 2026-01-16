@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, UserCheck, GraduationCap, Calendar, TrendingUp, TrendingDown, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Users, UserCheck, GraduationCap, Calendar, TrendingUp, TrendingDown, Clock, CheckCircle2, AlertCircle, FileText, CheckSquare } from 'lucide-react';
 import Navbar from '../Components/layouts/Navbar.jsx';
 import { useAuth } from '../context/AuthContext';
 
@@ -25,6 +25,7 @@ export default function DashboardOverview() {
   // Get user role and name
   const userRole = user?.role || 'User';
   const userName = user?.name || user?.username || 'User';
+  const isAdmin = userRole?.toUpperCase() === 'ADMIN';
 
   // Fetch function with token refresh logic
   const fetchWithAuth = async (url, options = {}) => {
@@ -115,11 +116,20 @@ export default function DashboardOverview() {
       setLoading(true);
       setError(null);
       
-      await Promise.all([
-        fetchStats(),
-        fetchActivities(),
-        fetchTasks()
-      ]);
+      if (isAdmin) {
+        // Admin gets full stats + activities + tasks
+        await Promise.all([
+          fetchStats(),
+          fetchActivities(),
+          fetchTasks()
+        ]);
+      } else {
+        // Regular users only get their activities and tasks
+        await Promise.all([
+          fetchActivities(),
+          fetchTasks()
+        ]);
+      }
       
       setLoading(false);
     };
@@ -127,7 +137,7 @@ export default function DashboardOverview() {
     if (accessToken) {
       loadDashboardData();
     }
-  }, [accessToken]);
+  }, [accessToken, isAdmin]);
 
   const formatTimeAgo = (timestamp) => {
     if (!timestamp) return '';
@@ -175,10 +185,12 @@ export default function DashboardOverview() {
 
   const getPriorityColor = (priority) => {
     switch (priority?.toLowerCase()) {
-      case 'high':
+      case 'urgent':
         return 'bg-red-100 text-red-700 border-red-200';
-      case 'medium':
+      case 'high':
         return 'bg-orange-100 text-orange-700 border-orange-200';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
       case 'low':
         return 'bg-blue-100 text-blue-700 border-blue-200';
       default:
@@ -235,7 +247,7 @@ export default function DashboardOverview() {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-4xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  {userRole.toUpperCase()} Dashboard
+                  {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
                 </h1>
                 <span className={`px-4 py-1.5 rounded-full text-sm font-semibold shadow-lg ${getRoleBadgeColor(userRole)}`}>
                   {userRole.toUpperCase()}
@@ -261,88 +273,131 @@ export default function DashboardOverview() {
           </div>
         )}
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Total Leads */}
-          <div className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-2xl hover:border-blue-200 transition-all duration-300 transform hover:-translate-y-1">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-3">
-                  <p className="text-gray-600 text-sm font-semibold tracking-wide uppercase">Total Leads</p>
+        {/* Admin Stats Grid - Only for Admin */}
+        {isAdmin && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Total Leads */}
+            <div className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-2xl hover:border-blue-200 transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <p className="text-gray-600 text-sm font-semibold tracking-wide uppercase">Total Leads</p>
+                  </div>
+                  <h3 className="text-5xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
+                    {stats.total_leads.toLocaleString()}
+                  </h3>
+                  <div className={`flex items-center text-sm font-medium ${stats.leads_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {stats.leads_change >= 0 ? (
+                      <TrendingUp className="w-4 h-4 mr-1.5" />
+                    ) : (
+                      <TrendingDown className="w-4 h-4 mr-1.5" />
+                    )}
+                    <span className="font-bold text-base">{stats.leads_change >= 0 ? '+' : ''}{stats.leads_change}%</span>
+                    <span className="text-gray-500 ml-2">vs last month</span>
+                  </div>
                 </div>
-                <h3 className="text-5xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">
-                  {stats.total_leads.toLocaleString()}
-                </h3>
-                <div className={`flex items-center text-sm font-medium ${stats.leads_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {stats.leads_change >= 0 ? (
-                    <TrendingUp className="w-4 h-4 mr-1.5" />
-                  ) : (
-                    <TrendingDown className="w-4 h-4 mr-1.5" />
-                  )}
-                  <span className="font-bold text-base">{stats.leads_change >= 0 ? '+' : ''}{stats.leads_change}%</span>
-                  <span className="text-gray-500 ml-2">vs last month</span>
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <Users className="w-7 h-7 text-white" />
                 </div>
               </div>
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <Users className="w-7 h-7 text-white" />
+            </div>
+
+            {/* Active Staff */}
+            <div className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-2xl hover:border-green-200 transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <p className="text-gray-600 text-sm font-semibold tracking-wide uppercase">Active Staff</p>
+                  </div>
+                  <h3 className="text-5xl font-bold text-gray-900 mb-4 group-hover:text-green-600 transition-colors">
+                    {stats.active_staff.toLocaleString()}
+                  </h3>
+                  <div className={`flex items-center text-sm font-medium ${stats.staff_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {stats.staff_change >= 0 ? (
+                      <TrendingUp className="w-4 h-4 mr-1.5" />
+                    ) : (
+                      <TrendingDown className="w-4 h-4 mr-1.5" />
+                    )}
+                    <span className="font-bold text-base">{stats.staff_change >= 0 ? '+' : ''}{stats.staff_change}</span>
+                    <span className="text-gray-500 ml-2">vs last month</span>
+                  </div>
+                </div>
+                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <UserCheck className="w-7 h-7 text-white" />
+                </div>
+              </div>
+            </div>
+
+            {/* Total Students */}
+            <div className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-2xl hover:border-purple-200 transition-all duration-300 transform hover:-translate-y-1">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <p className="text-gray-600 text-sm font-semibold tracking-wide uppercase">Total Students</p>
+                  </div>
+                  <h3 className="text-5xl font-bold text-gray-900 mb-4 group-hover:text-purple-600 transition-colors">
+                    {stats.total_students.toLocaleString()}
+                  </h3>
+                  <div className={`flex items-center text-sm font-medium ${stats.students_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {stats.students_change >= 0 ? (
+                      <TrendingUp className="w-4 h-4 mr-1.5" />
+                    ) : (
+                      <TrendingDown className="w-4 h-4 mr-1.5" />
+                    )}
+                    <span className="font-bold text-base">{stats.students_change >= 0 ? '+' : ''}{stats.students_change}%</span>
+                    <span className="text-gray-500 ml-2">vs last month</span>
+                  </div>
+                </div>
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <GraduationCap className="w-7 h-7 text-white" />
+                </div>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Active Staff */}
-          <div className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-2xl hover:border-green-200 transition-all duration-300 transform hover:-translate-y-1">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-3">
-                  <p className="text-gray-600 text-sm font-semibold tracking-wide uppercase">Active Staff</p>
+        {/* Quick Actions for Non-Admin Users */}
+        {!isAdmin && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-indigo-200 transition-all cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <CheckSquare className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-5xl font-bold text-gray-900 mb-4 group-hover:text-green-600 transition-colors">
-                  {stats.active_staff.toLocaleString()}
-                </h3>
-                <div className={`flex items-center text-sm font-medium ${stats.staff_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {stats.staff_change >= 0 ? (
-                    <TrendingUp className="w-4 h-4 mr-1.5" />
-                  ) : (
-                    <TrendingDown className="w-4 h-4 mr-1.5" />
-                  )}
-                  <span className="font-bold text-base">{stats.staff_change >= 0 ? '+' : ''}{stats.staff_change}</span>
-                  <span className="text-gray-500 ml-2">vs last month</span>
+                <div>
+                  <p className="text-gray-600 text-sm font-semibold">My Tasks</p>
+                  <p className="text-2xl font-bold text-gray-900">{tasks.length}</p>
                 </div>
               </div>
-              <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <UserCheck className="w-7 h-7 text-white" />
+            </div>
+
+            <div className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <FileText className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm font-semibold">Recent Activities</p>
+                  <p className="text-2xl font-bold text-gray-900">{activities.length}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-green-200 transition-all cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <Calendar className="w-7 h-7 text-white" />
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm font-semibold">Today</p>
+                  <p className="text-2xl font-bold text-gray-900">{new Date().getDate()}</p>
+                </div>
               </div>
             </div>
           </div>
+        )}
 
-          {/* Total Students */}
-          <div className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-2xl hover:border-purple-200 transition-all duration-300 transform hover:-translate-y-1">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-3">
-                  <p className="text-gray-600 text-sm font-semibold tracking-wide uppercase">Total Students</p>
-                </div>
-                <h3 className="text-5xl font-bold text-gray-900 mb-4 group-hover:text-purple-600 transition-colors">
-                  {stats.total_students.toLocaleString()}
-                </h3>
-                <div className={`flex items-center text-sm font-medium ${stats.students_change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {stats.students_change >= 0 ? (
-                    <TrendingUp className="w-4 h-4 mr-1.5" />
-                  ) : (
-                    <TrendingDown className="w-4 h-4 mr-1.5" />
-                  )}
-                  <span className="font-bold text-base">{stats.students_change >= 0 ? '+' : ''}{stats.students_change}%</span>
-                  <span className="text-gray-500 ml-2">vs last month</span>
-                </div>
-              </div>
-              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <GraduationCap className="w-7 h-7 text-white" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Section */}
+        {/* Bottom Section - For All Users */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Activities */}
           <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
@@ -414,7 +469,7 @@ export default function DashboardOverview() {
                   >
                     <input 
                       type="checkbox" 
-                      checked={task.completed || false}
+                      checked={task.completed || task.status === 'COMPLETED'}
                       onChange={() => {}}
                       className="mt-1.5 w-5 h-5 text-blue-600 rounded border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 cursor-pointer" 
                     />

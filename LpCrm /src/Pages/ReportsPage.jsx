@@ -21,7 +21,6 @@ export default function ReportsPage() {
   const PAGE_SIZE = 10;
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-  // Fetch stats
   const fetchStats = async () => {
     if (!accessToken) return;
     try {
@@ -34,7 +33,7 @@ export default function ReportsPage() {
     }
   };
 
-  // Fetch reports with pagination
+
   const fetchReports = async (pageNumber = 1) => {
     if (!accessToken) return;
     setLoading(true);
@@ -62,14 +61,12 @@ export default function ReportsPage() {
     fetchReports(page);
   }, [accessToken, page, dateRange]);
 
-  // Approve report
-  // Approve report
+
   const handleApproveReport = async (reportId) => {
     if (!accessToken) return;
     setLoading(true);
 
     try {
-      // Optionally, update UI immediately (optimistic update)
       setRecentReports(prev =>
         prev.map(r =>
           r.id === reportId ? { ...r, approved: true } : r
@@ -82,23 +79,19 @@ export default function ReportsPage() {
         pending: (prevStats?.pending || 0) - 1
       }));
 
-      // Make the API call to approve report
       await axios.patch(
         `${API_BASE}/admin/reports/${reportId}/approve/`,
         { approved: true },
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
 
-      // Optional: refetch reports to sync fully with backend
       await fetchReports(page);
       await fetchStats();
 
       alert('Report approved successfully!');
     } catch (err) {
-      console.error('Failed to approve report:', err);
       alert('Failed to approve report');
 
-      // Rollback UI if API fails
       setRecentReports(prev =>
         prev.map(r =>
           r.id === reportId ? { ...r, approved: false } : r

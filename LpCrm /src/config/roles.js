@@ -36,7 +36,6 @@ export const roleNavigation = {
     { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
   ],
 
-  // ADM_MANAGER: Overview, leads, own tasks, own reports
   ADM_MANAGER: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
@@ -44,7 +43,6 @@ export const roleNavigation = {
     { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
   ],
 
-  // ADM_EXEC: Same as ADM_MANAGER
   ADM_EXEC: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
@@ -52,14 +50,13 @@ export const roleNavigation = {
     { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
   ],
 
-  // MEDIA: Overview, own tasks, own reports
   MEDIA: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
     { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
   ],
 
-  // TRAINER: Overview, own students, own tasks, own reports
+
   TRAINER: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
@@ -76,19 +73,28 @@ export const roleNavigation = {
 
   CM: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
-    { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
+    { id: "leads", label: "Leads", icon: Users, path: "/leads" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
+    { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
+
+
+
   ],
 
   HR: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
     { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
+    { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
+
   ],
 
   FOE: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
+    { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
+
   ],
 };
 

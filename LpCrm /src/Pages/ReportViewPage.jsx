@@ -27,7 +27,7 @@ export default function ReportViewPage() {
   const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState(false);
   const [reviewModal, setReviewModal] = useState(false);
-  const [reviewAction, setReviewAction] = useState(''); // 'approved' or 'rejected'
+  const [reviewAction, setReviewAction] = useState(''); 
   const [reviewComment, setReviewComment] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   
@@ -148,7 +148,7 @@ export default function ReportViewPage() {
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Back Button */}
         <button
-          onClick={() => navigate('/reports')}
+          onClick={() => navigate('/daily/reports')}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors duration-200"
         >
           <ArrowLeft size={20} />
