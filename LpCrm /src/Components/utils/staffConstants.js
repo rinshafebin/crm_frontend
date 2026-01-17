@@ -36,5 +36,6 @@ export const initialFormData = {
   team: '',
   isActive: true,
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  salary: '',
 };

@@ -24,6 +24,8 @@ import MyReportsPage from "./Pages/MyReportsPage.jsx";
 import MyTasksPage from "./Pages/MyTasksPage.jsx";
 import AttendanceMarkingPage from './Pages/AttendanceMarkingPage';
 import StudentAttendanceRecordsPage from './Pages/StudentAttendanceRecordsPage';
+import AttendanceDocumentsPage from "./Pages/AttendanceDocumentsPage.jsx";
+import PenaltyManagementPage from "./Pages/PenaltyManagementPage.jsx";
 
 
 const ProtectedRoute = ({ children }) => {
@@ -63,6 +65,9 @@ export default function App() {
         <Route path="/students/edit/:id" element={<ProtectedRoute><StudentEditPage /></ProtectedRoute>} />
         <Route path="/attendance/mark" element={<ProtectedRoute><AttendanceMarkingPage /></ProtectedRoute>} />
         <Route path="/students/:studentId/attendance" element={<ProtectedRoute><StudentAttendanceRecordsPage /></ProtectedRoute>} />
+
+        <Route path="/hr/attendance" element={<ProtectedRoute><AttendanceDocumentsPage /></ProtectedRoute>} />
+        <Route path="/hr/penalties" element={<ProtectedRoute><PenaltyManagementPage /></ProtectedRoute>} />
 
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />

@@ -22,16 +22,6 @@ export const priorityOptions = [
   { value: 'LOW', label: 'Low' }
 ];
 
-// export const programOptions = [
-//   'Blockchain Development',
-//   'Digital Marketing',
-//   'UI/UX Design',
-//   'Web Development',
-//   'Data Science',
-//   'Mobile App Development',
-//   'Cloud Computing',
-//   'Cybersecurity'
-// ];
 
 export const programOptions = [
   { value: 'A1', label: 'A1 (Beginner)' },

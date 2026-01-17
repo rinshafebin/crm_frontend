@@ -70,7 +70,6 @@ export default function StaffPage() {
     [accessToken, refreshAccessToken]
   );
 
-  // Fetch staff members with pagination, search, and department filter
   const fetchStaff = useCallback(
     async (page = 1, search = '', team = '') => {
       if (!accessToken) return;
@@ -121,7 +120,7 @@ export default function StaffPage() {
     [accessToken, authFetch]
   );
 
-  // Initial fetch
+
   useEffect(() => {
     if (authLoading || !accessToken) return;
     fetchStaff(1, searchTerm, filterDepartment);

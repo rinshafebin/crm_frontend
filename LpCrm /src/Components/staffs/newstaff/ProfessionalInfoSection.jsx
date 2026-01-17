@@ -1,5 +1,5 @@
 import React from 'react';
-import { Briefcase, Shield, Users } from 'lucide-react';
+import { Briefcase, Shield, Users, DollarSign } from 'lucide-react';
 import { roleOptions, teamOptions } from '../../utils/staffConstants';
 
 const ProfessionalInfoSection = React.memo(({ formData, errors, onChange }) => {
@@ -47,6 +47,23 @@ const ProfessionalInfoSection = React.memo(({ formData, errors, onChange }) => {
               <option key={team} value={team}>{team}</option>
             ))}
           </select>
+        </div>
+
+        {/* Salary */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <DollarSign size={16} className="text-gray-400" />
+            Salary
+          </label>
+          <input
+            type="number"
+            name="salary"
+            value={formData.salary || ''}
+            onChange={onChange}
+            placeholder="Enter salary"
+            className={`w-full px-3 sm:px-4 py-2 border ${errors.salary ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base`}
+          />
+          {errors.salary && <p className="text-red-500 text-xs mt-1">{errors.salary}</p>}
         </div>
 
         {/* Status */}

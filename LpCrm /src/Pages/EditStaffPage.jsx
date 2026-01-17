@@ -20,6 +20,7 @@ export default function EditStaffPage() {
     location: '',
     role: '',
     team: '',
+    salary: '',
     isActive: true
   });
   const [loading, setLoading] = useState(true);
@@ -51,6 +52,7 @@ export default function EditStaffPage() {
           phone: data.phone || '',
           location: data.location || '',
           role: data.role || '',
+          salary: data.salary || '',
           team: data.team || '',
           isActive: data.is_active ?? true
         });
@@ -107,6 +109,7 @@ export default function EditStaffPage() {
       location: formData.location,
       role: formData.role,
       team: formData.team,
+      salary: formData.salary, 
       is_active: formData.isActive,
     };
 

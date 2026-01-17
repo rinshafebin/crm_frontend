@@ -301,8 +301,7 @@ export default function AttendanceMarkingPage() {
             </div>
           )}
         </div>
-
-        {/* Submit Button */}
+        {/* Submit Button */} 
         <div className="flex justify-end">
           <button
             onClick={handleSubmit}

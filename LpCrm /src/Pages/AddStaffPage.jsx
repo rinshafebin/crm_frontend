@@ -69,6 +69,7 @@ export default function AddStaffPage() {
       role: formData.role,
       team: formData.team,
       is_active: formData.isActive,
+      salary: formData.salary,
       password: formData.password
     };
 
