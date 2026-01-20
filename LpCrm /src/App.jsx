@@ -1,84 +1,5 @@
-// import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-// import { useAuth } from './context/AuthContext';
-// import Login from './Pages/Login.jsx';
-// import DashboardOverview from './Pages/DashboardOverview.jsx';
-// import LeadsPage from './Pages/LeadsPage.jsx';
-// import AddLeadPage from './Pages/AddLeadPage.jsx';
-// import EditLeadPage from './Pages/EditLeadPage.jsx';
-// import StaffPage from './Pages/StaffPage.jsx';
-// import AddStaffPage from './Pages/AddStaffPage.jsx';
-// import EditStaffPage from './Pages/EditStaffPage.jsx';
-// import TasksPage from './Pages/TasksPage.jsx';
-// import TaskCreationForm from "./Pages/TaskCreationForm.jsx";
-// import TaskViewPage from "./Pages/TaskViewPage.jsx";
-// import EditTaskPage from "./Pages/EditTaskPage.jsx";
-// import ReportsPage from './Pages/ReportsPage.jsx';
-// import ReportViewPage from "./Pages/ReportViewPage.jsx";
-// import StudentsPage from './Pages/StudentsPage.jsx';
-// import StudentEditPage from "./Pages/StudentEditPage.jsx";
-// import StudentViewPage from "./Pages/StudentViewPage.jsx";
-// import AddStudentPage from "./Pages/AddStudentPage.jsx";
-// import SettingsPage from './Pages/SettingsPage.jsx';
-// import NotificationsPage from './Pages/NotificationsPage.jsx';
-// import MyReportsPage from "./Pages/MyReportsPage.jsx";
-// import MyTasksPage from "./Pages/MyTasksPage.jsx";
-// import AttendanceMarkingPage from './Pages/AttendanceMarkingPage';
-// import StudentAttendanceRecordsPage from './Pages/StudentAttendanceRecordsPage';
-// import AttendanceDocumentsPage from "./Pages/AttendanceDocumentsPage.jsx";
-// import PenaltyManagementPage from "./Pages/PenaltyManagementPage.jsx";
-
-
-// const ProtectedRoute = ({ children }) => {
-//   const { isAuthenticated, loading } = useAuth();
-//   if (loading) return null;
-//   return isAuthenticated ? children : <Navigate to="/login" replace />;
-// };
-
-// export default function App() {
-//   return (
-//     <Router>
-//       <Routes>
-//         <Route path="/login" element={<Login />} />
-//         <Route path="/" element={<ProtectedRoute><DashboardOverview /></ProtectedRoute>} />
-
-//         <Route path="/leads" element={<ProtectedRoute><LeadsPage /></ProtectedRoute>} />
-//         <Route path="/leads/edit/:id" element={<ProtectedRoute><EditLeadPage /></ProtectedRoute>} />
-//         <Route path="/addnewlead" element={<ProtectedRoute><AddLeadPage /></ProtectedRoute>} />
-
-//         <Route path="/staff" element={<ProtectedRoute><StaffPage /></ProtectedRoute>} />
-//         <Route path="/staff/create" element={<ProtectedRoute><AddStaffPage /></ProtectedRoute>} />
-//         <Route path="/staff/edit/:id" element={<ProtectedRoute><EditStaffPage /></ProtectedRoute>} />
-
-//         <Route path="/staff/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
-//         <Route path="/tasks/new" element={<ProtectedRoute><TaskCreationForm /></ProtectedRoute>} />
-//         <Route path="/tasks/:id" element={<ProtectedRoute><TaskViewPage /></ProtectedRoute>} />
-//         <Route path="/tasks/edit/:id" element={<ProtectedRoute><EditTaskPage /></ProtectedRoute>} />
-//         <Route path="/mytasks" element={<ProtectedRoute><MyTasksPage /></ProtectedRoute>} />
-
-//         <Route path="/daily/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
-//         <Route path="/reports/view/:id" element={<ProtectedRoute><ReportViewPage /></ProtectedRoute>} />
-//         <Route path="/myreports/" element={<ProtectedRoute><MyReportsPage /></ProtectedRoute>} />
-
-//         <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
-//         <Route path="/students/add" element={<ProtectedRoute><AddStudentPage /></ProtectedRoute>} />
-//         <Route path="/students/view/:id" element={<ProtectedRoute><StudentViewPage /></ProtectedRoute>} />
-//         <Route path="/students/edit/:id" element={<ProtectedRoute><StudentEditPage /></ProtectedRoute>} />
-//         <Route path="/attendance/mark" element={<ProtectedRoute><AttendanceMarkingPage /></ProtectedRoute>} />
-//         <Route path="/students/:studentId/attendance" element={<ProtectedRoute><StudentAttendanceRecordsPage /></ProtectedRoute>} />
-
-//         <Route path="/hr/attendance" element={<ProtectedRoute><AttendanceDocumentsPage /></ProtectedRoute>} />
-//         <Route path="/hr/penalties" element={<ProtectedRoute><PenaltyManagementPage /></ProtectedRoute>} />
-
-//         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-//         <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-//         <Route path="*" element={<div>404 Not Found</div>} />
-//       </Routes>
-//     </Router>
-//   );
-// }
-
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from './context/AuthContext';
 import Login from './Pages/Login.jsx';
 import DashboardOverview from './Pages/DashboardOverview.jsx';
 import LeadsPage from './Pages/LeadsPage.jsx';
@@ -106,44 +27,50 @@ import StudentAttendanceRecordsPage from './Pages/StudentAttendanceRecordsPage';
 import AttendanceDocumentsPage from "./Pages/AttendanceDocumentsPage.jsx";
 import PenaltyManagementPage from "./Pages/PenaltyManagementPage.jsx";
 
+
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return null;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
+};
+
 export default function App() {
   return (
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/" element={<DashboardOverview />} />
+        <Route path="/" element={<ProtectedRoute><DashboardOverview /></ProtectedRoute>} />
 
-        <Route path="/leads" element={<LeadsPage />} />
-        <Route path="/leads/edit/:id" element={<EditLeadPage />} />
-        <Route path="/addnewlead" element={<AddLeadPage />} />
+        <Route path="/leads" element={<ProtectedRoute><LeadsPage /></ProtectedRoute>} />
+        <Route path="/leads/edit/:id" element={<ProtectedRoute><EditLeadPage /></ProtectedRoute>} />
+        <Route path="/addnewlead" element={<ProtectedRoute><AddLeadPage /></ProtectedRoute>} />
 
-        <Route path="/staff" element={<StaffPage />} />
-        <Route path="/staff/create" element={<AddStaffPage />} />
-        <Route path="/staff/edit/:id" element={<EditStaffPage />} />
+        <Route path="/staff" element={<ProtectedRoute><StaffPage /></ProtectedRoute>} />
+        <Route path="/staff/create" element={<ProtectedRoute><AddStaffPage /></ProtectedRoute>} />
+        <Route path="/staff/edit/:id" element={<ProtectedRoute><EditStaffPage /></ProtectedRoute>} />
 
-        <Route path="/staff/tasks" element={<TasksPage />} />
-        <Route path="/tasks/new" element={<TaskCreationForm />} />
-        <Route path="/tasks/:id" element={<TaskViewPage />} />
-        <Route path="/tasks/edit/:id" element={<EditTaskPage />} />
-        <Route path="/mytasks" element={<MyTasksPage />} />
+        <Route path="/staff/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
+        <Route path="/tasks/new" element={<ProtectedRoute><TaskCreationForm /></ProtectedRoute>} />
+        <Route path="/tasks/:id" element={<ProtectedRoute><TaskViewPage /></ProtectedRoute>} />
+        <Route path="/tasks/edit/:id" element={<ProtectedRoute><EditTaskPage /></ProtectedRoute>} />
+        <Route path="/mytasks" element={<ProtectedRoute><MyTasksPage /></ProtectedRoute>} />
 
-        <Route path="/daily/reports" element={<ReportsPage />} />
-        <Route path="/reports/view/:id" element={<ReportViewPage />} />
-        <Route path="/myreports/" element={<MyReportsPage />} />
+        <Route path="/daily/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+        <Route path="/reports/view/:id" element={<ProtectedRoute><ReportViewPage /></ProtectedRoute>} />
+        <Route path="/myreports/" element={<ProtectedRoute><MyReportsPage /></ProtectedRoute>} />
 
-        <Route path="/students" element={<StudentsPage />} />
-        <Route path="/students/add" element={<AddStudentPage />} />
-        <Route path="/students/view/:id" element={<StudentViewPage />} />
-        <Route path="/students/edit/:id" element={<StudentEditPage />} />
-        <Route path="/attendance/mark" element={<AttendanceMarkingPage />} />
-        <Route path="/students/:studentId/attendance" element={<StudentAttendanceRecordsPage />} />
+        <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
+        <Route path="/students/add" element={<ProtectedRoute><AddStudentPage /></ProtectedRoute>} />
+        <Route path="/students/view/:id" element={<ProtectedRoute><StudentViewPage /></ProtectedRoute>} />
+        <Route path="/students/edit/:id" element={<ProtectedRoute><StudentEditPage /></ProtectedRoute>} />
+        <Route path="/attendance/mark" element={<ProtectedRoute><AttendanceMarkingPage /></ProtectedRoute>} />
+        <Route path="/students/:studentId/attendance" element={<ProtectedRoute><StudentAttendanceRecordsPage /></ProtectedRoute>} />
 
-        <Route path="/hr/attendance" element={<AttendanceDocumentsPage />} />
-        <Route path="/hr/penalties" element={<PenaltyManagementPage />} />
+        <Route path="/hr/attendance" element={<ProtectedRoute><AttendanceDocumentsPage /></ProtectedRoute>} />
+        <Route path="/hr/penalties" element={<ProtectedRoute><PenaltyManagementPage /></ProtectedRoute>} />
 
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
         <Route path="*" element={<div>404 Not Found</div>} />
       </Routes>
     </Router>
