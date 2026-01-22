@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({}); // Changed to object for field-specific errors
+  const [errors, setErrors] = useState({});
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -41,7 +41,7 @@ export default function LoginPage() {
       setErrors({}); // Clear all errors
 
       try {
-        const response = await fetch(`${API_BASE_URL}/login/`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
