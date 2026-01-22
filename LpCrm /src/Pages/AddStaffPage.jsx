@@ -80,6 +80,7 @@ export default function AddStaffPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
+        credentials: 'include',
         body: JSON.stringify(staffData),
       });
 
