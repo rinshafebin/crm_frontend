@@ -1,25 +1,34 @@
 import React from 'react';
 import { CheckCircle2, Clock } from 'lucide-react';
+import Card from '../common/Card';
+import SectionHeader from '../common/SectionHeader';
+import EmptyState from '../common/EmptyState';
+import Badge from '../common/Badge';
 
-export default function UpcomingTasks({ tasks, formatTaskTime, getPriorityColor }) {
+export default function UpcomingTasks({ tasks, formatTaskTime, getPriorityColor, onViewAll }) {
+  const getPriorityVariant = (priority) => {
+    const variantMap = {
+      'HIGH': 'high',
+      'MEDIUM': 'medium',
+      'LOW': 'low'
+    };
+    return variantMap[priority?.toUpperCase()] || 'default';
+  };
+
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Upcoming Tasks</h2>
-        <button className="text-blue-600 text-sm font-semibold hover:text-blue-700 hover:underline transition-colors">
-          View All →
-        </button>
-      </div>
+    <Card>
+      <SectionHeader 
+        title="Upcoming Tasks" 
+        onActionClick={onViewAll}
+      />
       
       <div className="space-y-3">
         {tasks.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="w-8 h-8 text-gray-400" />
-            </div>
-            <p className="text-gray-500 text-sm font-medium">No upcoming tasks</p>
-            <p className="text-gray-400 text-xs mt-1">You're all caught up!</p>
-          </div>
+          <EmptyState
+            icon={CheckCircle2}
+            title="No upcoming tasks"
+            description="You're all caught up!"
+          />
         ) : (
           tasks.slice(0, 5).map((task, index) => (
             <div 
@@ -38,9 +47,9 @@ export default function UpcomingTasks({ tasks, formatTaskTime, getPriorityColor 
                     {task.title || task.name || 'Untitled Task'}
                   </p>
                   {task.priority && (
-                    <span className={`px-2.5 py-1 text-xs font-bold rounded-full border ${getPriorityColor(task.priority)}`}>
+                    <Badge variant={getPriorityVariant(task.priority)} size="sm">
                       {task.priority.toUpperCase()}
-                    </span>
+                    </Badge>
                   )}
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
@@ -52,6 +61,6 @@ export default function UpcomingTasks({ tasks, formatTaskTime, getPriorityColor 
           ))
         )}
       </div>
-    </div>
+    </Card>
   );
 }

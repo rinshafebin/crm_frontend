@@ -29,14 +29,16 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, onEdit }) => {
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Contact</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Source</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Priority</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
+
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {leads.map((lead, index) => (
-              <tr 
-                key={lead.id} 
+              <tr
+                key={lead.id}
                 className="group hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
@@ -81,6 +83,14 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, onEdit }) => {
                 <td className="px-6 py-5">
                   <span className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1.5 rounded-lg">
                     {lead.source}
+                  </span>
+                </td>
+                <td className="px-6 py-5">
+                  <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide shadow-sm ${lead.priority === 'HIGH' ? 'bg-red-100 text-red-700' :
+                      lead.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-gray-100 text-gray-700'
+                    }`}>
+                    {lead.priority}
                   </span>
                 </td>
                 <td className="px-6 py-5">

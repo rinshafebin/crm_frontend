@@ -110,11 +110,12 @@ export default function LeadsPage() {
             id: lead.id,
             name: lead.name,
             phone: lead.phone,
-            email: lead.email,
-            location: lead.location,
+            email: lead.email || 'No email provided',
+            location: lead.location || 'No location',
             status: lead.status.toLowerCase(),
             source: lead.source,
             interest: lead.program,
+            priority: lead.priority, // ✅ Add this line
             date: new Date(lead.created_at).toLocaleDateString('en-IN'),
           }))
         );

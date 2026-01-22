@@ -1,4 +1,4 @@
-// src/pages/AddLeadPage.jsx
+// Pages/AddLeadPage.jsx - REFACTORED
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +7,8 @@ import ContactInfoSection from '../Components/leads/newlead/ContactSection';
 import LeadDetailsSection from '../Components/leads/newlead/LeadDetailsSection';
 import AdditionalInfoSection from '../Components/leads/newlead/AdditionalInfoSection';
 import ActionButtons from '../Components/leads/newlead/ActionButtons';
+import Alert from '../Components/common/Alert';
+import Card from '../Components/common/Card';
 
 export default function AddLeadPage() {
   const [formData, setFormData] = useState({
@@ -40,7 +42,6 @@ export default function AddLeadPage() {
   const validateForm = () => {
     const newErrors = {};
 
-    // Required fields
     if (!formData.name.trim()) newErrors.name = 'Name is required';
     else if (formData.name.trim().length < 3)
       newErrors.name = 'Name must be at least 3 characters long';
@@ -94,7 +95,6 @@ export default function AddLeadPage() {
 
       setSubmitted(true);
 
-      // Reset form after success
       setTimeout(() => {
         setFormData({
           name: '',
@@ -121,75 +121,38 @@ export default function AddLeadPage() {
     const confirmed = window.confirm(
       'Are you sure you want to go back? Any unsaved changes will be lost.'
     );
-    if (confirmed) {
-      navigate('/leads');
-    }
+    if (confirmed) navigate('/leads');
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <LeadHeader onBack={handleBack} />
-
-      {/* Main Content */}
+      
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Success Message */}
         {submitted && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 animate-pulse">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-green-800">
-                  Lead added successfully!
-                </p>
-              </div>
-            </div>
-          </div>
+          <Alert 
+            type="success" 
+            title="Lead added successfully!" 
+            className="mb-6 animate-pulse"
+          />
         )}
 
         {/* Form Card */}
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <ContactInfoSection 
-            formData={formData} 
-            errors={errors} 
-            onChange={handleInputChange} 
-          />
+        <Card padding="p-8">
+          <ContactInfoSection formData={formData} errors={errors} onChange={handleInputChange} />
+          <LeadDetailsSection formData={formData} errors={errors} onChange={handleInputChange} />
+          <AdditionalInfoSection formData={formData} onChange={handleInputChange} />
+          <ActionButtons onSave={handleSubmit} onCancel={handleBack} />
+        </Card>
 
-          <LeadDetailsSection 
-            formData={formData} 
-            errors={errors} 
-            onChange={handleInputChange} 
-          />
-
-          <AdditionalInfoSection 
-            formData={formData} 
-            onChange={handleInputChange} 
-          />
-
-          <ActionButtons 
-            onSave={handleSubmit} 
-            onCancel={handleBack} 
-          />
-        </div>
-
-        {/* Info Card */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex gap-3">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm text-blue-700">
-                <strong>Note:</strong> Fields marked with <span className="text-red-500">*</span> are required. Make sure to fill them before saving the lead.
-              </p>
-            </div>
-          </div>
-        </div>
+        {/* Info Alert */}
+        <Alert 
+          type="info" 
+          className="mt-6"
+        >
+          <strong>Note:</strong> Fields marked with <span className="text-red-500">*</span> are required. Make sure to fill them before saving the lead.
+        </Alert>
       </div>
     </div>
   );

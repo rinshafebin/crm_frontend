@@ -5,7 +5,6 @@ const LeadsFilters = ({ searchTerm, setSearchTerm, filterStatus, setFilterStatus
   return (
     <div className="bg-white rounded-2xl p-6 mb-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
       <div className="flex flex-col md:flex-row gap-4">
-        {/* Search */}
         <div className="flex-1 relative group">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={20} />
           <input
@@ -17,7 +16,6 @@ const LeadsFilters = ({ searchTerm, setSearchTerm, filterStatus, setFilterStatus
           />
         </div>
 
-        {/* Status Filter */}
         <div className="relative">
           <select
             value={filterStatus}

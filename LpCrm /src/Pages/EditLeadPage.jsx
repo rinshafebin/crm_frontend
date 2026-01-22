@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Save, User, Phone, Mail, MapPin, Tag, FileText, TrendingUp, Calendar, Loader2 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { statusOptions, sourceOptions, priorityOptions, programOptions } from '../Components/utils/leadConstants'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -15,8 +16,8 @@ export default function EditLeadPage() {
     phone: '',
     email: '',
     location: '',
-    priority: 'Medium',
-    status: 'Enquiry',
+    priority: 'MEDIUM',
+    status: 'ENQUIRY',
     program: '',
     source: '',
     customSource: '',
@@ -26,14 +27,6 @@ export default function EditLeadPage() {
   const [loading, setLoading] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
-
-  const statusOptions = ['Enquiry', 'Qualified', 'Converted', 'Lost'];
-  const sourceOptions = ['WhatsApp', 'Instagram', 'Website', 'Walk-in', 'Automation', 'Other'];
-  const programOptions = [
-    'Blockchain Development', 'Digital Marketing', 'UI/UX Design',
-    'Web Development', 'Data Science', 'Mobile App Development',
-    'Cloud Computing', 'Cybersecurity'
-  ];
 
   // --- Auth fetch with token refresh ---
   const authFetch = useCallback(async (url, options = {}, retry = true) => {
@@ -58,7 +51,6 @@ export default function EditLeadPage() {
     return res;
   }, [accessToken, refreshAccessToken]);
 
-
   useEffect(() => {
     const fetchLeadData = async () => {
       setLoading(true);
@@ -67,19 +59,19 @@ export default function EditLeadPage() {
         if (!res.ok) throw new Error('Failed to fetch lead');
         const lead = await res.json();
 
-        // Handle custom source
-        const isCustomSource = !sourceOptions.includes(lead.source);
+        // Check if source is a custom one (not in predefined list)
+        const isCustomSource = !sourceOptions.some(opt => opt.value === lead.source);
 
         setFormData({
           name: lead.name || '',
           phone: lead.phone || '',
           email: lead.email || '',
           location: lead.location || '',
-          priority: lead.priority || 'Medium',
-          status: lead.status || 'Enquiry',
+          priority: lead.priority || 'MEDIUM',
+          status: lead.status || 'ENQUIRY',
           program: lead.program || '',
-          source: isCustomSource ? 'Other' : lead.source,
-          customSource: isCustomSource ? lead.source : '',
+          source: isCustomSource ? 'OTHER' : lead.source,
+          customSource: isCustomSource ? lead.source : (lead.custom_source || ''),
           remarks: lead.remarks || ''
         });
       } catch (err) {
@@ -105,7 +97,9 @@ export default function EditLeadPage() {
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
     if (!formData.source) newErrors.source = 'Source is required';
-    if (formData.source === 'Other' && !formData.customSource.trim()) newErrors.customSource = 'Please specify custom source';
+    if (formData.source === 'OTHER' && !formData.customSource.trim()) {
+      newErrors.customSource = 'Please specify custom source';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -117,18 +111,17 @@ export default function EditLeadPage() {
     const payload = {
       name: formData.name,
       phone: formData.phone,
-      email: formData.email,
+      email: formData.email || null,
       location: formData.location,
       priority: formData.priority,
-      status: formData.status.toUpperCase(),
+      status: formData.status,
       program: formData.program,
-      source: formData.source === 'Other'
-        ? formData.customSource
-        : formData.source,
+      source: formData.source === 'OTHER' ? formData.customSource : formData.source,
+      custom_source: formData.source === 'OTHER' ? formData.customSource : '',
       remarks: formData.remarks
     };
 
-    // 🔒 IMPORTANT FIX (ADD THIS HERE)
+    // Remove email if it's empty
     if (!payload.email || payload.email.trim() === '') {
       delete payload.email;
     }
@@ -139,7 +132,11 @@ export default function EditLeadPage() {
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error('Failed to update lead');
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('Update failed:', errorData);
+        throw new Error('Failed to update lead');
+      }
 
       setSubmitted(true);
       setTimeout(() => navigate('/leads'), 1500);
@@ -148,7 +145,6 @@ export default function EditLeadPage() {
       alert('Error updating lead');
     }
   };
-
 
   const handleBack = () => {
     if (window.confirm('Are you sure you want to go back? Unsaved changes will be lost.')) {
@@ -163,7 +159,6 @@ export default function EditLeadPage() {
       </div>
     );
   }
-
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -303,7 +298,9 @@ export default function EditLeadPage() {
                 >
                   <option value="">Select a program</option>
                   {programOptions.map(program => (
-                    <option key={program} value={program}>{program}</option>
+                    <option key={program.value} value={program.value}>
+                      {program.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -321,7 +318,9 @@ export default function EditLeadPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
                   {statusOptions.map(status => (
-                    <option key={status} value={status}>{status}</option>
+                    <option key={status.value} value={status.value}>
+                      {status.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -332,27 +331,28 @@ export default function EditLeadPage() {
                   Priority Level
                 </label>
                 <div className="grid grid-cols-3 gap-4">
-                  {['High', 'Medium', 'Low'].map(p => (
+                  {priorityOptions.map(p => (
                     <label
-                      key={p}
-                      className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg cursor-pointer transition-all ${formData.priority === p
-                        ? p === 'High'
-                          ? 'border-red-500 bg-red-50 text-red-700'
-                          : p === 'Medium'
+                      key={p.value}
+                      className={`flex items-center justify-center gap-2 px-4 py-3 border-2 rounded-lg cursor-pointer transition-all ${
+                        formData.priority === p.value
+                          ? p.value === 'HIGH'
+                            ? 'border-red-500 bg-red-50 text-red-700'
+                            : p.value === 'MEDIUM'
                             ? 'border-yellow-500 bg-yellow-50 text-yellow-700'
                             : 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-300 hover:border-gray-400'
-                        }`}
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
                     >
                       <input
                         type="radio"
                         name="priority"
-                        value={p}
-                        checked={formData.priority === p}
+                        value={p.value}
+                        checked={formData.priority === p.value}
                         onChange={handleInputChange}
                         className="w-4 h-4"
                       />
-                      <span className="font-medium">{p}</span>
+                      <span className="font-medium">{p.label}</span>
                     </label>
                   ))}
                 </div>
@@ -371,14 +371,16 @@ export default function EditLeadPage() {
                 >
                   <option value="">Select source</option>
                   {sourceOptions.map(source => (
-                    <option key={source} value={source}>{source}</option>
+                    <option key={source.value} value={source.value}>
+                      {source.label}
+                    </option>
                   ))}
                 </select>
                 {errors.source && <p className="text-red-500 text-xs mt-1">{errors.source}</p>}
               </div>
 
               {/* Custom Source */}
-              {formData.source === 'Other' && (
+              {formData.source === 'OTHER' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Custom Source (Specify) <span className="text-red-500">*</span>

@@ -1,23 +1,25 @@
-// src/components/leads/ActionButtons.jsx
+// Components/leads/newlead/ActionButtons.jsx
 import React from 'react';
 import { Save } from 'lucide-react';
+import Button from '../../common/Button';
 
 export default function ActionButtons({ onSave, onCancel }) {
   return (
     <div className="flex gap-4 pt-6 border-t border-gray-200">
-      <button
+      <Button
         onClick={onSave}
-        className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors duration-200"
+        variant="primary"
+        icon={Save}
+        className="flex-1"
       >
-        <Save size={20} />
         Save Lead
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={onCancel}
-        className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
+        variant="outline"
       >
         Cancel
-      </button>
+      </Button>
     </div>
   );
 }
