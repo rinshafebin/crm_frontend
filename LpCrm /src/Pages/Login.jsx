@@ -17,7 +17,6 @@ export default function LoginPage() {
 
   const handleUsernameChange = useCallback((e) => {
     setUsername(e.target.value);
-    // Clear username error when user types
     if (errors.username) {
       setErrors(prev => ({ ...prev, username: null }));
     }
@@ -25,7 +24,6 @@ export default function LoginPage() {
 
   const handlePasswordChange = useCallback((e) => {
     setPassword(e.target.value);
-    // Clear password error when user types
     if (errors.password) {
       setErrors(prev => ({ ...prev, password: null }));
     }
@@ -41,27 +39,26 @@ export default function LoginPage() {
       setErrors({}); // Clear all errors
 
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/login/`, {
+        console.log('🔐 Attempting login...');
+        
+        const response = await fetch(`${API_BASE_URL}/login/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           credentials: 'include',
           body: JSON.stringify({ username, password }),
-          credentials: 'include', 
         });
 
         const data = await response.json();
+        console.log('Login response:', data);
 
         if (!response.ok) {
           if (data.non_field_errors) {
-            // General authentication errors
             setErrors({ general: data.non_field_errors[0] || 'Login failed' });
           } else if (data.detail) {
-            // Single detail message
             setErrors({ general: data.detail });
           } else {
-            // Field-specific errors (username, password, etc.)
             const formattedErrors = {};
             Object.keys(data).forEach(key => {
               if (Array.isArray(data[key])) {
@@ -75,16 +72,23 @@ export default function LoginPage() {
           return;
         }
 
-        login({ access: data.access, user: data.user });        
+        await login({ 
+          access: data.access, 
+          refresh: data.refresh,  
+          user: data.user 
+        });
+        
+        console.log('✅ Login successful, navigating to dashboard');
         navigate('/');
+        
       } catch (err) {
-        console.error('Login error:', err.message);
+        console.error('❌ Login error:', err.message);
         setErrors({ general: 'Network error. Please try again.' });
       } finally {
         setIsLoading(false);
       }
     },
-    [username, password, rememberMe, navigate, login, API_BASE_URL]
+    [username, password, navigate, login, API_BASE_URL]
   );
 
   return (
@@ -180,6 +184,7 @@ export default function LoginPage() {
                         ? 'border-red-300 focus:ring-red-500' 
                         : 'border-gray-300 focus:ring-indigo-500'
                     }`}
+                    placeholder="Enter your username"
                   />
                 </div>
                 {errors.username && (
@@ -208,6 +213,7 @@ export default function LoginPage() {
                         ? 'border-red-300 focus:ring-red-500' 
                         : 'border-gray-300 focus:ring-indigo-500'
                     }`}
+                    placeholder="Enter your password"
                   />
                   <button
                     type="button"
@@ -223,20 +229,6 @@ export default function LoginPage() {
                     {errors.password}
                   </p>
                 )}
-              </div>
-
-              {/* Remember Me */}
-              <div className="flex items-center justify-between">
-                <label className="flex items-center cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={toggleRememberMe}
-                    className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer"
-                  />
-                  <span className="ml-2 text-sm text-gray-700 group-hover:text-gray-900 transition-colors">Remember me</span>
-                </label>
-                <a href="#" className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors">Forgot password?</a>
               </div>
 
               {/* Submit Button */}
