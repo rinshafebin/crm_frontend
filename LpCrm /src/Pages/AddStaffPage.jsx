@@ -39,7 +39,11 @@ export default function AddStaffPage() {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^\+?[\d\s\-()]+$/.test(formData.phone)) {
+      newErrors.phone = 'Phone number format is invalid';
+    }
     if (!formData.role) newErrors.role = 'Role is required';
     if (!formData.password) {
       newErrors.password = 'Password is required';
@@ -65,11 +69,11 @@ export default function AddStaffPage() {
       username: formData.username,
       email: formData.email,
       phone: formData.phone,
-      location: formData.location,
+      location: formData.location || '',
       role: formData.role,
-      team: formData.team,
+      team: formData.team || '',
       is_active: formData.isActive,
-      salary: formData.salary,
+      salary: formData.salary ? parseFloat(formData.salary) : null,
       password: formData.password
     };
 
@@ -84,10 +88,26 @@ export default function AddStaffPage() {
         body: JSON.stringify(staffData),
       });
 
+      if (res.status === 401) {
+        // Handle unauthorized/token expired
+        setErrors({ general: 'Session expired. Please login again.' });
+        // Optionally redirect to login after a delay
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+        return;
+      }
+
       if (!res.ok) {
         const errorData = await res.json();
         console.error('Failed to add staff:', errorData);
-        setErrors(errorData);
+        
+        // Display backend errors
+        if (typeof errorData === 'object' && !errorData.detail) {
+          setErrors(errorData);
+        } else {
+          setErrors({ general: errorData.detail || 'Failed to create staff member. Please try again.' });
+        }
         return;
       }
 
@@ -98,10 +118,12 @@ export default function AddStaffPage() {
       setTimeout(() => {
         setFormData(initialFormData);
         setSubmitted(false);
+        navigate('/staff');
       }, 2000);
 
     } catch (err) {
       console.error('Network error:', err);
+      setErrors({ general: 'Network error. Please check your connection and try again.' });
     }
   };
 
@@ -133,6 +155,24 @@ export default function AddStaffPage() {
               <div>
                 <p className="text-sm font-medium text-green-800">
                   Staff member added successfully!
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* General Error Message */}
+        {errors.general && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-red-800">
+                  {errors.general}
                 </p>
               </div>
             </div>
