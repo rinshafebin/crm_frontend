@@ -122,7 +122,7 @@ export default function TaskCreationForm() {
 
       alert('Task created successfully!');
       handleCancel();
-      navigate('staffs/tasks');
+      navigate('staff/tasks');
     } catch (error) {
       alert(error.message || 'Failed to create task. Please try again.');
     } finally {
