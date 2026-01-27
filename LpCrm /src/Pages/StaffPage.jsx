@@ -101,7 +101,8 @@ export default function StaffPage() {
             day: '2-digit',
             year: 'numeric',
           }),
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${staff.username}`,
+          // Professional initials-based avatar
+          initials: `${staff.first_name?.[0] || ''}${staff.last_name?.[0] || staff.username?.[0] || '?'}`.toUpperCase(),
         }));
 
         setStaffMembers(mappedStaff);
@@ -176,6 +177,21 @@ export default function StaffPage() {
   // Pagination handlers
   const handlePageClick = (page) => {
     fetchStaff(page, searchTerm, filterDepartment);
+  };
+
+  // Helper function to get gradient color based on name
+  const getAvatarGradient = (name) => {
+    const gradients = [
+      'from-indigo-500 to-purple-600',
+      'from-violet-500 to-fuchsia-600',
+      'from-blue-500 to-cyan-600',
+      'from-emerald-500 to-teal-600',
+      'from-amber-500 to-orange-600',
+      'from-rose-500 to-pink-600',
+      'from-slate-600 to-gray-700',
+    ];
+    const index = name.charCodeAt(0) % gradients.length;
+    return gradients[index];
   };
 
   if (authLoading) return <div className="p-10 text-center">Checking session…</div>;
@@ -277,7 +293,7 @@ export default function StaffPage() {
           </div>
         ) : (
           <>
-            {/* Staff Cards - Original Style with Modern Touch */}
+            {/* Staff Cards - With Professional Initials Avatar */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {staffMembers.map((staff) => (
                 <div
@@ -287,7 +303,11 @@ export default function StaffPage() {
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <img src={staff.avatar} alt={staff.name} className="w-16 h-16 rounded-full bg-gray-200 ring-2 ring-slate-100" />
+                        {/* Professional Initials Avatar */}
+                        <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${getAvatarGradient(staff.name)} flex items-center justify-center ring-2 ring-offset-2 ring-slate-100 shadow-lg`}>
+                          <span className="text-white text-xl font-bold">{staff.initials}</span>
+                        </div>
+                        
                         <div>
                           <h3 className="font-bold text-gray-900">{staff.name}</h3>
                           <span className="inline-block mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700">
