@@ -58,7 +58,7 @@ export default function AddStaffPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
+    const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
@@ -77,6 +77,9 @@ export default function AddStaffPage() {
       password: formData.password
     };
 
+    // LOG THE EXACT DATA BEING SENT
+    console.log('Submitting staff data:', JSON.stringify(staffData, null, 2));
+
     try {
       const res = await fetch(`${API_BASE_URL}/staff/create/`, {
         method: 'POST',
@@ -88,10 +91,11 @@ export default function AddStaffPage() {
         body: JSON.stringify(staffData),
       });
 
+      // LOG THE RESPONSE
+      console.log('Response status:', res.status);
+      
       if (res.status === 401) {
-        // Handle unauthorized/token expired
         setErrors({ general: 'Session expired. Please login again.' });
-        // Optionally redirect to login after a delay
         setTimeout(() => {
           navigate('/login');
         }, 2000);
@@ -102,7 +106,6 @@ export default function AddStaffPage() {
         const errorData = await res.json();
         console.error('Failed to add staff:', errorData);
         
-        // Display backend errors
         if (typeof errorData === 'object' && !errorData.detail) {
           setErrors(errorData);
         } else {
@@ -126,6 +129,74 @@ export default function AddStaffPage() {
       setErrors({ general: 'Network error. Please check your connection and try again.' });
     }
   };
+  // const handleSubmit = async () => {
+  //   if (!validateForm()) {
+  //     return;
+  //   }
+
+  //   const staffData = {
+  //     first_name: formData.firstName,
+  //     last_name: formData.lastName,
+  //     username: formData.username,
+  //     email: formData.email,
+  //     phone: formData.phone,
+  //     location: formData.location || '',
+  //     role: formData.role,
+  //     team: formData.team || '',
+  //     is_active: formData.isActive,
+  //     salary: formData.salary ? parseFloat(formData.salary) : null,
+  //     password: formData.password
+  //   };
+
+  //   try {
+  //     const res = await fetch(`${API_BASE_URL}/staff/create/`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         Authorization: `Bearer ${accessToken}`,
+  //       },
+  //       credentials: 'include',
+  //       body: JSON.stringify(staffData),
+  //     });
+
+  //     if (res.status === 401) {
+  //       // Handle unauthorized/token expired
+  //       setErrors({ general: 'Session expired. Please login again.' });
+  //       // Optionally redirect to login after a delay
+  //       setTimeout(() => {
+  //         navigate('/login');
+  //       }, 2000);
+  //       return;
+  //     }
+
+  //     if (!res.ok) {
+  //       const errorData = await res.json();
+  //       console.error('Failed to add staff:', errorData);
+        
+  //       // Display backend errors
+  //       if (typeof errorData === 'object' && !errorData.detail) {
+  //         setErrors(errorData);
+  //       } else {
+  //         setErrors({ general: errorData.detail || 'Failed to create staff member. Please try again.' });
+  //       }
+  //       return;
+  //     }
+
+  //     const data = await res.json();
+  //     console.log('Staff added:', data);
+
+  //     setSubmitted(true);
+  //     setTimeout(() => {
+  //       setFormData(initialFormData);
+  //       setSubmitted(false);
+  //       navigate('/staff');
+  //     }, 2000);
+
+  //   } catch (err) {
+  //     console.error('Network error:', err);
+  //     setErrors({ general: 'Network error. Please check your connection and try again.' });
+  //   }
+  // };
 
   const handleBack = () => {
     const confirmed = window.confirm(
