@@ -31,7 +31,7 @@ export default function EditStaffPage() {
   useEffect(() => {
     const fetchStaffDetails = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/staffs/${id}/`, {
+        const res = await fetch(`${API_BASE_URL}/staff/${id}/`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
