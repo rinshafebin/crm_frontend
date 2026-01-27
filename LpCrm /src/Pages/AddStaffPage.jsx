@@ -74,7 +74,7 @@ export default function AddStaffPage() {
     };
 
     try {
-      const res = await fetch(`${API_BASE_URL}/staffs/create/`, {
+      const res = await fetch(`${API_BASE_URL}/staff/create/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
