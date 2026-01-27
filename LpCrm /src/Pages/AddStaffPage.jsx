@@ -58,7 +58,7 @@ export default function AddStaffPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-    const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
@@ -93,7 +93,7 @@ export default function AddStaffPage() {
 
       // LOG THE RESPONSE
       console.log('Response status:', res.status);
-      
+
       if (res.status === 401) {
         setErrors({ general: 'Session expired. Please login again.' });
         setTimeout(() => {
@@ -105,7 +105,7 @@ export default function AddStaffPage() {
       if (!res.ok) {
         const errorData = await res.json();
         console.error('Failed to add staff:', errorData);
-        
+
         if (typeof errorData === 'object' && !errorData.detail) {
           setErrors(errorData);
         } else {
@@ -129,75 +129,85 @@ export default function AddStaffPage() {
       setErrors({ general: 'Network error. Please check your connection and try again.' });
     }
   };
-  // const handleSubmit = async () => {
-  //   if (!validateForm()) {
-  //     return;
-  //   }
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      return;
+    }
 
-  //   const staffData = {
-  //     first_name: formData.firstName,
-  //     last_name: formData.lastName,
-  //     username: formData.username,
-  //     email: formData.email,
-  //     phone: formData.phone,
-  //     location: formData.location || '',
-  //     role: formData.role,
-  //     team: formData.team || '',
-  //     is_active: formData.isActive,
-  //     salary: formData.salary ? parseFloat(formData.salary) : null,
-  //     password: formData.password
-  //   };
+    const staffData = {
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      username: formData.username,
+      email: formData.email,
+      phone: formData.phone,
+      location: formData.location || '',
+      role: formData.role,
+      team: formData.team || '',
+      is_active: formData.isActive,
+      salary: formData.salary ? parseFloat(formData.salary) : null,
+      password: formData.password
+    };
 
-  //   try {
-  //     const res = await fetch(`${API_BASE_URL}/staff/create/`, {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         Authorization: `Bearer ${accessToken}`,
-  //       },
-  //       credentials: 'include',
-  //       body: JSON.stringify(staffData),
-  //     });
+    console.log('Submitting staff data:', JSON.stringify(staffData, null, 2));
 
-  //     if (res.status === 401) {
-  //       // Handle unauthorized/token expired
-  //       setErrors({ general: 'Session expired. Please login again.' });
-  //       // Optionally redirect to login after a delay
-  //       setTimeout(() => {
-  //         navigate('/login');
-  //       }, 2000);
-  //       return;
-  //     }
+    try {
+      const res = await fetch(`${API_BASE_URL}/staff/create/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify(staffData),
+      });
 
-  //     if (!res.ok) {
-  //       const errorData = await res.json();
-  //       console.error('Failed to add staff:', errorData);
-        
-  //       // Display backend errors
-  //       if (typeof errorData === 'object' && !errorData.detail) {
-  //         setErrors(errorData);
-  //       } else {
-  //         setErrors({ general: errorData.detail || 'Failed to create staff member. Please try again.' });
-  //       }
-  //       return;
-  //     }
+      console.log('Response status:', res.status);
+      console.log('Response headers:', res.headers.get('content-type'));
 
-  //     const data = await res.json();
-  //     console.log('Staff added:', data);
+      if (res.status === 401) {
+        setErrors({ general: 'Session expired. Please login again.' });
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+        return;
+      }
 
-  //     setSubmitted(true);
-  //     setTimeout(() => {
-  //       setFormData(initialFormData);
-  //       setSubmitted(false);
-  //       navigate('/staff');
-  //     }, 2000);
+      // Check if response is JSON before parsing
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await res.text();
+        console.error('Non-JSON response:', textResponse);
+        setErrors({ general: 'Server error. Please contact support.' });
+        return;
+      }
 
-  //   } catch (err) {
-  //     console.error('Network error:', err);
-  //     setErrors({ general: 'Network error. Please check your connection and try again.' });
-  //   }
-  // };
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('Failed to add staff:', errorData);
 
+        if (typeof errorData === 'object' && !errorData.detail) {
+          setErrors(errorData);
+        } else {
+          setErrors({ general: errorData.detail || 'Failed to create staff member. Please try again.' });
+        }
+        return;
+      }
+
+      const data = await res.json();
+      console.log('Staff added:', data);
+
+      setSubmitted(true);
+      setTimeout(() => {
+        setFormData(initialFormData);
+        setSubmitted(false);
+        navigate('/staff');
+      }, 2000);
+
+    } catch (err) {
+      console.error('Network error:', err);
+      setErrors({ general: 'Network error. Please check your connection and try again.' });
+    }
+  };
   const handleBack = () => {
     const confirmed = window.confirm(
       'Are you sure you want to go back? Any unsaved changes will be lost.'
