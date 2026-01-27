@@ -11,6 +11,8 @@ export const AuthProvider = ({ children }) => {
 
   const refreshAccessToken = useCallback(async () => {
     try {
+      console.log('🔄 Attempting to refresh token...');
+      
       const res = await fetch(`${API_BASE_URL}/token/refresh/`, {
         method: 'POST',
         credentials: 'include',
@@ -19,15 +21,18 @@ export const AuthProvider = ({ children }) => {
         },
       });
 
+      console.log('🔄 Refresh response status:', res.status);
+
       if (!res.ok) {
         throw new Error('Failed to refresh token');
       }
       
       const data = await res.json();
+      console.log('✅ Token refreshed successfully');
       setAccessToken(data.access);
       return data.access;
     } catch (err) {
-      console.error('Refresh token failed:', err);
+      console.error('❌ Refresh token failed:', err);
       setAccessToken(null);
       setUser(null);
       localStorage.removeItem('user');
@@ -58,31 +63,35 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ FIXED: Initialize auth on app load
+  // Initialize auth on app load
   useEffect(() => {
     const initAuth = async () => {
+      console.log('🚀 Initializing auth...');
       const storedUser = localStorage.getItem('user');
       
       if (storedUser) {
-        // Try to get a fresh access token using the refresh cookie
+        console.log('👤 Found stored user, attempting token refresh...');
         const newAccessToken = await refreshAccessToken();
         
         if (newAccessToken) {
-          // ✅ Only restore user if token refresh succeeded
+          console.log('✅ Auth restored successfully');
           setUser(JSON.parse(storedUser));
         } else {
           // ❌ Token refresh failed - clear everything
+          console.log('❌ Token refresh failed, clearing stored data');
           localStorage.removeItem('user');
           setUser(null);
           setAccessToken(null);
         }
+      } else {
+        console.log('👤 No stored user found');
       }
       
       setLoading(false);
     };
 
     initAuth();
-  }, []); 
+  }, [refreshAccessToken]); 
   return (
     <AuthContext.Provider
       value={{
