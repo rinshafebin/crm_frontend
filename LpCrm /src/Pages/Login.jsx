@@ -54,7 +54,6 @@ export default function LoginPage() {
         const data = await response.json();
 
         if (!response.ok) {
-          // Handle different error formats from backend
           if (data.non_field_errors) {
             // General authentication errors
             setErrors({ general: data.non_field_errors[0] || 'Login failed' });

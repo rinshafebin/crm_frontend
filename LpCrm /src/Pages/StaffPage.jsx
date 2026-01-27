@@ -81,7 +81,7 @@ export default function StaffPage() {
         if (team && team !== 'all') queryParams.append('team', team);
         queryParams.append('page', page);
 
-        const res = await authFetch(`${API_BASE_URL}/staff/team/?${queryParams.toString()}`);
+        const res = await authFetch(`${API_BASE_URL}/staff/?${queryParams.toString()}`);
         const data = await res.json();
 
         const mappedStaff = data.results.map((staff) => ({

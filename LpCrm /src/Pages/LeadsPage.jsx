@@ -115,7 +115,7 @@ export default function LeadsPage() {
             status: lead.status.toLowerCase(),
             source: lead.source,
             interest: lead.program,
-            priority: lead.priority, // ✅ Add this line
+            priority: lead.priority, 
             date: new Date(lead.created_at).toLocaleDateString('en-IN'),
           }))
         );
