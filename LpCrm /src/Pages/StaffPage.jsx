@@ -143,7 +143,7 @@ export default function StaffPage() {
     if (!window.confirm('Are you sure you want to delete this staff member?')) return;
 
     try {
-      await authFetch(`${API_BASE_URL}/staffs/${staffId}/delete/`, {
+      await authFetch(`${API_BASE_URL}/staff/${staffId}/delete/`, {
         method: 'DELETE',
       });
 
