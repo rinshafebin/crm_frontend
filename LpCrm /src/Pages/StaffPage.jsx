@@ -307,7 +307,7 @@ export default function StaffPage() {
                         <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${getAvatarGradient(staff.name)} flex items-center justify-center ring-2 ring-offset-2 ring-slate-100 shadow-lg`}>
                           <span className="text-white text-xl font-bold">{staff.initials}</span>
                         </div>
-                        
+
                         <div>
                           <h3 className="font-bold text-gray-900">{staff.name}</h3>
                           <span className="inline-block mt-1 px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-700">
@@ -369,12 +369,15 @@ export default function StaffPage() {
               ))}
             </div>
 
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageClick}
-              className="mt-8"
-            />
+            {/* Only show pagination if there are more than 10 staff members */}
+            {pagination.count > 10 && (
+              <Pagination
+                currentPage={pagination.currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageClick}
+                className="mt-8"
+              />
+            )}
           </>
         )}
       </div>
