@@ -92,6 +92,7 @@ export default function TaskCreationForm() {
         deadline: formData.deadline,
       };
 
+      console.log('Creating task with payload:', payload); // Debug log
 
       const res = await fetch(`${API_BASE_URL}/tasks/`, {
         method: 'POST',
@@ -120,10 +121,26 @@ export default function TaskCreationForm() {
         throw new Error(data.detail || 'Task creation failed');
       }
 
+      console.log('Task created successfully:', data); // Debug log
+
+      // Show success message
       alert('Task created successfully!');
-      handleCancel();
+
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        assignTo: '',
+        priority: 'MEDIUM',
+        deadline: '',
+      });
+      setErrors({});
+
+      // Navigate to tasks page (FIXED: added leading slash)
       navigate('/staff/tasks');
+
     } catch (error) {
+      console.error('Task creation error:', error); // Debug log
       alert(error.message || 'Failed to create task. Please try again.');
     } finally {
       setLoading(false);
