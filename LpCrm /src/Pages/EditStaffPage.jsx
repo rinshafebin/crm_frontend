@@ -114,7 +114,7 @@ export default function EditStaffPage() {
     };
 
     try {
-      const res = await fetch(`${API_BASE_URL}/staffs/${id}/update/`, {
+      const res = await fetch(`${API_BASE_URL}/staff/${id}/update/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
