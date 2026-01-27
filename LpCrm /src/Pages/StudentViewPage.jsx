@@ -86,13 +86,6 @@ export default function StudentViewPage() {
             Back to Students
           </button>
 
-          <button
-            onClick={() => onEdit(student.id)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors"
-          >
-            <Edit2 size={18} />
-            Edit Student
-          </button>
         </div>
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6">
