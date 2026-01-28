@@ -10,7 +10,6 @@ const Navbar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [notificationCount] = useState(3);
   const navItems = getMenuForRole(user?.role);
 
   const handleNavigation = (path) => {
@@ -33,7 +32,6 @@ const Navbar = () => {
           isActive={isActive}
           handleNavigation={handleNavigation}
           handleLogout={handleLogout}
-          notificationCount={notificationCount}
         />
         
         <MobileNavbar
@@ -41,7 +39,6 @@ const Navbar = () => {
           isActive={isActive}
           handleNavigation={handleNavigation}
           handleLogout={handleLogout}
-          notificationCount={notificationCount}
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
         />

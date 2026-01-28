@@ -12,7 +12,7 @@ const MobileNavbar = ({ navItems, isActive, handleNavigation, handleLogout, noti
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
         <div className="flex items-center gap-2">
-          <button 
+          {/* <button 
             onClick={() => handleNavigation('/notifications')}
             className="relative p-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-md"
           >
@@ -22,7 +22,7 @@ const MobileNavbar = ({ navItems, isActive, handleNavigation, handleLogout, noti
                 {notificationCount}
               </span>
             )}
-          </button>
+          </button> */}
 
           <button 
             onClick={handleLogout}

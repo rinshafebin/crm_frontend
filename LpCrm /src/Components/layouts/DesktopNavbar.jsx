@@ -43,7 +43,7 @@ const DesktopNavbar = ({ navItems, isActive, handleNavigation, handleLogout, not
         </div>
 
         {/* Notification Icon */}
-        <button 
+        {/* <button 
           onClick={() => handleNavigation('/notifications')}
           className="relative p-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-md transition-all duration-200"
         >
@@ -53,7 +53,7 @@ const DesktopNavbar = ({ navItems, isActive, handleNavigation, handleLogout, not
               {notificationCount}
             </span>
           )}
-        </button>
+        </button> */}
 
         {/* Logout Button */}
         <button 
