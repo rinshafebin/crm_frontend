@@ -154,7 +154,7 @@ export default function TaskViewPage() {
       <div className="max-w-5xl mx-auto">
         {/* Back Button */}
         <button
-          onClick={() => navigate('staff/tasks')}
+          onClick={() => navigate('/staff/tasks')}
           className="flex items-center gap-2 text-slate-600 hover:text-indigo-600 mb-6 transition-colors duration-200 font-medium group"
         >
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
