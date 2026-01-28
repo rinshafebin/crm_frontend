@@ -38,9 +38,7 @@ export default function LoginPage() {
       setIsLoading(true);
       setErrors({}); // Clear all errors
 
-      try {
-        console.log('🔐 Attempting login...');
-        
+      try {        
         const response = await fetch(`${API_BASE_URL}/login/`, {
           method: 'POST',
           headers: {
@@ -51,8 +49,6 @@ export default function LoginPage() {
         });
 
         const data = await response.json();
-        console.log('Login response:', data);
-
         if (!response.ok) {
           if (data.non_field_errors) {
             setErrors({ general: data.non_field_errors[0] || 'Login failed' });
@@ -77,9 +73,7 @@ export default function LoginPage() {
           refresh: data.refresh,  
           user: data.user 
         });
-        
-        console.log('✅ Login successful, navigating to dashboard');
-        navigate('/');
+                navigate('/');
         
       } catch (err) {
         console.error('❌ Login error:', err.message);
