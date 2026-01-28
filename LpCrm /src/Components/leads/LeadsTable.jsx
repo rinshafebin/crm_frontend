@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, Phone, MapPin, Calendar, Edit, Trash2, ExternalLink } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Edit, Trash2, ExternalLink, UserCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const LeadsTable = ({ leads, statusColors, onDeleteLead, onEdit }) => {
@@ -30,9 +30,9 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, onEdit }) => {
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Source</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Priority</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Assigned To</th> {/* ADD THIS */}
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
-
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -86,13 +86,39 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, onEdit }) => {
                   </span>
                 </td>
                 <td className="px-6 py-5">
-                  <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide shadow-sm ${lead.priority === 'HIGH' ? 'bg-red-100 text-red-700' :
-                      lead.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-gray-100 text-gray-700'
-                    }`}>
+                  <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide shadow-sm ${
+                    lead.priority === 'HIGH' ? 'bg-red-100 text-red-700' :
+                    lead.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-gray-100 text-gray-700'
+                  }`}>
                     {lead.priority}
                   </span>
                 </td>
+                
+                {/* ADD THIS NEW COLUMN */}
+                <td className="px-6 py-5">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                      lead.assigned_to_name === 'Unassigned' 
+                        ? 'bg-gray-100' 
+                        : 'bg-teal-100'
+                    }`}>
+                      <UserCheck size={14} className={
+                        lead.assigned_to_name === 'Unassigned' 
+                          ? 'text-gray-400' 
+                          : 'text-teal-600'
+                      } />
+                    </div>
+                    <span className={`text-sm font-medium ${
+                      lead.assigned_to_name === 'Unassigned' 
+                        ? 'text-gray-400 italic' 
+                        : 'text-gray-700'
+                    }`}>
+                      {lead.assigned_to_name}
+                    </span>
+                  </div>
+                </td>
+
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
                     <div className="w-7 h-7 bg-orange-100 rounded-lg flex items-center justify-center">

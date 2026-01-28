@@ -116,6 +116,9 @@ export default function LeadsPage() {
             source: lead.source,
             interest: lead.program,
             priority: lead.priority, 
+            assigned_to_name: lead.assigned_to_name || 'Unassigned',
+            assigned_to_id: lead.assigned_to_id, 
+
             date: new Date(lead.created_at).toLocaleDateString('en-IN'),
           }))
         );
