@@ -1,6 +1,5 @@
 // pages/AddStudentPage.jsx
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../Components/layouts/Navbar';
 import Card from '../Components/common/Card';
 import Alert from '../Components/common/Alert'
 import StudentFormHeader from '../Components/students/addstudent/StudentFormHeader'
@@ -35,8 +34,6 @@ export default function AddStudentPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-
       <div className="max-w-4xl mx-auto px-4 py-8">
         <StudentFormHeader 
           onBack={handleCancel}
