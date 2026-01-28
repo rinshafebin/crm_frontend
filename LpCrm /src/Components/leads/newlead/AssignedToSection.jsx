@@ -8,6 +8,23 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
   const { accessToken, refreshAccessToken } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+  const EXCLUDED_ROLES = [
+    'TRAINER',
+    'HR',
+    'MEDIA',
+    'PROCESSING',
+    'OPS'
+  ];
+
+  const ALLOWED_ROLES = [
+    'BUSINESS_DEVELOPMENT_MANAGER',
+    'ADM_MANAGER',
+    'ADM_EXEC',
+    'FOE',
+    'CM',
+    'OPS'
+  ];
+
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
@@ -36,12 +53,28 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
 
         const data = await response.json();
         
-        // Filter only active employees
-        const activeEmployees = data.results
-          ? data.results.filter(emp => emp.is_active)
+        const filteredEmployees = data.results
+          ? data.results.filter(emp => 
+              emp.is_active && 
+              !EXCLUDED_ROLES.includes(emp.role) &&
+              ALLOWED_ROLES.includes(emp.role)
+            )
           : [];
         
-        setEmployees(activeEmployees);
+        const sortedEmployees = filteredEmployees.sort((a, b) => {
+          const roleIndexA = ALLOWED_ROLES.indexOf(a.role);
+          const roleIndexB = ALLOWED_ROLES.indexOf(b.role);
+          
+          if (roleIndexA !== roleIndexB) {
+            return roleIndexA - roleIndexB;
+          }
+          
+          return `${a.first_name} ${a.last_name}`.localeCompare(
+            `${b.first_name} ${b.last_name}`
+          );
+        });
+        
+        setEmployees(sortedEmployees);
       } catch (error) {
         console.error('Error fetching employees:', error);
       } finally {
@@ -51,6 +84,18 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
 
     fetchEmployees();
   }, [accessToken, refreshAccessToken, API_BASE_URL]);
+
+  const formatRole = (role) => {
+    const roleMap = {
+      'BUSINESS_DEVELOPMENT_MANAGER': 'BD Manager',
+      'ADM_MANAGER': 'Admission Manager',
+      'ADM_EXEC': 'Admission Executive',
+      'FOE': 'FOE',
+      'CM': 'CM',
+      'OPS': 'OPS'
+    };
+    return roleMap[role] || role;
+  };
 
   return (
     <div className="mb-6 sm:mb-8 pt-6 sm:pt-8 border-t border-gray-200">
@@ -73,6 +118,10 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
             <div className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-400 text-sm sm:text-base">
               Loading employees...
             </div>
+          ) : employees.length === 0 ? (
+            <div className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm sm:text-base">
+              No eligible staff members available
+            </div>
           ) : (
             <select
               name="assignedTo"
@@ -85,7 +134,7 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
               <option value="">Unassigned</option>
               {employees.map((employee) => (
                 <option key={employee.id} value={employee.id}>
-                  {employee.first_name} {employee.last_name} - {employee.role}
+                  {employee.first_name} {employee.last_name} - {formatRole(employee.role)}
                 </option>
               ))}
             </select>
@@ -94,7 +143,7 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
             <p className="text-red-500 text-xs mt-1">{errors.assignedTo}</p>
           )}
           <p className="text-xs text-gray-500 mt-1">
-            Leave unassigned if you want to assign later
+            Only admission staff and managers are shown
           </p>
         </div>
       </div>
