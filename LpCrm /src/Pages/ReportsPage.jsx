@@ -283,7 +283,7 @@ export default function ReportsPage() {
                           </a>
                         )}
 
-                        {/* Approve Button */}
+                        {/* Approve Button
                         {!report.approved && (
                           <button
                             onClick={() => handleApproveReport(report.id)}
@@ -293,7 +293,7 @@ export default function ReportsPage() {
                           >
                             <Check size={18} />
                           </button>
-                        )}
+                        )} */}
                       </div>
                     </td>
                   </tr>
