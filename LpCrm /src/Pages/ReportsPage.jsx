@@ -282,18 +282,6 @@ export default function ReportsPage() {
                             <Download size={18} />
                           </a>
                         )}
-
-                        {/* Approve Button
-                        {!report.approved && (
-                          <button
-                            onClick={() => handleApproveReport(report.id)}
-                            disabled={loading}
-                            className="p-2.5 text-green-600 hover:bg-green-100 rounded-lg transition-all duration-200 disabled:opacity-50 hover:scale-110 shadow-sm hover:shadow-md"
-                            title="Approve Report"
-                          >
-                            <Check size={18} />
-                          </button>
-                        )} */}
                       </div>
                     </td>
                   </tr>

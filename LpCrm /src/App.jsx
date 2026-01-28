@@ -18,8 +18,6 @@ import StudentsPage from './Pages/StudentsPage.jsx';
 import StudentEditPage from "./Pages/StudentEditPage.jsx";
 import StudentViewPage from "./Pages/StudentViewPage.jsx";
 import AddStudentPage from "./Pages/AddStudentPage.jsx";
-import SettingsPage from './Pages/SettingsPage.jsx';
-import NotificationsPage from './Pages/NotificationsPage.jsx';
 import MyReportsPage from "./Pages/MyReportsPage.jsx";
 import MyTasksPage from "./Pages/MyTasksPage.jsx";
 import AttendanceMarkingPage from './Pages/AttendanceMarkingPage';
@@ -69,8 +67,6 @@ export default function App() {
         <Route path="/hr/attendance" element={<ProtectedRoute><AttendanceDocumentsPage /></ProtectedRoute>} />
         <Route path="/hr/penalties" element={<ProtectedRoute><PenaltyManagementPage /></ProtectedRoute>} />
 
-        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-        <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
         <Route path="*" element={<div>404 Not Found</div>} />
       </Routes>
     </Router>

@@ -432,14 +432,6 @@ export default function TasksPage() {
                     >
                       Edit Task
                     </button>
-                    {/* {task.status !== 'COMPLETED' && task.status !== 'CANCELLED' && (
-                      <button
-                        onClick={() => handleMarkComplete(task.id)}
-                        className="flex-1 lg:flex-none px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white rounded-xl transition-all duration-200 text-sm font-semibold shadow-lg hover:shadow-xl"
-                      >
-                        Mark Complete
-                      </button>
-                    )} */}
                   </div>
                 </div>
               </div>

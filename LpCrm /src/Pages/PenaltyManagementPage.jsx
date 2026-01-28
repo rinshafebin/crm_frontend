@@ -44,7 +44,6 @@ export default function PenaltyManagementPage() {
 
   const [errors, setErrors] = useState({});
 
-  // Generate month options for current year
   const generateMonthOptions = () => {
     const months = [
       'January', 'February', 'March', 'April', 'May', 'June',
@@ -59,7 +58,6 @@ export default function PenaltyManagementPage() {
 
   const monthOptions = generateMonthOptions();
 
-  // Fetch with auth helper
   const fetchWithAuth = async (url, options = {}) => {
     try {
       let token = accessToken;
@@ -150,7 +148,6 @@ export default function PenaltyManagementPage() {
   const validateForm = () => {
     const newErrors = {};
 
-    // FIXED: Changed from 'employee' to 'user'
     if (!formData.user) {
       newErrors.user = 'Employee is required';
     }
@@ -222,7 +219,6 @@ export default function PenaltyManagementPage() {
 
   const handleEdit = (penalty) => {
     setEditingPenalty(penalty);
-    // FIXED: Changed from 'employee' to 'user'
     setFormData({
       user: penalty.user_id || penalty.user,
       act: penalty.act,

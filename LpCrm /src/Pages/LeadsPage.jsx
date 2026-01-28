@@ -25,7 +25,7 @@ export default function LeadsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(false);
-
+  
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -78,7 +78,6 @@ export default function LeadsPage() {
         throw new Error('Delete failed');
       }
 
-      // ✅ Update UI immediately
       setLeads(prev => prev.filter(lead => lead.id !== id));
       setTotalCount(prev => prev - 1);
 
@@ -178,8 +177,6 @@ export default function LeadsPage() {
               onPageChange={setPage}
               className="mt-8"
             />
-
-
           </>
         )}
       </div>

@@ -1,4 +1,3 @@
-// Components/leads/newlead/AdditionalInfoSection.jsx - REFACTORED v2
 import React from 'react';
 import FormField from '../../common/FormField';
 import SectionHeader from '../../common/SectionHeader';

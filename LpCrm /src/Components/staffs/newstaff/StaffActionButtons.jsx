@@ -1,23 +1,31 @@
-// src/components/staff/StaffActionButtons.jsx
 import React from 'react';
-import { Save } from 'lucide-react';
+import { Save, X } from 'lucide-react';
+import Button from '../../common/Button';
 
 const StaffActionButtons = React.memo(({ onSubmit, onCancel, isEdit = false }) => {
   return (
     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-6 border-t border-gray-200">
-      <button
+      <Button
         onClick={onSubmit}
-        className="w-full sm:flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors duration-200 text-sm sm:text-base"
+        variant="primary"
+        size="lg"
+        icon={Save}
+        iconPosition="left"
+        className="w-full sm:flex-1"
       >
-        <Save size={20} />
         {isEdit ? 'Update Staff Member' : 'Save Staff Member'}
-      </button>
-      <button
+      </Button>
+      
+      <Button
         onClick={onCancel}
-        className="w-full sm:w-auto px-4 sm:px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium text-sm sm:text-base"
+        variant="outline"
+        size="lg"
+        icon={X}
+        iconPosition="left"
+        className="w-full sm:w-auto"
       >
         Cancel
-      </button>
+      </Button>
     </div>
   );
 });
