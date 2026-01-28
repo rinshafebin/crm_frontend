@@ -1,10 +1,10 @@
-// Pages/AddLeadPage.jsx - REFACTORED
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import LeadHeader from '../Components/leads/newlead/LeadHeader';
 import ContactInfoSection from '../Components/leads/newlead/ContactSection';
 import LeadDetailsSection from '../Components/leads/newlead/LeadDetailsSection';
+import AssignedToSection from '../Components/leads/newlead/AssignedToSection';
 import AdditionalInfoSection from '../Components/leads/newlead/AdditionalInfoSection';
 import ActionButtons from '../Components/leads/newlead/ActionButtons';
 import Alert from '../Components/common/Alert';
@@ -21,6 +21,7 @@ export default function AddLeadPage() {
     program: '',
     source: '',
     customSource: '',
+    assignedTo: '',
     remarks: ''
   });
 
@@ -71,6 +72,7 @@ export default function AddLeadPage() {
       location: formData.location?.trim() || null,
       priority: formData.priority,
       status: formData.status,
+      assigned_to: formData.assignedTo ? parseInt(formData.assignedTo) : null, 
       remarks: formData.remarks?.trim() || '',
     };
 
@@ -107,6 +109,7 @@ export default function AddLeadPage() {
           program: '',
           source: '',
           customSource: '',
+          assignedTo: '', 
           remarks: '',
         });
         setSubmitted(false);
@@ -143,6 +146,7 @@ export default function AddLeadPage() {
         <Card padding="p-8">
           <ContactInfoSection formData={formData} errors={errors} onChange={handleInputChange} />
           <LeadDetailsSection formData={formData} errors={errors} onChange={handleInputChange} />
+          <AssignedToSection formData={formData} errors={errors} onChange={handleInputChange} />
           <AdditionalInfoSection formData={formData} onChange={handleInputChange} />
           <ActionButtons onSave={handleSubmit} onCancel={handleBack} />
         </Card>
