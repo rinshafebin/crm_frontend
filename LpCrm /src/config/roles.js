@@ -4,12 +4,12 @@ import {
   ListTodo,
   FileText,
   GraduationCap,
-  Settings,
   CalendarCheck,
   ShieldAlert,
-  FolderClock
+  FolderClock,
+  CreditCard,
+  Wallet,
 } from "lucide-react";
-
 
 export const roleNavigation = {
   ADMIN: [
@@ -19,16 +19,14 @@ export const roleNavigation = {
     { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
     { id: "reports", label: "Reports", icon: FileText, path: "/daily/reports" },
-    // { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
   ],
 
   BUSINESS_HEAD: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
-    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" }, // own tasks
-    { id: "reports", label: "Reports", icon: FileText, path: "/myreports" }, // own reports
-    // { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
+    { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
   ],
 
   OPS: [
@@ -59,7 +57,6 @@ export const roleNavigation = {
     { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
   ],
 
-
   TRAINER: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
@@ -67,7 +64,6 @@ export const roleNavigation = {
     { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
     { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
   ],
-
 
   BDM: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
@@ -82,9 +78,6 @@ export const roleNavigation = {
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
     { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
     { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
-
-
-
   ],
 
   HR: [
@@ -96,11 +89,20 @@ export const roleNavigation = {
     { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
   ],
 
-
   FOE: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
     { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
+  ],
+
+
+  ACCOUNTS: [
+    { id: "overview", label: "Overview", icon: FileText, path: "/" },
+    // { id: "payments", label: "Payments", icon: CreditCard, path: "/accounts/payments" },
+    // { id: "expenses", label: "Expenses", icon: Wallet, path: "/accounts/expenses" },
+    { id: "penalties", label: "Penalties", icon: ShieldAlert, path: "/hr/penalties" },
+    { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
 
   ],
 };

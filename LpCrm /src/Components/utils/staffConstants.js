@@ -12,7 +12,9 @@ export const roleOptions = [
   { value: 'BDM', label: 'Business Development Manager' },
   { value: 'CM', label: 'Center Manager' },
   { value: 'HR', label: 'Human Resources' },
-  { value: 'FOE', label: 'FOE Cum TC' }
+  { value: 'FOE', label: 'FOE Cum TC' },
+  { value: 'ACCOUNTS', label: 'Accounts Manager' },
+
 ];
 
 export const teamOptions = [
@@ -22,7 +24,8 @@ export const teamOptions = [
   'Support',
   'HR',
   'Finance',
-  'Operations'
+  'Operations',
+  'Accounts',
 ];
 
 export const initialFormData = {
