@@ -1,26 +1,35 @@
+// Components/students/StudentFormFields.jsx
 import React from 'react';
-import FormInput from './FormInput';
-import FormSelect from './FormSelect';
-import FormTextarea from './FormTextarea';
+import FormField from '../../common/FormField';
+import { Mail, Phone, Link as LinkIcon } from 'lucide-react';
 
 export default function StudentFormFields({
   formData,
   errors,
   trainers,
   trainersLoading,
-  onFieldChange,
+  onChange,
   batchChoices,
   classChoices,
   statusChoices,
 }) {
+  // Transform trainers for select options
+  const trainerOptions = trainers.map(trainer => ({
+    value: trainer.id,
+    label: trainer.user_name || 
+      `${trainer.user?.first_name || ''} ${trainer.user?.last_name || ''}`.trim() || 
+      trainer.email || 
+      `Trainer ${trainer.id}`
+  }));
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Name */}
-      <FormInput
+      <FormField
         label="Student Name"
         name="name"
         value={formData.name}
-        onChange={onFieldChange}
+        onChange={onChange}
         placeholder="Enter student name"
         required
         error={errors.name}
@@ -28,11 +37,12 @@ export default function StudentFormFields({
       />
 
       {/* Batch */}
-      <FormSelect
+      <FormField
         label="Batch"
         name="batch"
+        type="select"
         value={formData.batch}
-        onChange={onFieldChange}
+        onChange={onChange}
         options={batchChoices}
         placeholder="Select Batch"
         required
@@ -40,95 +50,99 @@ export default function StudentFormFields({
       />
 
       {/* Class */}
-      <FormSelect
+      <FormField
         label="Class"
         name="student_class"
+        type="select"
         value={formData.student_class}
-        onChange={onFieldChange}
+        onChange={onChange}
         options={classChoices}
         placeholder="Select Class"
       />
 
       {/* Trainer */}
-      <FormSelect
-        label="Trainer"
-        name="trainer"
-        value={formData.trainer}
-        onChange={onFieldChange}
-        options={trainers.map(t => ({
-          value: t.id,
-          label: t.user_name || 
-                 `${t.user?.first_name || ''} ${t.user?.last_name || ''}`.trim() || 
-                 t.email || 
-                 `Trainer ${t.id}`
-        }))}
-        placeholder={trainersLoading ? 'Loading trainers...' : 'Select Trainer'}
-        required
-        error={errors.trainer}
-        disabled={trainersLoading}
-        emptyMessage="No trainers available"
-      />
+      <div>
+        <FormField
+          label="Trainer"
+          name="trainer"
+          type="select"
+          value={formData.trainer}
+          onChange={onChange}
+          options={trainerOptions}
+          placeholder={trainersLoading ? 'Loading trainers...' : 'Select Trainer'}
+          required
+          error={errors.trainer}
+        />
+        {trainers.length === 0 && !trainersLoading && (
+          <p className="mt-1 text-sm text-yellow-600">No trainers available</p>
+        )}
+      </div>
 
       {/* Status */}
-      <FormSelect
+      <FormField
         label="Status"
         name="status"
+        type="select"
         value={formData.status}
-        onChange={onFieldChange}
+        onChange={onChange}
         options={statusChoices}
         placeholder="Select Status"
       />
 
       {/* Admission Date */}
-      <FormInput
+      <FormField
         label="Admission Date"
         name="admission_date"
         type="date"
         value={formData.admission_date}
-        onChange={onFieldChange}
+        onChange={onChange}
         required
         error={errors.admission_date}
       />
 
       {/* Email */}
-      <FormInput
+      <FormField
         label="Email"
         name="email"
         type="email"
         value={formData.email}
-        onChange={onFieldChange}
+        onChange={onChange}
         placeholder="student@example.com"
+        icon={Mail}
         error={errors.email}
       />
 
       {/* Phone */}
-      <FormInput
+      <FormField
         label="Phone Number"
         name="phone_number"
         type="tel"
         value={formData.phone_number}
-        onChange={onFieldChange}
+        onChange={onChange}
         placeholder="1234567890"
+        icon={Phone}
         error={errors.phone_number}
       />
 
       {/* Drive Link */}
-      <FormInput
+      <FormField
         label="Drive Link"
         name="drive_link"
         type="url"
         value={formData.drive_link}
-        onChange={onFieldChange}
+        onChange={onChange}
         placeholder="https://drive.google.com/..."
+        icon={LinkIcon}
         className="md:col-span-2"
       />
 
       {/* Notes */}
-      <FormTextarea
+      <FormField
         label="Notes"
         name="notes"
+        type="textarea"
         value={formData.notes}
-        onChange={onFieldChange}
+        onChange={onChange}
         placeholder="Additional notes about the student..."
         rows={4}
         className="md:col-span-2"
