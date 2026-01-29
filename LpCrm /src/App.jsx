@@ -5,6 +5,7 @@ import DashboardOverview from './Pages/DashboardOverview.jsx';
 import LeadsPage from './Pages/LeadsPage.jsx';
 import AddLeadPage from './Pages/AddLeadPage.jsx';
 import EditLeadPage from './Pages/EditLeadPage.jsx';
+import LeadDetailPage from './Pages/LeadDetailPage.jsx';
 import StaffPage from './Pages/StaffPage.jsx';
 import AddStaffPage from './Pages/AddStaffPage.jsx';
 import EditStaffPage from './Pages/EditStaffPage.jsx';
@@ -42,6 +43,7 @@ export default function App() {
         <Route path="/leads" element={<ProtectedRoute><LeadsPage /></ProtectedRoute>} />
         <Route path="/leads/edit/:id" element={<ProtectedRoute><EditLeadPage /></ProtectedRoute>} />
         <Route path="/addnewlead" element={<ProtectedRoute><AddLeadPage /></ProtectedRoute>} />
+        <Route path="/leads/:id" element={<LeadDetailPage />} />
 
         <Route path="/staff" element={<ProtectedRoute><StaffPage /></ProtectedRoute>} />
         <Route path="/staff/create" element={<ProtectedRoute><AddStaffPage /></ProtectedRoute>} />

@@ -8,9 +8,8 @@ import { Users, UserPlus, CheckCircle, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Pagination from '../Components/common/Pagination';
 
-
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 50;
 
 export default function LeadsPage() {
   const { accessToken, refreshAccessToken, loading: authLoading } = useAuth();
@@ -20,10 +19,14 @@ export default function LeadsPage() {
     new: 0,
     qualified: 0,
     converted: 0,
+    total_assigned: 0,
+    total_sub_assigned: 0,
   });
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPriority, setFilterPriority] = useState('all');
+  const [filterSource, setFilterSource] = useState('all');
   const [loading, setLoading] = useState(false);
   
   const [page, setPage] = useState(1);
@@ -35,6 +38,7 @@ export default function LeadsPage() {
     contacted: 'bg-yellow-100 text-yellow-700',
     qualified: 'bg-purple-100 text-purple-700',
     converted: 'bg-green-100 text-green-700',
+    registered: 'bg-teal-100 text-teal-700',
     lost: 'bg-red-100 text-red-700',
   }), []);
 
@@ -64,7 +68,7 @@ export default function LeadsPage() {
 
   const handleDeleteLead = async (id) => {
     const confirmDelete = window.confirm(
-      "Are you sure you want to delete this lead?"
+      "Are you sure you want to delete this lead? This action cannot be undone."
     );
     if (!confirmDelete) return;
 
@@ -88,7 +92,6 @@ export default function LeadsPage() {
     }
   };
 
-
   useEffect(() => {
     if (authLoading || !accessToken) return;
 
@@ -97,53 +100,83 @@ export default function LeadsPage() {
       try {
         const params = new URLSearchParams({
           page,
+          page_size: PAGE_SIZE,
           ...(searchTerm && { search: searchTerm }),
           ...(filterStatus !== 'all' && { status: filterStatus.toUpperCase() }),
+          ...(filterPriority !== 'all' && { priority: filterPriority.toUpperCase() }),
+          ...(filterSource !== 'all' && { source: filterSource.toUpperCase() }),
         });
 
         const res = await authFetch(`${API_BASE_URL}/leads/?${params}`);
+        
+        if (!res.ok) {
+          throw new Error('Failed to fetch leads');
+        }
+
         const data = await res.json();
+        
+        // Backend returns { count, next, previous, results: { leads: [...], stats: {...} } }
+        const leadsData = data.results?.leads || data.results || [];
+        const statsData = data.results?.stats || {};
 
-        setLeads(
-          data.results.leads.map((lead) => ({
-            id: lead.id,
-            name: lead.name,
-            phone: lead.phone,
-            email: lead.email || 'No email provided',
-            location: lead.location || 'No location',
-            status: lead.status.toLowerCase(),
-            source: lead.source,
-            interest: lead.program,
-            priority: lead.priority, 
-            assigned_to_name: lead.assigned_to_name || 'Unassigned',
-            assigned_to_id: lead.assigned_to_id, 
+        // Transform leads data to match table expectations
+        const transformedLeads = leadsData.map((lead) => ({
+          id: lead.id,
+          name: lead.name,
+          phone: lead.phone,
+          email: lead.email || 'No email provided',
+          location: lead.location || 'No location',
+          status: lead.status.toLowerCase(),
+          source: lead.source,
+          interest: lead.program,
+          program: lead.program,
+          priority: lead.priority,
+          
+          // Two-level assignment
+          assigned_to: lead.assigned_to,
+          assigned_by: lead.assigned_by,
+          assigned_date: lead.assigned_date,
+          sub_assigned_to: lead.sub_assigned_to,
+          sub_assigned_by: lead.sub_assigned_by,
+          sub_assigned_date: lead.sub_assigned_date,
+          current_handler: lead.current_handler,
+          
+          // Processing
+          processing_status: lead.processing_status,
+          
+          date: new Date(lead.created_at).toLocaleDateString('en-IN'),
+          created_at: lead.created_at,
+        }));
 
-            date: new Date(lead.created_at).toLocaleDateString('en-IN'),
-          }))
-        );
-
-        setStats(data.results.stats);
-        setTotalCount(data.count);
-        setTotalPages(Math.ceil(data.count / PAGE_SIZE));
+        setLeads(transformedLeads);
+        setStats(statsData);
+        setTotalCount(data.count || 0);
+        setTotalPages(Math.ceil((data.count || 0) / PAGE_SIZE));
       } catch (err) {
         console.error('Failed to load leads:', err);
+        alert('Failed to load leads. Please try again.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchLeads();
-  }, [authLoading, accessToken, authFetch, page, searchTerm, filterStatus]);
+  }, [authLoading, accessToken, authFetch, page, searchTerm, filterStatus, filterPriority, filterSource]);
 
   const statsCards = useMemo(() => [
     { label: 'Total Leads', value: totalCount, color: 'bg-blue-500', icon: Users },
-    { label: 'New Leads', value: stats.new, color: 'bg-indigo-500', icon: UserPlus },
-    { label: 'Qualified', value: stats.qualified, color: 'bg-purple-500', icon: CheckCircle },
-    { label: 'Converted', value: stats.converted, color: 'bg-green-500', icon: TrendingUp },
+    { label: 'New Leads', value: stats.new || 0, color: 'bg-indigo-500', icon: UserPlus },
+    { label: 'Qualified', value: stats.qualified || 0, color: 'bg-purple-500', icon: CheckCircle },
+    { label: 'Converted', value: stats.converted || 0, color: 'bg-green-500', icon: TrendingUp },
   ], [totalCount, stats]);
 
   if (authLoading) {
-    return <div className="p-10 text-center">Checking session…</div>;
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="p-10 text-center">Checking session…</div>
+      </div>
+    );
   }
 
   return (
@@ -153,7 +186,7 @@ export default function LeadsPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <LeadsPageHeader />
 
-        {loading ? (
+        {loading && page === 1 ? (
           <div className="text-center py-10 text-gray-500">Loading leads…</div>
         ) : (
           <>
@@ -164,6 +197,10 @@ export default function LeadsPage() {
               setSearchTerm={(v) => { setPage(1); setSearchTerm(v); }}
               filterStatus={filterStatus}
               setFilterStatus={(v) => { setPage(1); setFilterStatus(v); }}
+              filterPriority={filterPriority}
+              setFilterPriority={(v) => { setPage(1); setFilterPriority(v); }}
+              filterSource={filterSource}
+              setFilterSource={(v) => { setPage(1); setFilterSource(v); }}
             />
 
             <LeadsTable
@@ -171,12 +208,15 @@ export default function LeadsPage() {
               statusColors={statusColors}
               onDeleteLead={handleDeleteLead}
             />
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-              className="mt-8"
-            />
+            
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                className="mt-8"
+              />
+            )}
           </>
         )}
       </div>
