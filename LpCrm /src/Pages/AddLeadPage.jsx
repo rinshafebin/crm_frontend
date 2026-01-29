@@ -5,6 +5,7 @@ import LeadHeader from '../Components/leads/newlead/LeadHeader';
 import ContactInfoSection from '../Components/leads/newlead/ContactSection';
 import LeadDetailsSection from '../Components/leads/newlead/LeadDetailsSection';
 import AdditionalInfoSection from '../Components/leads/newlead/AdditionalInfoSection';
+import AssignedToSection from '../Components/leads/newlead/AssignedToSection';
 import ActionButtons from '../Components/leads/newlead/ActionButtons';
 import Alert from '../Components/common/Alert';
 import Card from '../Components/common/Card';
@@ -20,7 +21,8 @@ export default function AddLeadPage() {
     program: '',
     source: '',
     customSource: '',
-    remarks: ''
+    remarks: '',
+    assignedTo: ''  // Add assignedTo field
   });
 
   const { accessToken, refreshAccessToken } = useAuth();
@@ -71,6 +73,7 @@ export default function AddLeadPage() {
       priority: formData.priority,
       status: formData.status,
       remarks: formData.remarks?.trim() || '',
+      assigned_to: formData.assignedTo ? parseInt(formData.assignedTo) : null,  // Include assignment
     };
 
     try {
@@ -90,6 +93,7 @@ export default function AddLeadPage() {
 
       if (!res.ok) {
         const errorData = await res.json();
+        console.error('Create error:', errorData);
         throw new Error(errorData?.detail || 'Failed to create lead');
       }
 
@@ -107,8 +111,10 @@ export default function AddLeadPage() {
           source: '',
           customSource: '',
           remarks: '',
+          assignedTo: '',
         });
         setSubmitted(false);
+        navigate('/leads');
       }, 2000);
 
     } catch (err) {
@@ -142,6 +148,7 @@ export default function AddLeadPage() {
         <Card padding="p-8">
           <ContactInfoSection formData={formData} errors={errors} onChange={handleInputChange} />
           <LeadDetailsSection formData={formData} errors={errors} onChange={handleInputChange} />
+          <AssignedToSection formData={formData} errors={errors} onChange={handleInputChange} />
           <AdditionalInfoSection formData={formData} onChange={handleInputChange} />
           <ActionButtons onSave={handleSubmit} onCancel={handleBack} />
         </Card>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserCircle, Users } from 'lucide-react';
+import { UserCircle, Users, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 
 const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
@@ -8,22 +8,24 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
   const { accessToken, refreshAccessToken } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  const EXCLUDED_ROLES = [
-    'TRAINER',
-    'HR',
-    'MEDIA',
-    'PROCESSING',
-    'OPS'
+  const ALLOWED_ROLES = [
+    'ADM_MANAGER',      
+    'ADM_EXEC',         
+    'FOE',              
+    'CM',              
+    'BDM',             
   ];
 
-  const ALLOWED_ROLES = [
-    'BUSINESS_DEVELOPMENT_MANAGER',
-    'ADM_MANAGER',
-    'ADM_EXEC',
-    'FOE',
-    'CM',
-    'OPS'
-  ];
+  const formatRole = (role) => {
+    const roleMap = {
+      'ADM_MANAGER': 'Admission Manager',
+      'ADM_EXEC': 'Admission Executive',
+      'FOE': 'Front Office Executive',
+      'CM': 'Center Manager',
+      'BDM': 'Business Development Manager',
+    };
+    return roleMap[role] || role;
+  };
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -38,6 +40,8 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
           return;
         }
 
+        // Use the /staff/ endpoint and filter client-side for now
+        // In production, you might want to use /leads/available-users/
         const response = await fetch(`${API_BASE_URL}/staff/`, {
           method: 'GET',
           headers: {
@@ -53,14 +57,12 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
 
         const data = await response.json();
         
-        const filteredEmployees = data.results
-          ? data.results.filter(emp => 
-              emp.is_active && 
-              !EXCLUDED_ROLES.includes(emp.role) &&
-              ALLOWED_ROLES.includes(emp.role)
-            )
-          : [];
+        // Filter to only show sales/admission roles
+        const filteredEmployees = (data.results || data).filter(emp => 
+          emp.is_active && ALLOWED_ROLES.includes(emp.role)
+        );
         
+        // Sort by role priority, then by name
         const sortedEmployees = filteredEmployees.sort((a, b) => {
           const roleIndexA = ALLOWED_ROLES.indexOf(a.role);
           const roleIndexB = ALLOWED_ROLES.indexOf(b.role);
@@ -69,9 +71,9 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
             return roleIndexA - roleIndexB;
           }
           
-          return `${a.first_name} ${a.last_name}`.localeCompare(
-            `${b.first_name} ${b.last_name}`
-          );
+          const nameA = `${a.first_name} ${a.last_name}`.toLowerCase();
+          const nameB = `${b.first_name} ${b.last_name}`.toLowerCase();
+          return nameA.localeCompare(nameB);
         });
         
         setEmployees(sortedEmployees);
@@ -85,18 +87,6 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
     fetchEmployees();
   }, [accessToken, refreshAccessToken, API_BASE_URL]);
 
-  const formatRole = (role) => {
-    const roleMap = {
-      'BUSINESS_DEVELOPMENT_MANAGER': 'BD Manager',
-      'ADM_MANAGER': 'Admission Manager',
-      'ADM_EXEC': 'Admission Executive',
-      'FOE': 'FOE',
-      'CM': 'CM',
-      'OPS': 'OPS'
-    };
-    return roleMap[role] || role;
-  };
-
   return (
     <div className="mb-6 sm:mb-8 pt-6 sm:pt-8 border-t border-gray-200">
       <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
@@ -104,7 +94,7 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
         Assignment
       </h2>
       <p className="text-sm text-gray-500 mb-4">
-        Assign this lead to a staff member for follow-up
+        Assign this lead to a sales or admission team member
       </p>
 
       <div className="grid grid-cols-1 gap-4">
@@ -114,13 +104,17 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
             <UserCircle size={16} className="text-gray-400" />
             Assign To
           </label>
+          
           {loading ? (
             <div className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-400 text-sm sm:text-base">
-              Loading employees...
+              Loading team members...
             </div>
           ) : employees.length === 0 ? (
-            <div className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm sm:text-base">
-              No eligible staff members available
+            <div className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg bg-gray-50">
+              <div className="flex items-center gap-2 text-gray-500">
+                <AlertCircle size={16} />
+                <span className="text-sm sm:text-base">No sales team members available</span>
+              </div>
             </div>
           ) : (
             <select
@@ -139,12 +133,30 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
               ))}
             </select>
           )}
+          
           {errors.assignedTo && (
             <p className="text-red-500 text-xs mt-1">{errors.assignedTo}</p>
           )}
+          
           <p className="text-xs text-gray-500 mt-1">
-            Only admission staff and managers are shown
+            Only sales and admission team members are shown
           </p>
+        </div>
+
+        {/* Info Box */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="flex gap-2">
+            <AlertCircle size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-xs text-blue-700">
+              <strong>Note:</strong> You can assign leads to:
+              <ul className="mt-1 ml-4 list-disc space-y-0.5">
+                <li>Admission Managers & Executives</li>
+                <li>Front Office Executives (FOE)</li>
+                <li>Center Managers (CM)</li>
+                <li>Business Development Managers (BDM)</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>

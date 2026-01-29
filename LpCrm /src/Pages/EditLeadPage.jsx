@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Save, User, Phone, Mail, MapPin, Tag, FileText, TrendingUp, Calendar, Loader2, Users } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { statusOptions, sourceOptions, priorityOptions, programOptions } from '../Components/utils/leadConstants'
+import { statusOptions, sourceOptions, priorityOptions, programOptions } from '../Components/utils/leadConstants';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -20,8 +20,9 @@ export default function EditLeadPage() {
     status: 'ENQUIRY',
     program: '',
     source: '',
+    customSource: '',
     remarks: '',
-    assigned_to: null
+    assignedTo: ''  // Add assignedTo field
   });
 
   const [loading, setLoading] = useState(true);
@@ -30,7 +31,21 @@ export default function EditLeadPage() {
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
-  // --- Auth fetch with token refresh ---
+  // Only sales and admission roles
+  const ALLOWED_ROLES = ['ADM_MANAGER', 'ADM_EXEC', 'FOE', 'CM', 'BDM'];
+
+  const formatRole = (role) => {
+    const roleMap = {
+      'ADM_MANAGER': 'Admission Manager',
+      'ADM_EXEC': 'Admission Executive',
+      'FOE': 'Front Office Executive',
+      'CM': 'Center Manager',
+      'BDM': 'Business Development Manager',
+    };
+    return roleMap[role] || role;
+  };
+
+  // Auth fetch with token refresh
   const authFetch = useCallback(async (url, options = {}, retry = true) => {
     if (!accessToken) throw new Error('No access token');
 
@@ -53,7 +68,7 @@ export default function EditLeadPage() {
     return res;
   }, [accessToken, refreshAccessToken]);
 
-  // Fetch available users for assignment
+  // Fetch available users (sales team only)
   useEffect(() => {
     const fetchUsers = async () => {
       setLoadingUsers(true);
@@ -61,7 +76,27 @@ export default function EditLeadPage() {
         const res = await authFetch(`${API_BASE_URL}/staff/`);
         if (!res.ok) throw new Error('Failed to fetch users');
         const data = await res.json();
-        setUsers(data.results || data);
+        
+        // Filter to only sales/admission roles
+        const filteredUsers = (data.results || data).filter(user =>
+          user.is_active && ALLOWED_ROLES.includes(user.role)
+        );
+
+        // Sort by role, then by name
+        const sortedUsers = filteredUsers.sort((a, b) => {
+          const roleIndexA = ALLOWED_ROLES.indexOf(a.role);
+          const roleIndexB = ALLOWED_ROLES.indexOf(b.role);
+          
+          if (roleIndexA !== roleIndexB) {
+            return roleIndexA - roleIndexB;
+          }
+          
+          const nameA = `${a.first_name} ${a.last_name}`.toLowerCase();
+          const nameB = `${b.first_name} ${b.last_name}`.toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+        
+        setUsers(sortedUsers);
       } catch (err) {
         console.error('Failed to load users:', err);
         setUsers([]);
@@ -75,6 +110,7 @@ export default function EditLeadPage() {
     }
   }, [accessToken, authFetch]);
 
+  // Fetch lead data
   useEffect(() => {
     const fetchLeadData = async () => {
       setLoading(true);
@@ -92,25 +128,30 @@ export default function EditLeadPage() {
           status: lead.status || 'ENQUIRY',
           program: lead.program || '',
           source: lead.source || '',
+          customSource: lead.custom_source || '',
           remarks: lead.remarks || '',
-          assigned_to: lead.assigned_to_id || null
+          // Get assigned_to ID from the nested object
+          assignedTo: lead.assigned_to?.id || ''
         });
       } catch (err) {
         console.error(err);
         alert('Failed to load lead data');
+        navigate('/leads');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchLeadData();
-  }, [leadId, authFetch]);
+    if (accessToken && leadId) {
+      fetchLeadData();
+    }
+  }, [leadId, accessToken, authFetch, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value === '' ? null : value
+      [name]: value === '' ? '' : value
     }));
 
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
@@ -118,34 +159,46 @@ export default function EditLeadPage() {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
+    
+    if (!formData.name?.trim()) newErrors.name = 'Name is required';
+    else if (formData.name.trim().length < 3) 
+      newErrors.name = 'Name must be at least 3 characters long';
+
+    if (!formData.phone?.trim()) newErrors.phone = 'Phone number is required';
+    else if (!/^\d{10,}$/.test(formData.phone.trim()))
+      newErrors.phone = 'Phone number must be at least 10 digits';
+
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) 
+      newErrors.email = 'Email is invalid';
+    
     if (!formData.source) newErrors.source = 'Source is required';
+    
+    if (formData.source === 'OTHER' && !formData.customSource?.trim())
+      newErrors.customSource = 'Please specify custom source';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // --- Submit updated lead to backend ---
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
     const payload = {
-      name: formData.name,
-      phone: formData.phone,
-      email: formData.email || null,
-      location: formData.location,
+      name: formData.name.trim(),
+      phone: formData.phone.trim(),
+      email: formData.email?.trim() || null,
+      location: formData.location?.trim() || null,
       priority: formData.priority,
       status: formData.status,
-      program: formData.program,
+      program: formData.program || null,
       source: formData.source,
-      remarks: formData.remarks,
-      assigned_to: formData.assigned_to
+      custom_source: formData.source === 'OTHER' ? formData.customSource.trim() : '',
+      remarks: formData.remarks?.trim() || '',
+      assigned_to: formData.assignedTo ? parseInt(formData.assignedTo) : null
     };
 
-    // Remove email if it's empty
-    if (!payload.email || payload.email.trim() === '') {
+    // Remove null/empty email
+    if (!payload.email) {
       delete payload.email;
     }
 
@@ -158,6 +211,15 @@ export default function EditLeadPage() {
       if (!res.ok) {
         const errorData = await res.json();
         console.error('Update failed:', errorData);
+        
+        // Handle validation errors
+        if (errorData.phone) {
+          setErrors(prev => ({ ...prev, phone: errorData.phone[0] }));
+        }
+        if (errorData.email) {
+          setErrors(prev => ({ ...prev, email: errorData.email[0] }));
+        }
+        
         throw new Error('Failed to update lead');
       }
 
@@ -165,7 +227,7 @@ export default function EditLeadPage() {
       setTimeout(() => navigate('/leads'), 1500);
     } catch (err) {
       console.error(err);
-      alert('Error updating lead');
+      alert(err.message || 'Error updating lead');
     }
   };
 
@@ -262,7 +324,7 @@ export default function EditLeadPage() {
                       className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
                         errors.phone ? 'border-red-500' : 'border-gray-300'
                       }`}
-                      placeholder="+91 1234567890"
+                      placeholder="1234567890"
                     />
                   </div>
                   {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
@@ -410,37 +472,67 @@ export default function EditLeadPage() {
                   {errors.source && <p className="mt-1 text-sm text-red-500">{errors.source}</p>}
                 </div>
 
-                {/* Assigned To */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Assigned To
-                  </label>
-                  <div className="relative">
-                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <select
-                      name="assigned_to"
-                      value={formData.assigned_to || ''}
+                {/* Custom Source - Show when OTHER is selected */}
+                {formData.source === 'OTHER' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Custom Source <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="customSource"
+                      value={formData.customSource}
                       onChange={handleInputChange}
-                      disabled={loadingUsers}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    >
-                      <option value="">Unassigned</option>
-                      {users.map(user => (
-                        <option key={user.id} value={user.id}>
-                          {user.name || user.username || user.email}
-                        </option>
-                      ))}
-                    </select>
-                    {loadingUsers && (
-                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 animate-spin" size={18} />
-                    )}
+                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                        errors.customSource ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Specify custom source"
+                    />
+                    {errors.customSource && <p className="mt-1 text-sm text-red-500">{errors.customSource}</p>}
                   </div>
+                )}
+              </div>
+            </div>
+
+            {/* Assignment Section */}
+            <div className="pt-6 border-t border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Users size={20} className="text-indigo-600" />
+                Assignment
+              </h2>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Assigned To
+                </label>
+                <div className="relative">
+                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <select
+                    name="assignedTo"
+                    value={formData.assignedTo}
+                    onChange={handleInputChange}
+                    disabled={loadingUsers}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Unassigned</option>
+                    {users.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.first_name} {user.last_name} - {formatRole(user.role)}
+                      </option>
+                    ))}
+                  </select>
+                  {loadingUsers && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 animate-spin" size={18} />
+                  )}
                 </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Only sales and admission team members are shown
+                </p>
               </div>
             </div>
 
             {/* Additional Information Section */}
-            <div>
+            <div className="pt-6 border-t border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <FileText size={20} className="text-indigo-600" />
                 Additional Information
@@ -490,7 +582,7 @@ export default function EditLeadPage() {
               </div>
               <div>
                 <p className="text-sm text-blue-700">
-                  <strong>Note:</strong> Fields marked with <span className="text-red-500">*</span> are required. Make sure to fill them before updating the lead.
+                  <strong>Note:</strong> Fields marked with <span className="text-red-500">*</span> are required. You can update the assignment here or leave it unchanged.
                 </p>
               </div>
             </div>
