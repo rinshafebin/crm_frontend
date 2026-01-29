@@ -21,7 +21,6 @@ export default function AttendanceDocumentsPage() {
   const [selectedMonth, setSelectedMonth] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch with authentication
   const fetchWithAuth = async (url, options = {}) => {
     try {
       let token = accessToken;
