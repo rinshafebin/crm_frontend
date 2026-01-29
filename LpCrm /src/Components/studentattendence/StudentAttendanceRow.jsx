@@ -31,7 +31,7 @@ export default function StudentAttendanceRow({
 
         {/* Status Buttons */}
         <div className="flex gap-2 flex-wrap">
-          {statusOptions.map((option) => (
+          {attendenceStatusOptions.map((option) => (
             <StatusButton
               key={option.value}
               option={option}
