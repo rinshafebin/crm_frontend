@@ -20,15 +20,14 @@ export default function EditLeadPage() {
     status: 'ENQUIRY',
     program: '',
     source: '',
-    customSource: '',
     remarks: '',
-    assigned_to: null // Added assigned_to field
+    assigned_to: null
   });
 
   const [loading, setLoading] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
-  const [users, setUsers] = useState([]); // State for available users
+  const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
   // --- Auth fetch with token refresh ---
@@ -62,10 +61,9 @@ export default function EditLeadPage() {
         const res = await authFetch(`${API_BASE_URL}/users/`);
         if (!res.ok) throw new Error('Failed to fetch users');
         const data = await res.json();
-        setUsers(data.results || data); // Adjust based on your API response structure
+        setUsers(data.results || data);
       } catch (err) {
         console.error('Failed to load users:', err);
-        // Set empty array on error so form still works
         setUsers([]);
       } finally {
         setLoadingUsers(false);
@@ -85,9 +83,6 @@ export default function EditLeadPage() {
         if (!res.ok) throw new Error('Failed to fetch lead');
         const lead = await res.json();
 
-        // Check if source is a custom one (not in predefined list)
-        const isCustomSource = !sourceOptions.some(opt => opt.value === lead.source);
-
         setFormData({
           name: lead.name || '',
           phone: lead.phone || '',
@@ -96,10 +91,9 @@ export default function EditLeadPage() {
           priority: lead.priority || 'MEDIUM',
           status: lead.status || 'ENQUIRY',
           program: lead.program || '',
-          source: isCustomSource ? 'OTHER' : lead.source,
-          customSource: isCustomSource ? lead.source : (lead.custom_source || ''),
+          source: lead.source || '',
           remarks: lead.remarks || '',
-          assigned_to: lead.assigned_to_id || null // Set the assigned user ID
+          assigned_to: lead.assigned_to_id || null
         });
       } catch (err) {
         console.error(err);
@@ -116,7 +110,7 @@ export default function EditLeadPage() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value === '' ? null : value // Handle empty string for assigned_to
+      [name]: value === '' ? null : value
     }));
 
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
@@ -128,9 +122,6 @@ export default function EditLeadPage() {
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Email is invalid';
     if (!formData.source) newErrors.source = 'Source is required';
-    if (formData.source === 'OTHER' && !formData.customSource.trim()) {
-      newErrors.customSource = 'Please specify custom source';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -148,10 +139,9 @@ export default function EditLeadPage() {
       priority: formData.priority,
       status: formData.status,
       program: formData.program,
-      source: formData.source === 'OTHER' ? formData.customSource : formData.source,
-      custom_source: formData.source === 'OTHER' ? formData.customSource : '',
+      source: formData.source,
       remarks: formData.remarks,
-      assigned_to: formData.assigned_to // Include assigned_to in payload
+      assigned_to: formData.assigned_to
     };
 
     // Remove email if it's empty
@@ -237,7 +227,7 @@ export default function EditLeadPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Name */}
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Full Name <span className="text-red-500">*</span>
                   </label>
@@ -300,7 +290,7 @@ export default function EditLeadPage() {
                 </div>
 
                 {/* Location */}
-                <div>
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Location
                   </label>
@@ -372,8 +362,8 @@ export default function EditLeadPage() {
                   </div>
                 </div>
 
-                {/* Priority */}
-                <div>
+                {/* Priority Level - Full Width */}
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Priority Level
                   </label>
@@ -392,6 +382,32 @@ export default function EditLeadPage() {
                       </label>
                     ))}
                   </div>
+                </div>
+
+                {/* Lead Source */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Lead Source <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <select
+                      name="source"
+                      value={formData.source}
+                      onChange={handleInputChange}
+                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none bg-white ${
+                        errors.source ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    >
+                      <option value="">Select source</option>
+                      {sourceOptions.map(source => (
+                        <option key={source.value} value={source.value}>
+                          {source.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {errors.source && <p className="mt-1 text-sm text-red-500">{errors.source}</p>}
                 </div>
 
                 {/* Assigned To */}
@@ -420,52 +436,6 @@ export default function EditLeadPage() {
                     )}
                   </div>
                 </div>
-
-                {/* Source */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Lead Source <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Tag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <select
-                      name="source"
-                      value={formData.source}
-                      onChange={handleInputChange}
-                      className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none bg-white ${
-                        errors.source ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="">Select source</option>
-                      {sourceOptions.map(source => (
-                        <option key={source.value} value={source.value}>
-                          {source.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {errors.source && <p className="mt-1 text-sm text-red-500">{errors.source}</p>}
-                </div>
-
-                {/* Custom Source */}
-                {formData.source === 'OTHER' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Custom Source (Specify) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="customSource"
-                      value={formData.customSource}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                        errors.customSource ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="Enter custom source"
-                    />
-                    {errors.customSource && <p className="mt-1 text-sm text-red-500">{errors.customSource}</p>}
-                  </div>
-                )}
               </div>
             </div>
 
@@ -511,7 +481,7 @@ export default function EditLeadPage() {
           </div>
 
           {/* Info Card */}
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="m-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex gap-3">
               <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
