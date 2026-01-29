@@ -1,8 +1,8 @@
 import React from 'react';
 import { Users } from 'lucide-react';
-import Card from '../../common/Card';
+import Card from '../common/Card'
 import StudentAttendanceRow from './StudentAttendanceRow';
-import EmptyState from '../../common/EmptyState';
+import EmptyState from '../common/EmptyState';
 
 export default function StudentAttendanceList({ 
   students, 

@@ -1,6 +1,6 @@
 import React from 'react';
 import StatusButton from './StatusButton';
-import { statusOptions } from './constants';
+import { attendenceStatusOptions } from '../utils/attendenceStatusOptions'
 
 export default function StudentAttendanceRow({ 
   student, 

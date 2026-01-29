@@ -1,6 +1,6 @@
 import React from 'react';
 import { Users, CheckCircle, XCircle, Clock } from 'lucide-react';
-import MetricCard from '../../common/MetricCard';
+import MetricCard from '../common/MetricCard'
 
 export default function AttendanceStats({ totalStudents, statusCounts }) {
   const stats = [

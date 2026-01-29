@@ -1,6 +1,6 @@
 import React from 'react';
 import { Calendar, CheckCircle } from 'lucide-react';
-import Card from '../../common/Card';
+import Card from '../common/Card';
 
 export default function DateSelector({ 
   selectedDate, 
