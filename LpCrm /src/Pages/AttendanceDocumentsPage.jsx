@@ -103,7 +103,6 @@ export default function AttendanceDocumentsPage() {
 
       fetchDocuments();
     } catch (err) {
-      console.error('Error deleting document:', err);
       alert('Failed to delete document');
     }
   };

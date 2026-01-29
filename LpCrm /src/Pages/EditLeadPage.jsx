@@ -58,7 +58,7 @@ export default function EditLeadPage() {
     const fetchUsers = async () => {
       setLoadingUsers(true);
       try {
-        const res = await authFetch(`${API_BASE_URL}/users/`);
+        const res = await authFetch(`${API_BASE_URL}/staff/`);
         if (!res.ok) throw new Error('Failed to fetch users');
         const data = await res.json();
         setUsers(data.results || data);

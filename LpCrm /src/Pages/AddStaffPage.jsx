@@ -79,7 +79,6 @@ export default function AddStaffPage() {
       password: formData.password
     };
 
-    console.log('Submitting staff data:', JSON.stringify(staffData, null, 2));
 
     try {
       const res = await fetch(`${API_BASE_URL}/staff/create/`, {
@@ -92,8 +91,6 @@ export default function AddStaffPage() {
         body: JSON.stringify(staffData),
       });
 
-      console.log('Response status:', res.status);
-      console.log('Response headers:', res.headers.get('content-type'));
 
       if (res.status === 401) {
         setErrors({ general: 'Session expired. Please login again.' });
@@ -107,14 +104,12 @@ export default function AddStaffPage() {
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         const textResponse = await res.text();
-        console.error('Non-JSON response:', textResponse);
         setErrors({ general: 'Server error. Please contact support.' });
         return;
       }
 
       if (!res.ok) {
         const errorData = await res.json();
-        console.error('Failed to add staff:', errorData);
 
         if (typeof errorData === 'object' && !errorData.detail) {
           setErrors(errorData);
@@ -125,8 +120,6 @@ export default function AddStaffPage() {
       }
 
       const data = await res.json();
-      console.log('Staff added:', data);
-
       setSubmitted(true);
       setTimeout(() => {
         setFormData(initialFormData);
@@ -135,7 +128,6 @@ export default function AddStaffPage() {
       }, 2000);
 
     } catch (err) {
-      console.error('Network error:', err);
       setErrors({ general: 'Network error. Please check your connection and try again.' });
     }
   };
