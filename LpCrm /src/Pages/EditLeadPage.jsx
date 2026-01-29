@@ -26,6 +26,7 @@ export default function EditLeadPage() {
   });
 
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
   const [users, setUsers] = useState([]);
@@ -119,23 +120,17 @@ export default function EditLeadPage() {
 
         const lead = await res.json();
         
-        // Debug: Log the lead data to see the structure
         console.log('Lead data received:', lead);
         console.log('Assigned to field:', lead.assigned_to);
 
         // Handle different possible structures for assigned_to
         let assignedToValue = '';
         if (lead.assigned_to) {
-          // If it's an object with an id property
           if (typeof lead.assigned_to === 'object' && lead.assigned_to.id) {
             assignedToValue = String(lead.assigned_to.id);
-          } 
-          // If it's just a number (the user ID directly)
-          else if (typeof lead.assigned_to === 'number') {
+          } else if (typeof lead.assigned_to === 'number') {
             assignedToValue = String(lead.assigned_to);
-          }
-          // If it's already a string
-          else if (typeof lead.assigned_to === 'string') {
+          } else if (typeof lead.assigned_to === 'string') {
             assignedToValue = lead.assigned_to;
           }
         }
@@ -171,7 +166,7 @@ export default function EditLeadPage() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Input changed: ${name} = ${value}`); // Debug log
+    console.log(`Input changed: ${name} = ${value}`);
     setFormData(prev => ({ ...prev, [name]: value === '' ? '' : value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
@@ -201,6 +196,8 @@ export default function EditLeadPage() {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
+    setSubmitting(true);
+
     const payload = {
       name: formData.name.trim(),
       phone: formData.phone.trim(),
@@ -215,7 +212,6 @@ export default function EditLeadPage() {
       assigned_to: formData.assignedTo ? parseInt(formData.assignedTo) : null
     };
 
-    // Debug log
     console.log('Submitting payload:', payload);
 
     // Remove null/empty email
@@ -240,14 +236,27 @@ export default function EditLeadPage() {
         if (errorData.email) {
           setErrors(prev => ({ ...prev, email: errorData.email[0] }));
         }
-        throw new Error('Failed to update lead');
+        if (errorData.assigned_to) {
+          setErrors(prev => ({ ...prev, assignedTo: errorData.assigned_to[0] }));
+        }
+        throw new Error(errorData.detail || 'Failed to update lead');
       }
 
+      const updatedLead = await res.json();
+      console.log('✅ Lead updated successfully:', updatedLead);
+      console.log('✅ New assigned_to value:', updatedLead.assigned_to);
+
       setSubmitted(true);
-      setTimeout(() => navigate('/leads'), 1500);
+      
+      // Wait a bit longer to ensure backend processing is complete
+      setTimeout(() => {
+        navigate('/leads', { replace: true });
+      }, 2000);
     } catch (err) {
-      console.error(err);
+      console.error('❌ Update error:', err);
       alert(err.message || 'Error updating lead');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -277,6 +286,7 @@ export default function EditLeadPage() {
             <button
               onClick={handleBack}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+              disabled={submitting}
             >
               <ArrowLeft size={20} />
               <span className="font-medium">Back to Leads</span>
@@ -298,7 +308,7 @@ export default function EditLeadPage() {
               <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
-              <span className="text-green-800 font-medium">Lead updated successfully!</span>
+              <span className="text-green-800 font-medium">Lead updated successfully! Redirecting...</span>
             </div>
           </div>
         )}
@@ -324,9 +334,10 @@ export default function EditLeadPage() {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
+                    disabled={submitting}
                     className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
                       errors.name ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    } ${submitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                     placeholder="Enter full name"
                   />
                 </div>
@@ -345,9 +356,10 @@ export default function EditLeadPage() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
+                    disabled={submitting}
                     className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
                       errors.phone ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    } ${submitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                     placeholder="Enter phone number"
                   />
                 </div>
@@ -366,9 +378,10 @@ export default function EditLeadPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
+                    disabled={submitting}
                     className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
                       errors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    } ${submitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                     placeholder="email@example.com"
                   />
                 </div>
@@ -387,7 +400,10 @@ export default function EditLeadPage() {
                     name="location"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    disabled={submitting}
+                    className={`w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                      submitting ? 'bg-gray-100 cursor-not-allowed' : ''
+                    }`}
                     placeholder="City, State"
                   />
                 </div>
@@ -411,7 +427,10 @@ export default function EditLeadPage() {
                   name="program"
                   value={formData.program}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  disabled={submitting}
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                    submitting ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 >
                   <option value="">Select a program</option>
                   {programOptions.map(program => (
@@ -431,7 +450,10 @@ export default function EditLeadPage() {
                   name="status"
                   value={formData.status}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  disabled={submitting}
+                  className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                    submitting ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
                 >
                   {statusOptions.map(status => (
                     <option key={status.value} value={status.value}>
@@ -452,11 +474,12 @@ export default function EditLeadPage() {
                       key={p.value}
                       type="button"
                       onClick={() => handleInputChange({ target: { name: 'priority', value: p.value } })}
+                      disabled={submitting}
                       className={`px-4 py-2 rounded-lg font-medium transition-all ${
                         formData.priority === p.value
                           ? 'bg-indigo-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      } ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       {p.label}
                     </button>
@@ -473,9 +496,10 @@ export default function EditLeadPage() {
                   name="source"
                   value={formData.source}
                   onChange={handleInputChange}
+                  disabled={submitting}
                   className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
                     errors.source ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  } ${submitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                 >
                   <option value="">Select source</option>
                   {sourceOptions.map(source => (
@@ -498,9 +522,10 @@ export default function EditLeadPage() {
                     name="customSource"
                     value={formData.customSource}
                     onChange={handleInputChange}
+                    disabled={submitting}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
                       errors.customSource ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    } ${submitting ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                     placeholder="Specify the source"
                   />
                   {errors.customSource && <p className="text-red-500 text-sm mt-1">{errors.customSource}</p>}
@@ -523,7 +548,10 @@ export default function EditLeadPage() {
                 name="assignedTo"
                 value={formData.assignedTo}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                disabled={submitting || loadingUsers}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                  errors.assignedTo ? 'border-red-500' : 'border-gray-300'
+                } ${(submitting || loadingUsers) ? 'bg-gray-100 cursor-not-allowed' : ''}`}
               >
                 <option value="">Unassigned</option>
                 {users.map(user => (
@@ -531,10 +559,8 @@ export default function EditLeadPage() {
                     {user.first_name} {user.last_name} - {formatRole(user.role)}
                   </option>
                 ))}
-                {loadingUsers && (
-                  <option disabled>Loading users...</option>
-                )}
               </select>
+              {errors.assignedTo && <p className="text-red-500 text-sm mt-1">{errors.assignedTo}</p>}
               <p className="text-xs text-gray-500 mt-1">
                 Only sales and admission team members are shown
               </p>
@@ -555,8 +581,11 @@ export default function EditLeadPage() {
                 name="remarks"
                 value={formData.remarks}
                 onChange={handleInputChange}
+                disabled={submitting}
                 rows="4"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+                className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none ${
+                  submitting ? 'bg-gray-100 cursor-not-allowed' : ''
+                }`}
                 placeholder="Add any additional notes or remarks..."
               />
             </div>
@@ -566,14 +595,25 @@ export default function EditLeadPage() {
           <div className="flex gap-4 pt-6 border-t border-gray-200">
             <button
               onClick={handleSubmit}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors duration-200"
+              disabled={submitting}
+              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors duration-200 disabled:bg-indigo-400 disabled:cursor-not-allowed"
             >
-              <Save size={20} />
-              Update Lead
+              {submitting ? (
+                <>
+                  <Loader2 className="animate-spin" size={20} />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <Save size={20} />
+                  Update Lead
+                </>
+              )}
             </button>
             <button
               onClick={handleBack}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
+              disabled={submitting}
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
@@ -590,7 +630,7 @@ export default function EditLeadPage() {
             </div>
             <div>
               <p className="text-sm text-blue-700">
-                <strong>Note:</strong> Fields marked with <span className="text-red-500">*</span> are required. You can update the assignment here or leave it unchanged.
+                <strong>Note:</strong> Fields marked with <span className="text-red-500">*</span> are required. Assignment changes will be reflected immediately after updating.
               </p>
             </div>
           </div>
