@@ -142,22 +142,6 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
             Only sales and admission team members are shown
           </p>
         </div>
-
-        {/* Info Box */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <div className="flex gap-2">
-            <AlertCircle size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-xs text-blue-700">
-              <strong>Note:</strong> You can assign leads to:
-              <ul className="mt-1 ml-4 list-disc space-y-0.5">
-                <li>Admission Managers & Executives</li>
-                <li>Front Office Executives (FOE)</li>
-                <li>Center Managers (CM)</li>
-                <li>Business Development Managers (BDM)</li>
-              </ul>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
