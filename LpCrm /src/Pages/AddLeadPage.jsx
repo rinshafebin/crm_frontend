@@ -73,7 +73,7 @@ export default function AddLeadPage() {
       priority: formData.priority,
       status: formData.status,
       remarks: formData.remarks?.trim() || '',
-      assigned_to: formData.assignedTo ? parseInt(formData.assignedTo) : null,  // Include assignment
+      assigned_to: formData.assignedTo ? parseInt(formData.assignedTo) : null,
     };
 
     try {
@@ -91,12 +91,16 @@ export default function AddLeadPage() {
         body: JSON.stringify(leadData),
       });
 
+      // Parse response first
+      const responseData = await res.json();
+
       if (!res.ok) {
-        const errorData = await res.json();
-        console.error('Create error:', errorData);
-        throw new Error(errorData?.detail || 'Failed to create lead');
+        console.error('Create error:', responseData);
+        throw new Error(responseData?.detail || responseData?.message || 'Failed to create lead');
       }
 
+      // Success!
+      console.log('Lead created successfully:', responseData);
       setSubmitted(true);
 
       setTimeout(() => {
@@ -123,6 +127,7 @@ export default function AddLeadPage() {
     }
   };
 
+
   const handleBack = () => {
     const confirmed = window.confirm(
       'Are you sure you want to go back? Any unsaved changes will be lost.'
@@ -133,13 +138,13 @@ export default function AddLeadPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <LeadHeader onBack={handleBack} />
-      
+
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Success Message */}
         {submitted && (
-          <Alert 
-            type="success" 
-            title="Lead added successfully!" 
+          <Alert
+            type="success"
+            title="Lead added successfully!"
             className="mb-6 animate-pulse"
           />
         )}
@@ -154,8 +159,8 @@ export default function AddLeadPage() {
         </Card>
 
         {/* Info Alert */}
-        <Alert 
-          type="info" 
+        <Alert
+          type="info"
           className="mt-6"
         >
           <strong>Note:</strong> Fields marked with <span className="text-red-500">*</span> are required. Make sure to fill them before saving the lead.
