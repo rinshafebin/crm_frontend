@@ -37,5 +37,11 @@ export const programOptions = [
   { value: 'A1 EXAM PREPERATION', label: 'A1 (Exam Preparation)' },
   { value: 'A2 EXAM PREPERATION', label: 'A2 (Exam Preparation)' },
   { value: 'B1 EXAM PREPERATION', label: 'B1 (Exam Preparation)' },
-  { value: 'B2 EXAM PREPERATION', label: 'B2 (Exam Preparation)' }
+  { value: 'B2 EXAM PREPERATION', label: 'B2 (Exam Preparation)' },
+
+  // New programs
+  { value: 'POP', label: 'POP' },
+  { value: 'AUSBUILDING', label: 'AUSBUILDING' },
+  { value: 'GCC', label: 'GCC' }
 ];
+
