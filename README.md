@@ -15,11 +15,24 @@ The application focuses on modular UI architecture, scalability, and a clean use
 ---
 
 ## Key Features
-- Role-based access control (Admin, Manager, Agent)
-- Secure authentication and authorization
-- Reusable and scalable frontend components
-- Responsive UI for desktop and tablet
-- Clean separation of concerns for maintainability
+
+- Designed and developed a role-based enterprise CRM platform that extends beyond traditional lead
+  management by integrating student–trainer relationships, HR operations, sales workflows, and
+  management monitoring into a unified system.
+
+- Implemented multi-role access control supporting HR, Business Head, Operations Manager,
+  Admission Managers, and Executives, enabling secure, department-specific access and seamless
+  cross-team coordination.
+
+- Built end-to-end lead and student lifecycle management, covering inquiry tracking, admissions
+  workflows, student onboarding, and trainer assignment.
+
+- Developed daily reporting dashboards for management oversight, providing real-time visibility into
+  sales performance, operational progress, and overall team productivity.
+
+- Automated task assignments, deadlines, and follow-up workflows, significantly reducing manual
+  coordination and improving accountability across teams.
+
 
 ---
 
