@@ -36,23 +36,37 @@ The application focuses on modular UI architecture, scalability, and a clean use
 
 ---
 
-## User Roles Overview
+## User Roles & Access Levels
 
-### Admin
-- System-wide dashboard
-- User and role management
-- Lead distribution and monitoring
-- Application configuration and settings
+The CRM platform supports multiple roles to ensure secure, role-based access and smooth
+coordination across business, operations, sales, and support teams.
 
-### Manager
-- Team-level dashboard
-- Assigned leads overview
-- Performance and progress tracking
+### Management & Administration
+- **General Manager (Admin)** – Full system access, configuration, user and role management,
+  reporting, and operational oversight.
+- **Business Head** – Strategic monitoring, performance dashboards, and sales analytics.
+- **Center Manager** – Center-level operations, team coordination, and reporting.
 
-### Agent
-- Personal leads management
-- Lead details and activity timeline
-- Status updates and follow-ups
+### Operations & Admissions
+- **Operations Manager** – Workflow monitoring, task allocation, and process optimization.
+- **Admission Manager** – Admissions pipeline management, lead allocation, and team supervision.
+- **Admission Executive** – Lead follow-ups, student conversion, and admissions processing.
+- **Processing Executive** – Documentation handling, application processing, and verification.
+
+### Sales & Business Development
+- **Business Development Manager (BDM)** – Lead generation strategy, conversions, and revenue tracking.
+- **FOE Cum TC** – Field operations, tele-calling, and on-ground lead engagement.
+
+### Academic & Training
+- **Trainer** – Student assignment, batch management, and training progress tracking.
+
+### Marketing & Media
+- **Media Team** – Campaign management, lead sources tracking, and promotional activities.
+
+### HR & Finance
+- **Human Resources (HR)** – Employee management, attendance, and internal HR workflows.
+- **Accounts Manager** – Financial tracking, billing oversight, and account reconciliation.
+
 
 ---
 
