@@ -70,32 +70,6 @@ coordination across business, operations, sales, and support teams.
 
 ---
 
-## Screenshots
-
-### Authentication
-![Login Screen](screenshots/auth-login.png)
-
----
-
-### Admin Panel
-![Admin Dashboard](screenshots/admin-dashboard.png)
-![User Management](screenshots/admin-users.png)
-![Admin Leads Management](screenshots/admin-leads.png)
-
----
-
-### Manager View
-![Manager Dashboard](screenshots/manager-dashboard.png)
-![Manager Assigned Leads](screenshots/manager-leads.png)
-
----
-
-### Agent View
-![Agent Leads](screenshots/agent-leads.png)
-![Lead Details](screenshots/lead-details.png)
-
----
-
 ## Project Structure
 - Modular and reusable components
 - Centralized API service layer
