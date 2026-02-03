@@ -138,6 +138,3 @@ export const getMenuForRole = (role) => {
   if (!role) return [];
   return roleNavigation[role.toUpperCase()] || [];
 };
-
-pvp 
-flag 
