@@ -1,5 +1,3 @@
-// src/utils/leadConstants.js
-
 export const statusOptions = [
   { value: 'ENQUIRY', label: 'Enquiry' },
   { value: 'QUALIFIED', label: 'Qualified' },

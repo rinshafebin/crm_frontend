@@ -26,11 +26,13 @@ export default function MyReportsPage() {
   const { accessToken, refreshAccessToken, user } = useAuth();
   
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingReport, setEditingReport] = useState(null);
   
   const [formData, setFormData] = useState({
     name: user?.name || user?.username || '',
@@ -193,6 +195,76 @@ export default function MyReportsPage() {
     } catch (err) {
       console.error('Error creating report:', err);
       setErrors({ submit: err.message || 'Failed to create report' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEdit = (report) => {
+    if (report.status !== 'pending') {
+      alert('Only pending reports can be edited');
+      return;
+    }
+    
+    setEditingReport(report);
+    setFormData({
+      name: report.name,
+      heading: report.heading,
+      report_text: report.report_text,
+      report_date: report.report_date,
+      attached_file: null
+    });
+    setShowEditModal(true);
+  };
+
+  const handleUpdate = async () => {
+    if (!validateForm()) return;
+    
+    setSubmitting(true);
+    
+    try {
+      let token = accessToken || await refreshAccessToken();
+      if (!token) throw new Error('Authentication required');
+
+      const submitData = new FormData();
+      submitData.append('name', formData.name);
+      submitData.append('heading', formData.heading);
+      submitData.append('report_text', formData.report_text);
+      submitData.append('report_date', formData.report_date);
+      
+      // Only append file if a new file was selected
+      if (formData.attached_file) {
+        submitData.append('attached_file', formData.attached_file);
+      }
+
+      const response = await fetch(`${API_BASE_URL}/reports/${editingReport.id}/edit/`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: submitData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to update report');
+      }
+
+      // Success
+      setShowEditModal(false);
+      setEditingReport(null);
+      setFormData({
+        name: user?.name || user?.username || '',
+        heading: '',
+        report_text: '',
+        report_date: new Date().toISOString().split('T')[0],
+        attached_file: null
+      });
+      setErrors({});
+      fetchReports();
+    } catch (err) {
+      console.error('Error updating report:', err);
+      setErrors({ submit: err.message || 'Failed to update report' });
     } finally {
       setSubmitting(false);
     }
@@ -373,12 +445,27 @@ export default function MyReportsPage() {
                     </div>
                   </div>
 
-                  <button 
-                    onClick={() => setSelectedReport(report)}
-                    className="p-2 rounded-lg bg-gray-50 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 transition-colors"
-                  >
-                    <Eye className="w-5 h-5" />
-                  </button>
+                  <div className="flex gap-2">
+                    {/* Edit button - only show for pending reports */}
+                    {report.status === 'pending' && (
+                      <button 
+                        onClick={() => handleEdit(report)}
+                        className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 transition-colors"
+                        title="Edit report"
+                      >
+                        <Edit className="w-5 h-5" />
+                      </button>
+                    )}
+                    
+                    {/* View button */}
+                    <button 
+                      onClick={() => setSelectedReport(report)}
+                      className="p-2 rounded-lg bg-gray-50 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 transition-colors"
+                      title="View details"
+                    >
+                      <Eye className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -537,6 +624,188 @@ export default function MyReportsPage() {
                       <>
                         <Send className="w-5 h-5" />
                         Submit Report
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Report Modal */}
+        {showEditModal && (
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+                <h2 className="text-2xl font-bold text-gray-900">Edit Report</h2>
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingReport(null);
+                    setErrors({});
+                    setFormData({
+                      name: user?.name || user?.username || '',
+                      heading: '',
+                      report_text: '',
+                      report_date: new Date().toISOString().split('T')[0],
+                      attached_file: null
+                    });
+                  }}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                {errors.submit && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {errors.submit}
+                  </div>
+                )}
+
+                <div className="space-y-5">
+                  {/* Name */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Your Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Enter your name"
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                        errors.name ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.name && (
+                      <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                    )}
+                  </div>
+
+                  {/* Heading */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Report Heading <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="heading"
+                      value={formData.heading}
+                      onChange={handleInputChange}
+                      placeholder="Brief heading for your report"
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                        errors.heading ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.heading && (
+                      <p className="mt-1 text-sm text-red-500">{errors.heading}</p>
+                    )}
+                  </div>
+
+                  {/* Report Date */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Report Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="report_date"
+                      value={formData.report_date}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                        errors.report_date ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.report_date && (
+                      <p className="mt-1 text-sm text-red-500">{errors.report_date}</p>
+                    )}
+                  </div>
+
+                  {/* Report Text */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Report Details <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="report_text"
+                      value={formData.report_text}
+                      onChange={handleInputChange}
+                      rows={6}
+                      placeholder="Describe your daily activities, accomplishments, and any issues encountered..."
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                        errors.report_text ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.report_text && (
+                      <p className="mt-1 text-sm text-red-500">{errors.report_text}</p>
+                    )}
+                  </div>
+
+                  {/* File Upload */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Update Attached File (Optional)
+                    </label>
+                    {editingReport?.attached_file && (
+                      <p className="text-sm text-gray-600 mb-2">
+                        Current file attached. Upload a new file to replace it.
+                      </p>
+                    )}
+                    <input
+                      type="file"
+                      onChange={handleFileChange}
+                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Max file size: 10MB. Accepted formats: PDF, DOC, DOCX, TXT, JPG, PNG
+                    </p>
+                    {errors.attached_file && (
+                      <p className="mt-1 text-sm text-red-500">{errors.attached_file}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Form Actions */}
+                <div className="mt-8 flex gap-3 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingReport(null);
+                      setErrors({});
+                      setFormData({
+                        name: user?.name || user?.username || '',
+                        heading: '',
+                        report_text: '',
+                        report_date: new Date().toISOString().split('T')[0],
+                        attached_file: null
+                      });
+                    }}
+                    disabled={submitting}
+                    className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleUpdate}
+                    disabled={submitting}
+                    className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <Edit className="w-5 h-5" />
+                        Update Report
                       </>
                     )}
                   </button>
