@@ -231,7 +231,8 @@ export default function ReportsPage() {
                             className="p-2.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
                             title="View Report Details"
                           >
-                            <Eye size={18} />
+                            {/* <Eye size={18} /> */}
+                            View
                           </button>
 
                           {/* Download Button */}
