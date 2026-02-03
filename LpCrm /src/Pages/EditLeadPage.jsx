@@ -174,7 +174,7 @@ export default function EditLeadPage() {
 
     setSubmitting(true);
 
-    // CRITICAL FIX: Parse assignedTo properly - handle empty string case
+    // Parse assignedTo properly - handle empty string case
     let assignedToValue = null;
     if (formData.assignedTo && formData.assignedTo !== '') {
       const parsed = parseInt(formData.assignedTo, 10);
@@ -184,7 +184,7 @@ export default function EditLeadPage() {
       }
     }
 
-    // Prepare the payload
+    // Prepare the payload WITHOUT assigned_to (we'll handle that separately)
     const payload = {
       name: formData.name.trim(),
       phone: formData.phone.trim(),
@@ -196,13 +196,12 @@ export default function EditLeadPage() {
       source: formData.source,
       custom_source: formData.source === 'OTHER' ? formData.customSource.trim() : '',
       remarks: formData.remarks?.trim() || '',
-      assigned_to: assignedToValue,  // This will be either a valid integer or null
     };
 
     console.log('Submitting payload:', payload);
-    console.log('assigned_to value:', payload.assigned_to, 'type:', typeof payload.assigned_to);
 
     try {
+      // First, update the lead details
       const res = await authFetch(`${API_BASE_URL}/leads/${leadId}/`, {
         method: 'PUT',
         body: JSON.stringify(payload)
@@ -212,16 +211,58 @@ export default function EditLeadPage() {
 
       if (!res.ok) {
         console.error('Update error:', responseData);
-        
-        // Check for specific error messages
-        if (responseData.assigned_to) {
-          setErrors(prev => ({ ...prev, assignedTo: responseData.assigned_to[0] }));
-        }
-        
         throw new Error(responseData?.detail || responseData?.message || 'Failed to update lead');
       }
 
       console.log('Lead updated successfully:', responseData);
+
+      // Now handle the assignment separately if needed
+      if (assignedToValue !== null) {
+        console.log('Assigning lead to user:', assignedToValue);
+        
+        const assignPayload = {
+          lead_id: parseInt(leadId),
+          assigned_to_id: assignedToValue
+        };
+
+        const assignRes = await authFetch(`${API_BASE_URL}/leads/assign/`, {
+          method: 'POST',
+          body: JSON.stringify(assignPayload)
+        });
+
+        const assignData = await assignRes.json();
+
+        if (!assignRes.ok) {
+          console.error('Assignment error:', assignData);
+          // Don't fail the whole operation if assignment fails
+          alert('Lead updated but assignment failed: ' + (assignData?.error || assignData?.detail || 'Unknown error'));
+        } else {
+          console.log('Assignment successful:', assignData);
+        }
+      } else {
+        // If assignedTo is null/empty, unassign the lead
+        console.log('Unassigning lead');
+        
+        const unassignPayload = {
+          lead_id: parseInt(leadId),
+          unassign_type: 'PRIMARY'
+        };
+
+        const unassignRes = await authFetch(`${API_BASE_URL}/leads/unassign/`, {
+          method: 'POST',
+          body: JSON.stringify(unassignPayload)
+        });
+
+        const unassignData = await unassignRes.json();
+
+        if (!unassignRes.ok) {
+          console.error('Unassignment error:', unassignData);
+          alert('Lead updated but unassignment failed: ' + (unassignData?.error || unassignData?.detail || 'Unknown error'));
+        } else {
+          console.log('Unassignment successful:', unassignData);
+        }
+      }
+
       setSubmitted(true);
 
       // Show success message and redirect
