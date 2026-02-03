@@ -203,8 +203,8 @@ export default function EditLeadPage() {
     console.log('assigned_to value:', payload.assigned_to, 'type:', typeof payload.assigned_to);
 
     try {
-      const res = await authFetch(`${API_BASE_URL}/leads/${leadId}/update/`, {
-        method: 'PATCH',
+      const res = await authFetch(`${API_BASE_URL}/leads/${leadId}/`, {
+        method: 'PUT',
         body: JSON.stringify(payload)
       });
 
