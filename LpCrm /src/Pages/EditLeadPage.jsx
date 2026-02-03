@@ -35,6 +35,7 @@ export default function EditLeadPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
 
   // Auth fetch with token refresh
   const authFetch = useCallback(async (url, options = {}, retry = true) => {
@@ -74,25 +75,17 @@ export default function EditLeadPage() {
 
         const lead = await res.json();
         
-        console.log('Lead data received:', lead);
-        console.log('Assigned to field:', lead.assigned_to);
-
         // Handle different possible structures for assigned_to
         let assignedToValue = '';
         if (lead.assigned_to) {
           if (typeof lead.assigned_to === 'object' && lead.assigned_to !== null) {
-            // If it's an object with an id property
             assignedToValue = lead.assigned_to.id ? String(lead.assigned_to.id) : '';
           } else if (typeof lead.assigned_to === 'number') {
-            // If it's a number, convert to string
             assignedToValue = String(lead.assigned_to);
           } else if (typeof lead.assigned_to === 'string') {
-            // If it's already a string
             assignedToValue = lead.assigned_to;
           }
         }
-
-        console.log('Setting assignedTo to:', assignedToValue);
 
         setFormData({
           name: lead.name || '',
@@ -108,9 +101,7 @@ export default function EditLeadPage() {
           assignedTo: assignedToValue
         });
       } catch (err) {
-        console.error('Error fetching lead:', err);
-        alert('Failed to load lead data');
-        navigate('/leads');
+        setApiError('Failed to load lead data');
       } finally {
         setLoading(false);
       }
@@ -119,20 +110,22 @@ export default function EditLeadPage() {
     if (leadId) {
       fetchLeadData();
     }
-  }, [leadId, authFetch, navigate, API_BASE_URL]);
+  }, [leadId, authFetch, API_BASE_URL]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Input changed: ${name} = ${value}`);
     
     setFormData(prev => ({ 
       ...prev, 
       [name]: value 
     }));
     
-    // Clear error for this field
+    // Clear errors for this field
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    if (apiError) {
+      setApiError('');
     }
   };
 
@@ -173,18 +166,18 @@ export default function EditLeadPage() {
     }
 
     setSubmitting(true);
+    setApiError('');
 
-    // Parse assignedTo properly - handle empty string case
+    // Parse assignedTo properly
     let assignedToValue = null;
     if (formData.assignedTo && formData.assignedTo !== '') {
       const parsed = parseInt(formData.assignedTo, 10);
-      // Only set if it's a valid number
       if (!isNaN(parsed)) {
         assignedToValue = parsed;
       }
     }
 
-    // Prepare the payload WITHOUT assigned_to (we'll handle that separately)
+    // Prepare the payload
     const payload = {
       name: formData.name.trim(),
       phone: formData.phone.trim(),
@@ -198,10 +191,8 @@ export default function EditLeadPage() {
       remarks: formData.remarks?.trim() || '',
     };
 
-    console.log('Submitting payload:', payload);
-
     try {
-      // First, update the lead details
+      // Step 1: Update the lead details
       const res = await authFetch(`${API_BASE_URL}/leads/${leadId}/`, {
         method: 'PUT',
         body: JSON.stringify(payload)
@@ -210,16 +201,31 @@ export default function EditLeadPage() {
       const responseData = await res.json();
 
       if (!res.ok) {
-        console.error('Update error:', responseData);
-        throw new Error(responseData?.detail || responseData?.message || 'Failed to update lead');
+        // Handle backend validation errors
+        if (responseData && typeof responseData === 'object') {
+          const backendErrors = {};
+          
+          // Map backend field names to frontend field names
+          Object.keys(responseData).forEach(key => {
+            if (Array.isArray(responseData[key])) {
+              backendErrors[key] = responseData[key][0]; // Take first error message
+            } else if (typeof responseData[key] === 'string') {
+              backendErrors[key] = responseData[key];
+            }
+          });
+          
+          setErrors(backendErrors);
+          
+          // Set a general error message if no specific field errors
+          if (Object.keys(backendErrors).length === 0) {
+            setApiError(responseData?.detail || responseData?.message || 'Failed to update lead');
+          }
+        }
+        throw new Error('Validation failed');
       }
 
-      console.log('Lead updated successfully:', responseData);
-
-      // Now handle the assignment separately if needed
+      // Step 2: Handle assignment separately
       if (assignedToValue !== null) {
-        console.log('Assigning lead to user:', assignedToValue);
-        
         const assignPayload = {
           lead_id: parseInt(leadId),
           assigned_to_id: assignedToValue
@@ -230,19 +236,14 @@ export default function EditLeadPage() {
           body: JSON.stringify(assignPayload)
         });
 
-        const assignData = await assignRes.json();
-
         if (!assignRes.ok) {
-          console.error('Assignment error:', assignData);
-          // Don't fail the whole operation if assignment fails
-          alert('Lead updated but assignment failed: ' + (assignData?.error || assignData?.detail || 'Unknown error'));
-        } else {
-          console.log('Assignment successful:', assignData);
+          const assignData = await assignRes.json();
+          const errorMsg = assignData?.error || assignData?.detail || 'Unknown error';
+          setApiError(`Lead updated but assignment failed: ${errorMsg}`);
+          return; // Don't redirect on assignment failure
         }
       } else {
-        // If assignedTo is null/empty, unassign the lead
-        console.log('Unassigning lead');
-        
+        // Step 3: Unassign if assignedTo is null/empty
         const unassignPayload = {
           lead_id: parseInt(leadId),
           unassign_type: 'PRIMARY'
@@ -253,26 +254,24 @@ export default function EditLeadPage() {
           body: JSON.stringify(unassignPayload)
         });
 
-        const unassignData = await unassignRes.json();
-
         if (!unassignRes.ok) {
-          console.error('Unassignment error:', unassignData);
-          alert('Lead updated but unassignment failed: ' + (unassignData?.error || unassignData?.detail || 'Unknown error'));
-        } else {
-          console.log('Unassignment successful:', unassignData);
+          const unassignData = await unassignRes.json();
+          const errorMsg = unassignData?.error || unassignData?.detail || 'Unknown error';
+          setApiError(`Lead updated but unassignment failed: ${errorMsg}`);
+          return; // Don't redirect on unassignment failure
         }
       }
 
+      // Success!
       setSubmitted(true);
-
-      // Show success message and redirect
       setTimeout(() => {
         navigate('/leads');
       }, 2000);
 
     } catch (err) {
-      console.error('Update lead error:', err);
-      alert(err.message || 'Something went wrong while updating the lead');
+      if (err.message !== 'Validation failed') {
+        setApiError(err.message || 'Something went wrong while updating the lead');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -328,6 +327,16 @@ export default function EditLeadPage() {
             title="Lead updated successfully!"
             message="Redirecting to leads page..."
             className="mb-6 animate-pulse"
+          />
+        )}
+
+        {/* API Error Message */}
+        {apiError && (
+          <Alert
+            type="error"
+            title="Error"
+            message={apiError}
+            className="mb-6"
           />
         )}
 
