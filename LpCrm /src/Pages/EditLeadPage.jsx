@@ -174,6 +174,16 @@ export default function EditLeadPage() {
 
     setSubmitting(true);
 
+    // CRITICAL FIX: Parse assignedTo properly - handle empty string case
+    let assignedToValue = null;
+    if (formData.assignedTo && formData.assignedTo !== '') {
+      const parsed = parseInt(formData.assignedTo, 10);
+      // Only set if it's a valid number
+      if (!isNaN(parsed)) {
+        assignedToValue = parsed;
+      }
+    }
+
     // Prepare the payload
     const payload = {
       name: formData.name.trim(),
@@ -186,11 +196,11 @@ export default function EditLeadPage() {
       source: formData.source,
       custom_source: formData.source === 'OTHER' ? formData.customSource.trim() : '',
       remarks: formData.remarks?.trim() || '',
-      // CRITICAL: Convert assignedTo to integer or null
-      assigned_to: formData.assignedTo ? parseInt(formData.assignedTo, 10) : null,
+      assigned_to: assignedToValue,  // This will be either a valid integer or null
     };
 
     console.log('Submitting payload:', payload);
+    console.log('assigned_to value:', payload.assigned_to, 'type:', typeof payload.assigned_to);
 
     try {
       const res = await authFetch(`${API_BASE_URL}/leads/${leadId}/update/`, {
@@ -202,6 +212,12 @@ export default function EditLeadPage() {
 
       if (!res.ok) {
         console.error('Update error:', responseData);
+        
+        // Check for specific error messages
+        if (responseData.assigned_to) {
+          setErrors(prev => ({ ...prev, assignedTo: responseData.assigned_to[0] }));
+        }
+        
         throw new Error(responseData?.detail || responseData?.message || 'Failed to update lead');
       }
 
