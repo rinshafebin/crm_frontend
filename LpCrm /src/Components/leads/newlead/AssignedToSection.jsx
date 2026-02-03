@@ -137,10 +137,6 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
           {errors.assignedTo && (
             <p className="text-red-500 text-xs mt-1">{errors.assignedTo}</p>
           )}
-          
-          <p className="text-xs text-gray-500 mt-1">
-            Only sales and admission team members are shown
-          </p>
         </div>
       </div>
     </div>
