@@ -18,7 +18,7 @@ export const roleNavigation = {
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
     { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
-    { id: "reports", label: "Reports", icon: FileText, path: "/daily/reports" },
+    { id: "staff reports", label: "Reports", icon: FileText, path: "/daily/reports" },
   ],
 
   BUSINESS_HEAD: [
@@ -105,7 +105,7 @@ export const roleNavigation = {
     },
     { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
     { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
-    { id: "reports", label: "Reports", icon: FileText, path: "/daily/reports" },
+    { id: "staff reports", label: "Reports", icon: FileText, path: "/daily/reports" },
 
   ],
 
