@@ -26,8 +26,6 @@ export default function EditLeadPage() {
 
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState('');
-
-  // Auth fetch with token refresh
   const authFetch = useCallback(async (url, options = {}, retry = true) => {
     let token = accessToken;
 
@@ -57,11 +55,9 @@ export default function EditLeadPage() {
         }
       }, false);
     }
-
     return res;
   }, [accessToken, refreshAccessToken]);
 
-  // Fetch lead data
   useEffect(() => {
     const fetchLeadData = async () => {
       setLoading(true);
@@ -71,7 +67,6 @@ export default function EditLeadPage() {
 
         const lead = await res.json();
 
-        // Handle different possible structures for assigned_to
         let assignedToValue = '';
         if (lead.assigned_to) {
           if (typeof lead.assigned_to === 'object' && lead.assigned_to !== null) {
@@ -108,7 +103,6 @@ export default function EditLeadPage() {
     }
   }, [leadId, authFetch, API_BASE_URL]);
 
-  // Loading state
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
