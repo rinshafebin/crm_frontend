@@ -90,7 +90,6 @@ export default function StudentsPage() {
         withCredentials: true,
       });
 
-      // Normalize statuses to camelCase
       const normalizedStudents = (res.data.results || res.data).map(student => ({
         ...student,
         status: normalizeStatus(student.status),
