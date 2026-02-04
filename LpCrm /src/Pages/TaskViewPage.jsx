@@ -44,46 +44,102 @@ export default function TaskViewPage() {
 
   useEffect(() => {
     const fetchTaskData = async () => {
+      console.log('=== FETCH TASK DATA START ===');
+      console.log('Task ID:', id);
+      console.log('API Base URL:', API_BASE_URL);
+      
       try {
         setLoading(true);
         let token = accessToken;
+        
+        console.log('Access token exists:', !!token);
+        
         if (!token) {
+          console.log('No access token, attempting refresh...');
           token = await refreshAccessToken();
-          if (!token) throw new Error('Authentication required');
+          console.log('Refreshed token exists:', !!token);
+          
+          if (!token) {
+            console.error('❌ Failed to get access token');
+            throw new Error('Authentication required');
+          }
         }
 
         // Fetch task details
-        const taskResponse = await fetch(`${API_BASE_URL}/tasks/${id}/`, {
+        const taskUrl = `${API_BASE_URL}/tasks/${id}/`;
+        console.log('📡 Fetching task from:', taskUrl);
+        
+        const taskResponse = await fetch(taskUrl, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
 
+        console.log('Task response status:', taskResponse.status);
+        console.log('Task response ok:', taskResponse.ok);
+
         if (!taskResponse.ok) {
+          const errorText = await taskResponse.text();
+          console.error('❌ Task fetch failed:', errorText);
           throw new Error('Failed to fetch task details');
         }
 
         const taskData = await taskResponse.json();
+        console.log('✅ Task data received:', taskData);
+        console.log('Task title:', taskData.title);
+        console.log('Task status:', taskData.status);
+        console.log('Task notes field exists:', 'notes' in taskData);
+        console.log('Task notes value:', taskData.notes);
+        
         setTask(taskData);
 
         // Fetch task updates
-        const updatesResponse = await fetch(`${API_BASE_URL}/tasks/${id}/updates/`, {
+        const updatesUrl = `${API_BASE_URL}/tasks/${id}/updates/`;
+        console.log('📡 Fetching updates from:', updatesUrl);
+        
+        const updatesResponse = await fetch(updatesUrl, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
 
+        console.log('Updates response status:', updatesResponse.status);
+        console.log('Updates response ok:', updatesResponse.ok);
+
         if (updatesResponse.ok) {
           const updatesData = await updatesResponse.json();
+          console.log('✅ Updates data received:', updatesData);
+          console.log('Number of updates:', updatesData.length);
+          
+          // Log each update in detail
+          updatesData.forEach((update, index) => {
+            console.log(`--- Update #${index + 1} ---`);
+            console.log('ID:', update.id);
+            console.log('Previous status:', update.previous_status);
+            console.log('New status:', update.new_status);
+            console.log('Notes exists:', 'notes' in update);
+            console.log('Notes value:', update.notes);
+            console.log('Notes length:', update.notes ? update.notes.length : 0);
+            console.log('Notes trimmed:', update.notes ? update.notes.trim() : '');
+            console.log('Updated by:', update.updated_by_name);
+            console.log('Created at:', update.created_at);
+          });
+          
           setUpdates(updatesData);
+        } else {
+          const errorText = await updatesResponse.text();
+          console.error('⚠️ Updates fetch failed:', errorText);
         }
       } catch (err) {
+        console.error('❌ ERROR in fetchTaskData:', err);
+        console.error('Error message:', err.message);
+        console.error('Error stack:', err.stack);
         setError(err.message);
-        console.error('Error fetching task data:', err);
       } finally {
         setLoading(false);
+        console.log('=== FETCH TASK DATA END ===');
       }
     };
 
@@ -114,53 +170,100 @@ export default function TaskViewPage() {
 
   // Open completion modal
   const handleOpenCompletionModal = () => {
+    console.log('Opening completion modal');
     setShowCompletionModal(true);
     setCompletionNotes('');
   };
 
   // Close completion modal
   const handleCloseCompletionModal = () => {
+    console.log('Closing completion modal');
     setShowCompletionModal(false);
     setCompletionNotes('');
   };
 
   // Submit task completion with notes
   const handleSubmitCompletion = async () => {
+    console.log('=== SUBMIT COMPLETION START ===');
+    console.log('Completion notes:', completionNotes);
+    console.log('Notes length:', completionNotes.length);
+    console.log('Notes trimmed:', completionNotes.trim());
+    console.log('Notes trimmed length:', completionNotes.trim().length);
+    
     if (!completionNotes.trim()) {
+      console.warn('⚠️ Empty notes, showing alert');
       alert('Please provide completion notes before marking the task as complete.');
+      return;
+    }
+
+    if (completionNotes.trim().length < 10) {
+      console.warn('⚠️ Notes too short, showing alert');
+      alert('Please provide at least 10 characters in completion notes.');
       return;
     }
 
     try {
       setSubmittingCompletion(true);
       let token = accessToken;
+      
+      console.log('Access token exists:', !!token);
+      
       if (!token) {
+        console.log('No access token, attempting refresh...');
         token = await refreshAccessToken();
+        console.log('Refreshed token exists:', !!token);
+        
         if (!token) {
+          console.error('❌ Session expired');
           alert('Session expired. Please login again.');
           return;
         }
       }
 
+      const statusUrl = `${API_BASE_URL}/tasks/${id}/status/`;
+      const requestBody = {
+        status: 'COMPLETED',
+        notes: completionNotes.trim()
+      };
+      
+      console.log('📡 Posting to:', statusUrl);
+      console.log('Request body:', requestBody);
+      console.log('Request body JSON:', JSON.stringify(requestBody));
+
       // Use the task status update endpoint with notes
-      const response = await fetch(`${API_BASE_URL}/tasks/${id}/status/`, {
+      const response = await fetch(statusUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          status: 'COMPLETED',
-          notes: completionNotes.trim()
-        }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+          console.error('❌ Error data:', errorData);
+        } catch (e) {
+          console.error('❌ Could not parse error response as JSON');
+          errorData = { detail: responseText };
+        }
         throw new Error(errorData.detail || 'Failed to update task');
       }
 
+      const responseData = JSON.parse(responseText);
+      console.log('✅ Success response:', responseData);
+
       // Refresh task details
+      console.log('📡 Refreshing task details...');
       const taskResponse = await fetch(`${API_BASE_URL}/tasks/${id}/`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -168,12 +271,18 @@ export default function TaskViewPage() {
         },
       });
 
+      console.log('Task refresh status:', taskResponse.status);
+
       if (taskResponse.ok) {
         const taskData = await taskResponse.json();
+        console.log('✅ Refreshed task data:', taskData);
         setTask(taskData);
+      } else {
+        console.error('⚠️ Failed to refresh task data');
       }
 
       // Refresh updates
+      console.log('📡 Refreshing task updates...');
       const updatesResponse = await fetch(`${API_BASE_URL}/tasks/${id}/updates/`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -181,19 +290,41 @@ export default function TaskViewPage() {
         },
       });
 
+      console.log('Updates refresh status:', updatesResponse.status);
+
       if (updatesResponse.ok) {
         const updatesData = await updatesResponse.json();
+        console.log('✅ Refreshed updates data:', updatesData);
+        console.log('Number of updates after refresh:', updatesData.length);
+        
+        // Log the latest update (should be our new one)
+        if (updatesData.length > 0) {
+          const latestUpdate = updatesData[0];
+          console.log('Latest update details:');
+          console.log('- ID:', latestUpdate.id);
+          console.log('- Status change:', latestUpdate.previous_status, '→', latestUpdate.new_status);
+          console.log('- Notes:', latestUpdate.notes);
+          console.log('- Updated by:', latestUpdate.updated_by_name);
+        }
+        
         setUpdates(updatesData);
+      } else {
+        console.error('⚠️ Failed to refresh updates');
       }
 
       // Close modal and show success
       setShowCompletionModal(false);
+      console.log('✅ Task marked as completed successfully!');
       alert('Task marked as completed successfully!');
+      
     } catch (err) {
-      console.error('Error updating task:', err);
+      console.error('❌ ERROR in handleSubmitCompletion:', err);
+      console.error('Error message:', err.message);
+      console.error('Error stack:', err.stack);
       alert(err.message || 'Failed to update task. Please try again.');
     } finally {
       setSubmittingCompletion(false);
+      console.log('=== SUBMIT COMPLETION END ===');
     }
   };
 
@@ -230,7 +361,14 @@ export default function TaskViewPage() {
     );
   }
 
-  if (!task) return null;
+  if (!task) {
+    console.warn('⚠️ Task is null but not in loading or error state');
+    return null;
+  }
+
+  console.log('Rendering task view page');
+  console.log('Current task:', task);
+  console.log('Current updates count:', updates.length);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -276,7 +414,7 @@ export default function TaskViewPage() {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
               <button
-                onClick={() => navigate(`/tasks/${id}/edit`)}
+                onClick={() => navigate(`/tasks/edit/${id}`)}
                 className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-indigo-600 text-indigo-600 font-semibold rounded-xl hover:bg-indigo-50 transition-all shadow-sm hover:shadow-md"
               >
                 <Edit2 className="w-4 h-4" />
@@ -374,49 +512,71 @@ export default function TaskViewPage() {
                 </div>
 
                 <div className="space-y-4">
-                  {updates.map((update, index) => (
-                    <div key={update.id || index} className="border-l-2 border-slate-200 pl-6 pb-6 last:pb-0 relative">
-                      {/* Timeline dot */}
-                      <div className="absolute -left-2 top-0 w-4 h-4 bg-indigo-600 rounded-full border-2 border-white"></div>
+                  {updates.map((update, index) => {
+                    console.log(`Rendering update #${index}:`, update);
+                    console.log(`- Has notes: ${!!update.notes}`);
+                    console.log(`- Notes value: "${update.notes}"`);
+                    console.log(`- Notes trimmed: "${update.notes ? update.notes.trim() : ''}"`);
+                    
+                    return (
+                      <div key={update.id || index} className="border-l-2 border-slate-200 pl-6 pb-6 last:pb-0 relative">
+                        {/* Timeline dot */}
+                        <div className="absolute -left-2 top-0 w-4 h-4 bg-indigo-600 rounded-full border-2 border-white"></div>
 
-                      <div className="bg-slate-50 rounded-xl p-4 hover:bg-slate-100 transition-colors">
-                        <div className="flex items-start justify-between gap-4 mb-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${statusColors[update.previous_status]}`}>
-                              {update.previous_status.replace('_', ' ')}
-                            </span>
-                            <span className="text-slate-400">→</span>
-                            <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${statusColors[update.new_status]}`}>
-                              {update.new_status.replace('_', ' ')}
+                        <div className="bg-slate-50 rounded-xl p-4 hover:bg-slate-100 transition-colors">
+                          <div className="flex items-start justify-between gap-4 mb-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${statusColors[update.previous_status]}`}>
+                                {update.previous_status.replace('_', ' ')}
+                              </span>
+                              <span className="text-slate-400">→</span>
+                              <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${statusColors[update.new_status]}`}>
+                                {update.new_status.replace('_', ' ')}
+                              </span>
+                            </div>
+                            <span className="text-xs text-slate-500 whitespace-nowrap">
+                              {formatDateTime(update.created_at)}
                             </span>
                           </div>
-                          <span className="text-xs text-slate-500 whitespace-nowrap">
-                            {formatDateTime(update.created_at)}
-                          </span>
-                        </div>
 
-                        <div className="flex items-center gap-2 text-sm text-slate-600 mb-2">
-                          <User className="w-4 h-4" />
-                          <span className="font-medium">{update.updated_by_name || 'Unknown user'}</span>
-                        </div>
+                          <div className="flex items-center gap-2 text-sm text-slate-600 mb-2">
+                            <User className="w-4 h-4" />
+                            <span className="font-medium">{update.updated_by_name || 'Unknown user'}</span>
+                          </div>
 
-                        {/* Update Notes - Enhanced Display */}
-                        {update.notes && update.notes.trim() && (
-                          <div className="mt-3 pt-3 border-t border-slate-200">
-                            <div className="flex items-start gap-2">
-                              <StickyNote className="w-4 h-4 text-indigo-600 mt-0.5 flex-shrink-0" />
-                              <div className="flex-1">
-                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Notes</p>
-                                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                                  {update.notes}
-                                </p>
+                          {/* Update Notes - Enhanced Display with Debug Info */}
+                          {update.notes && update.notes.trim() ? (
+                            <div className="mt-3 pt-3 border-t border-slate-200">
+                              <div className="flex items-start gap-2">
+                                <StickyNote className="w-4 h-4 text-indigo-600 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Notes</p>
+                                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                    {update.notes}
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          ) : (
+                            <div className="mt-3 pt-3 border-t border-slate-200">
+                              <div className="flex items-start gap-2">
+                                <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                  <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-1">Debug Info</p>
+                                  <p className="text-xs text-slate-500">
+                                    Notes field exists: {update.notes !== undefined ? 'Yes' : 'No'}<br/>
+                                    Notes value: "{update.notes}"<br/>
+                                    Notes is null: {update.notes === null ? 'Yes' : 'No'}<br/>
+                                    Notes is empty string: {update.notes === '' ? 'Yes' : 'No'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -508,13 +668,16 @@ export default function TaskViewPage() {
               </label>
               <textarea
                 value={completionNotes}
-                onChange={(e) => setCompletionNotes(e.target.value)}
+                onChange={(e) => {
+                  console.log('Notes changed:', e.target.value);
+                  setCompletionNotes(e.target.value);
+                }}
                 placeholder="Describe what was completed, any challenges faced, results achieved, etc..."
                 rows="6"
                 className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all resize-none"
               />
               <p className="text-xs text-slate-500 mt-2">
-                Minimum 10 characters required
+                Minimum 10 characters required. Current: {completionNotes.trim().length} characters
               </p>
             </div>
 
