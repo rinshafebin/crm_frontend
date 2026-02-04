@@ -24,7 +24,6 @@ export default function EditStaffPage() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState('');
 
-  // Auth fetch with token refresh
   const authFetch = useCallback(async (url, options = {}, retry = true) => {
     let token = accessToken;
 

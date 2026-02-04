@@ -1,12 +1,13 @@
 import React from 'react';
-import { ArrowLeft, Save } from 'lucide-react';
-import ContactSection from '../newlead/ContactSection'
-import LeadDetailsSection from '../newlead/LeadDetailsSection'
-import AdditionalInfoSection from '../newlead/AdditionalInfoSection'
+import { Save } from 'lucide-react';
+import ContactSection from '../newlead/ContactSection';
+import LeadDetailsSection from '../newlead/LeadDetailsSection';
+import AdditionalInfoSection from '../newlead/AdditionalInfoSection';
 import AssignedToSection from '../newlead/AssignedToSection';
-import Alert from '../../common/Alert'
+import Alert from '../../common/Alert';
 import Card from '../../common/Card';
 import Button from '../../common/Button';
+import PageHeader from "../../common/PageHeader";
 
 export default function EditLeadFormUI({
   formData,
@@ -19,20 +20,16 @@ export default function EditLeadFormUI({
   handleBack
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <button
-            onClick={handleBack}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4 transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            Back to Leads
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">Edit Lead</h1>
-          <p className="mt-2 text-gray-600">Update the lead information below</p>
-        </div>
+        {/* Page Header */}
+        <PageHeader
+          title="Edit Lead"
+          description="Update the lead information below"
+          onBack={handleBack}
+          backText="Back to Leads"
+          disabled={submitting}
+        />
 
         {/* Success Message */}
         {submitted && (
@@ -51,28 +48,28 @@ export default function EditLeadFormUI({
         {/* Form Card */}
         <Card className="mb-6">
           <div className="space-y-8">
+            {/* CORRECTED: Pass onChange instead of handleInputChange */}
             <ContactSection
               formData={formData}
               errors={errors}
-              handleInputChange={handleInputChange}
+              onChange={handleInputChange}
             />
 
             <LeadDetailsSection
               formData={formData}
               errors={errors}
-              handleInputChange={handleInputChange}
+              onChange={handleInputChange}
             />
 
             <AdditionalInfoSection
               formData={formData}
-              errors={errors}
-              handleInputChange={handleInputChange}
+              onChange={handleInputChange}
             />
 
             <AssignedToSection
               formData={formData}
               errors={errors}
-              handleInputChange={handleInputChange}
+              onChange={handleInputChange}
             />
           </div>
         </Card>

@@ -1,7 +1,8 @@
+// Pages/AddLeadPage.jsx - CORRECTED
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import LeadHeader from '../Components/leads/newlead/LeadHeader';
+import PageHeader from '../Components/common/PageHeader'; // Use common PageHeader
 import ContactInfoSection from '../Components/leads/newlead/ContactSection';
 import LeadDetailsSection from '../Components/leads/newlead/LeadDetailsSection';
 import AdditionalInfoSection from '../Components/leads/newlead/AdditionalInfoSection';
@@ -22,7 +23,7 @@ export default function AddLeadPage() {
     source: '',
     customSource: '',
     remarks: '',
-    assignedTo: ''  // Add assignedTo field
+    assignedTo: ''
   });
 
   const { accessToken, refreshAccessToken } = useAuth();
@@ -91,7 +92,6 @@ export default function AddLeadPage() {
         body: JSON.stringify(leadData),
       });
 
-      // Parse response first
       const responseData = await res.json();
 
       if (!res.ok) {
@@ -99,7 +99,6 @@ export default function AddLeadPage() {
         throw new Error(responseData?.detail || responseData?.message || 'Failed to create lead');
       }
 
-      // Success!
       console.log('Lead created successfully:', responseData);
       setSubmitted(true);
 
@@ -127,7 +126,6 @@ export default function AddLeadPage() {
     }
   };
 
-
   const handleBack = () => {
     const confirmed = window.confirm(
       'Are you sure you want to go back? Any unsaved changes will be lost.'
@@ -136,10 +134,16 @@ export default function AddLeadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <LeadHeader onBack={handleBack} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Use Common PageHeader instead of LeadHeader */}
+        <PageHeader
+          title="Add New Lead"
+          description="Fill in the details to add a new lead to your CRM"
+          onBack={handleBack}
+          backText="Back to Leads"
+        />
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Success Message */}
         {submitted && (
           <Alert
@@ -150,19 +154,35 @@ export default function AddLeadPage() {
         )}
 
         {/* Form Card */}
-        <Card padding="p-8">
-          <ContactInfoSection formData={formData} errors={errors} onChange={handleInputChange} />
-          <LeadDetailsSection formData={formData} errors={errors} onChange={handleInputChange} />
-          <AssignedToSection formData={formData} errors={errors} onChange={handleInputChange} />
-          <AdditionalInfoSection formData={formData} onChange={handleInputChange} />
-          <ActionButtons onSave={handleSubmit} onCancel={handleBack} />
+        <Card padding="p-8" className="mb-6">
+          {/* CORRECTED: Pass onChange instead of handleInputChange */}
+          <ContactInfoSection 
+            formData={formData} 
+            errors={errors} 
+            onChange={handleInputChange} 
+          />
+          <LeadDetailsSection 
+            formData={formData} 
+            errors={errors} 
+            onChange={handleInputChange} 
+          />
+          <AssignedToSection 
+            formData={formData} 
+            errors={errors} 
+            onChange={handleInputChange} 
+          />
+          <AdditionalInfoSection 
+            formData={formData} 
+            onChange={handleInputChange} 
+          />
+          <ActionButtons 
+            onSave={handleSubmit} 
+            onCancel={handleBack} 
+          />
         </Card>
 
         {/* Info Alert */}
-        <Alert
-          type="info"
-          className="mt-6"
-        >
+        <Alert type="info" className="mt-6">
           <strong>Note:</strong> Fields marked with <span className="text-red-500">*</span> are required. Make sure to fill them before saving the lead.
         </Alert>
       </div>
