@@ -72,7 +72,6 @@ export const roleNavigation = {
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
-    { id: "myTasks", label: "My Tasks", icon: ListTodo, path: "/mytasks" },
     { id: "allTasks", label: "All Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
     { id: "staffReports", label: "Staff Reports", icon: FileText, path: "/daily/reports" }
