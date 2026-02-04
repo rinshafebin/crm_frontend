@@ -111,10 +111,13 @@ export default function TaskViewPage() {
         if (updatesResponse.ok) {
           const updatesData = await updatesResponse.json();
           console.log('✅ Updates data received:', updatesData);
-          console.log('Number of updates:', updatesData.length);
+          
+          // Extract the results array from the paginated response
+          const updatesList = updatesData.results || [];
+          console.log('Number of updates:', updatesList.length);
           
           // Log each update in detail
-          updatesData.forEach((update, index) => {
+          updatesList.forEach((update, index) => {
             console.log(`--- Update #${index + 1} ---`);
             console.log('ID:', update.id);
             console.log('Previous status:', update.previous_status);
@@ -127,7 +130,7 @@ export default function TaskViewPage() {
             console.log('Created at:', update.created_at);
           });
           
-          setUpdates(updatesData);
+          setUpdates(updatesList);
         } else {
           const errorText = await updatesResponse.text();
           console.error('⚠️ Updates fetch failed:', errorText);
@@ -295,11 +298,14 @@ export default function TaskViewPage() {
       if (updatesResponse.ok) {
         const updatesData = await updatesResponse.json();
         console.log('✅ Refreshed updates data:', updatesData);
-        console.log('Number of updates after refresh:', updatesData.length);
+        
+        // Extract the results array from the paginated response
+        const updatesList = updatesData.results || [];
+        console.log('Number of updates after refresh:', updatesList.length);
         
         // Log the latest update (should be our new one)
-        if (updatesData.length > 0) {
-          const latestUpdate = updatesData[0];
+        if (updatesList.length > 0) {
+          const latestUpdate = updatesList[0];
           console.log('Latest update details:');
           console.log('- ID:', latestUpdate.id);
           console.log('- Status change:', latestUpdate.previous_status, '→', latestUpdate.new_status);
@@ -307,7 +313,7 @@ export default function TaskViewPage() {
           console.log('- Updated by:', latestUpdate.updated_by_name);
         }
         
-        setUpdates(updatesData);
+        setUpdates(updatesList);
       } else {
         console.error('⚠️ Failed to refresh updates');
       }
