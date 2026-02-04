@@ -84,26 +84,32 @@ export default function StaffPage() {
         const res = await authFetch(`${API_BASE_URL}/staff/?${queryParams.toString()}`);
         const data = await res.json();
 
-        const mappedStaff = data.results.map((staff) => ({
-          id: staff.id,
-          name: `${staff.first_name || ''} ${staff.last_name || ''}`.trim() || staff.username,
-          role: staff.role
-            ?.replace(/_/g, ' ')
-            .toLowerCase()
-            .replace(/\b\w/g, (c) => c.toUpperCase()),
-          department: staff.team || 'Unassigned',
-          email: staff.email,
-          phone: staff.phone,
-          location: staff.location,
-          status: staff.is_active ? 'active' : 'inactive',
-          joinDate: new Date(staff.date_joined).toLocaleDateString('en-US', {
-            month: 'short',
-            day: '2-digit',
-            year: 'numeric',
-          }),
-          // Professional initials-based avatar
-          initials: `${staff.first_name?.[0] || ''}${staff.last_name?.[0] || staff.username?.[0] || '?'}`.toUpperCase(),
-        }));
+        const mappedStaff = data.results
+          .map((staff) => ({
+            id: staff.id,
+            name: `${staff.first_name || ''} ${staff.last_name || ''}`.trim() || staff.username,
+            role: staff.role
+              ?.replace(/_/g, ' ')
+              .toLowerCase()
+              .replace(/\b\w/g, (c) => c.toUpperCase()),
+            department: staff.team || 'Unassigned',
+            email: staff.email,
+            phone: staff.phone,
+            location: staff.location,
+            status: staff.is_active ? 'active' : 'inactive',
+            joinDate: new Date(staff.date_joined).toLocaleDateString('en-US', {
+              month: 'short',
+              day: '2-digit',
+              year: 'numeric',
+            }),
+            // Professional initials-based avatar
+            initials: `${staff.first_name?.[0] || ''}${staff.last_name?.[0] || staff.username?.[0] || '?'}`.toUpperCase(),
+          }))
+          // Filter out Admin and Managing Director roles
+          .filter((staff) => {
+            const roleLower = staff.role?.toLowerCase();
+            return roleLower !== 'admin' && roleLower !== 'managing director';
+          });
 
         setStaffMembers(mappedStaff);
         setPagination({

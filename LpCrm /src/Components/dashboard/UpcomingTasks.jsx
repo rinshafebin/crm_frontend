@@ -19,7 +19,7 @@ export default function UpcomingTasks({ tasks, formatTaskTime, getPriorityColor,
     <Card>
       <SectionHeader 
         title="Upcoming Tasks" 
-        // onActionClick={onViewAll}
+        onActionClick={onViewAll}
       />
       
       <div className="space-y-3">
