@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowLeft, Calendar, User, Flag, FileText, Clock, Edit2, CheckCircle, AlertTriangle, Loader, Circle, AlertCircle, XCircle, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Flag, FileText, Clock, Edit2, CheckCircle, AlertTriangle, Loader, Circle, AlertCircle, XCircle, MessageSquare, StickyNote } from 'lucide-react';
 
 export default function TaskViewPage() {
   const { id } = useParams();
@@ -119,7 +119,7 @@ export default function TaskViewPage() {
       }
 
       // Use the task status update endpoint instead
-      const response = await fetch(`${API_BASE_URL}/tasks/${id}/updates/`, {
+      const response = await fetch(`${API_BASE_URL}/tasks/${id}/status/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -315,6 +315,23 @@ export default function TaskViewPage() {
               </div>
             </div>
 
+            {/* Task Notes Section - if task has a notes field */}
+            {task.notes && (
+              <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl shadow-xl border border-amber-200 p-8">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-amber-200">
+                  <div className="p-2 bg-amber-100 rounded-lg">
+                    <StickyNote className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-900">Task Notes</h2>
+                </div>
+                <div className="prose max-w-none">
+                  <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
+                    {task.notes}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Task Updates Section */}
             {updates && updates.length > 0 && (
               <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
@@ -336,7 +353,7 @@ export default function TaskViewPage() {
 
                       <div className="bg-slate-50 rounded-xl p-4 hover:bg-slate-100 transition-colors">
                         <div className="flex items-start justify-between gap-4 mb-2">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${statusColors[update.previous_status]}`}>
                               {update.previous_status.replace('_', ' ')}
                             </span>
@@ -355,16 +372,39 @@ export default function TaskViewPage() {
                           <span className="font-medium">{update.updated_by_name || 'Unknown user'}</span>
                         </div>
 
-                        {update.notes && (
+                        {/* Update Notes - Enhanced Display */}
+                        {update.notes && update.notes.trim() && (
                           <div className="mt-3 pt-3 border-t border-slate-200">
-                            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                              {update.notes}
-                            </p>
+                            <div className="flex items-start gap-2">
+                              <StickyNote className="w-4 h-4 text-indigo-600 mt-0.5 flex-shrink-0" />
+                              <div className="flex-1">
+                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Notes</p>
+                                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                  {update.notes}
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* No Updates Message */}
+            {(!updates || updates.length === 0) && (
+              <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <MessageSquare className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-900">Activity History</h2>
+                </div>
+                <div className="text-center py-8">
+                  <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500">No activity updates yet for this task.</p>
                 </div>
               </div>
             )}
