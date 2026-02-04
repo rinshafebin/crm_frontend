@@ -15,7 +15,12 @@ export const roleNavigation = {
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
-    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    {
+      id: "allTasks",
+      label: "All Tasks",
+      icon: ListTodo,
+      path: "/staff/tasks",
+    },
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
     {
       id: "staffReports",
@@ -36,7 +41,18 @@ export const roleNavigation = {
       external: true,
       path: "https://x.voxbay.com/admin/dashboard",
     },
-    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
+    {
+      id: "myTasks",
+      label: "My Tasks",
+      icon: ListTodo,
+      path: "/mytasks",
+    },
+    {
+      id: "allTasks",
+      label: "All Tasks",
+      icon: ListTodo,
+      path: "/staff/tasks",
+    },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
   ],
 
@@ -44,7 +60,12 @@ export const roleNavigation = {
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
-    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
+    {
+      id: "myTasks",
+      label: "My Tasks",
+      icon: ListTodo,
+      path: "/mytasks",
+    },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
   ],
 
@@ -58,7 +79,12 @@ export const roleNavigation = {
       external: true,
       path: "https://x.voxbay.com/admin/dashboard",
     },
-    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
+    {
+      id: "myTasks",
+      label: "My Tasks",
+      icon: ListTodo,
+      path: "/mytasks",
+    },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
   ],
 
@@ -72,13 +98,23 @@ export const roleNavigation = {
       external: true,
       path: "https://x.voxbay.com/admin/dashboard",
     },
-    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
+    {
+      id: "myTasks",
+      label: "My Tasks",
+      icon: ListTodo,
+      path: "/mytasks",
+    },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
   ],
 
   MEDIA: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
-    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
+    {
+      id: "myTasks",
+      label: "My Tasks",
+      icon: ListTodo,
+      path: "/mytasks",
+    },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
   ],
 
@@ -91,14 +127,24 @@ export const roleNavigation = {
       icon: CalendarCheck,
       path: "/attendance/mark",
     },
-    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
+    {
+      id: "myTasks",
+      label: "My Tasks",
+      icon: ListTodo,
+      path: "/mytasks",
+    },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
   ],
 
   BDM: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
-    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
+    {
+      id: "myTasks",
+      label: "My Tasks",
+      icon: ListTodo,
+      path: "/mytasks",
+    },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
   ],
 
@@ -106,7 +152,18 @@ export const roleNavigation = {
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
-    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
+    {
+      id: "myTasks",
+      label: "My Tasks",
+      icon: ListTodo,
+      path: "/mytasks",
+    },
+    {
+      id: "allTasks",
+      label: "All Tasks",
+      icon: ListTodo,
+      path: "/staff/tasks",
+    },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
     {
       id: "staffReports",
@@ -131,7 +188,12 @@ export const roleNavigation = {
       icon: FolderClock,
       path: "/hr/attendance",
     },
-    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
+    {
+      id: "myTasks",
+      label: "My Tasks",
+      icon: ListTodo,
+      path: "/mytasks",
+    },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
   ],
 
@@ -149,8 +211,13 @@ export const roleNavigation = {
       icon: ShieldAlert,
       path: "/hr/penalties",
     },
+    {
+      id: "myTasks",
+      label: "My Tasks",
+      icon: ListTodo,
+      path: "/mytasks",
+    },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
-    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
   ],
 };
 

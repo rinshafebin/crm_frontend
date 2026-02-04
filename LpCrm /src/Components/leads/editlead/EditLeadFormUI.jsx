@@ -1,6 +1,6 @@
 import React from 'react';
 import { Save } from 'lucide-react';
-import ContactSection from '../newlead/ContactSection';
+import ContactSection from '../newlead/ContactSection'
 import LeadDetailsSection from '../newlead/LeadDetailsSection';
 import AdditionalInfoSection from '../newlead/AdditionalInfoSection';
 import AssignedToSection from '../newlead/AssignedToSection';
