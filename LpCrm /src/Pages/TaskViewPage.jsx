@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowLeft, Calendar, User, Flag, FileText, Clock, Edit2, CheckCircle, AlertTriangle, Loader, Circle, AlertCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, User, Flag, FileText, Clock, Edit2, CheckCircle, AlertTriangle, Loader, Circle, AlertCircle, XCircle, MessageSquare } from 'lucide-react';
 
 export default function TaskViewPage() {
   const { id } = useParams();
@@ -10,6 +10,7 @@ export default function TaskViewPage() {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const [task, setTask] = useState(null);
+  const [updates, setUpdates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -37,38 +38,51 @@ export default function TaskViewPage() {
   };
 
   useEffect(() => {
-    const fetchTask = async () => {
+    const fetchTaskData = async () => {
       try {
         setLoading(true);
         let token = accessToken;
-
         if (!token) {
           token = await refreshAccessToken();
           if (!token) throw new Error('Authentication required');
         }
 
-        const response = await fetch(`${API_BASE_URL}/tasks/${id}/`, {
+        // Fetch task details
+        const taskResponse = await fetch(`${API_BASE_URL}/tasks/${id}/`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
 
-        if (!response.ok) {
+        if (!taskResponse.ok) {
           throw new Error('Failed to fetch task details');
         }
 
-        const data = await response.json();
-        setTask(data);
+        const taskData = await taskResponse.json();
+        setTask(taskData);
+
+        // Fetch task updates
+        const updatesResponse = await fetch(`${API_BASE_URL}/tasks/${id}/updates/`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (updatesResponse.ok) {
+          const updatesData = await updatesResponse.json();
+          setUpdates(updatesData);
+        }
       } catch (err) {
         setError(err.message);
-        console.error('Error fetching task:', err);
+        console.error('Error fetching task data:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTask();
+    fetchTaskData();
   }, [id, accessToken, refreshAccessToken, API_BASE_URL]);
 
   const formatDate = (dateString) => {
@@ -78,6 +92,18 @@ export default function TaskViewPage() {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
+    });
+  };
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -107,6 +133,20 @@ export default function TaskViewPage() {
 
       const updatedTask = await response.json();
       setTask(updatedTask);
+      
+      // Refresh updates after status change
+      const updatesResponse = await fetch(`${API_BASE_URL}/tasks/${id}/updates/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (updatesResponse.ok) {
+        const updatesData = await updatesResponse.json();
+        setUpdates(updatesData);
+      }
+
       alert('Task marked as completed!');
     } catch (err) {
       console.error('Error updating task:', err);
@@ -176,7 +216,7 @@ export default function TaskViewPage() {
                   <p className="text-slate-500 text-sm">Task Details & Information</p>
                 </div>
               </div>
-              
+
               {/* Status and Priority Badges */}
               <div className="flex flex-wrap gap-3 mt-4">
                 <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm border ${statusColors[task.status]}`}>
@@ -243,22 +283,79 @@ export default function TaskViewPage() {
 
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Description Section - Spans 2 columns */}
-          <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
-              <div className="p-2 bg-indigo-100 rounded-lg">
-                <FileText className="w-5 h-5 text-indigo-600" />
+          {/* Left Column - Description and Updates */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Description Section */}
+            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
+                <div className="p-2 bg-indigo-100 rounded-lg">
+                  <FileText className="w-5 h-5 text-indigo-600" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-900">Description</h2>
               </div>
-              <h2 className="text-xl font-bold text-slate-900">Description</h2>
+              <div className="prose max-w-none">
+                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
+                  {task.description || 'No description provided for this task.'}
+                </p>
+              </div>
             </div>
-            <div className="prose max-w-none">
-              <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
-                {task.description || 'No description provided for this task.'}
-              </p>
-            </div>
+
+            {/* Task Updates Section */}
+            {updates && updates.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-200">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <MessageSquare className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-900">Activity History</h2>
+                  <span className="ml-auto bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-semibold">
+                    {updates.length} {updates.length === 1 ? 'update' : 'updates'}
+                  </span>
+                </div>
+                
+                <div className="space-y-4">
+                  {updates.map((update, index) => (
+                    <div key={update.id || index} className="border-l-2 border-slate-200 pl-6 pb-6 last:pb-0 relative">
+                      {/* Timeline dot */}
+                      <div className="absolute -left-2 top-0 w-4 h-4 bg-indigo-600 rounded-full border-2 border-white"></div>
+                      
+                      <div className="bg-slate-50 rounded-xl p-4 hover:bg-slate-100 transition-colors">
+                        <div className="flex items-start justify-between gap-4 mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${statusColors[update.previous_status]}`}>
+                              {update.previous_status.replace('_', ' ')}
+                            </span>
+                            <span className="text-slate-400">→</span>
+                            <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${statusColors[update.new_status]}`}>
+                              {update.new_status.replace('_', ' ')}
+                            </span>
+                          </div>
+                          <span className="text-xs text-slate-500 whitespace-nowrap">
+                            {formatDateTime(update.created_at)}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-sm text-slate-600 mb-2">
+                          <User className="w-4 h-4" />
+                          <span className="font-medium">{update.updated_by_name || 'Unknown user'}</span>
+                        </div>
+                        
+                        {update.notes && (
+                          <div className="mt-3 pt-3 border-t border-slate-200">
+                            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                              {update.notes}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Details Sidebar */}
+          {/* Right Column - Details Sidebar */}
           <div className="space-y-6">
             {/* Assigned To */}
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6">
