@@ -119,7 +119,7 @@ export default function TaskViewPage() {
       }
 
       // Use the task status update endpoint instead
-      const response = await fetch(`${API_BASE_URL}/tasks/${id}/status/`, {
+      const response = await fetch(`${API_BASE_URL}/tasks/${id}/updates/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
