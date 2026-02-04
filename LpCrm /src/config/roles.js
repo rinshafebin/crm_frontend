@@ -105,6 +105,8 @@ export const roleNavigation = {
     },
     { id: "tasks", label: "Tasks", icon: ListTodo, path: "/mytasks" },
     { id: "reports", label: "Reports", icon: FileText, path: "/myreports" },
+    { id: "reports", label: "Reports", icon: FileText, path: "/daily/reports" },
+
   ],
 
   HR: [
