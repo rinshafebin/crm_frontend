@@ -13,6 +13,11 @@ export default function TaskViewPage() {
   const [updates, setUpdates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // State for completion modal
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completionNotes, setCompletionNotes] = useState('');
+  const [submittingCompletion, setSubmittingCompletion] = useState(false);
 
   const priorityBadgeColors = {
     URGENT: 'bg-red-100 text-red-700 border-red-300',
@@ -107,8 +112,27 @@ export default function TaskViewPage() {
     });
   };
 
-  const handleMarkComplete = async () => {
+  // Open completion modal
+  const handleOpenCompletionModal = () => {
+    setShowCompletionModal(true);
+    setCompletionNotes('');
+  };
+
+  // Close completion modal
+  const handleCloseCompletionModal = () => {
+    setShowCompletionModal(false);
+    setCompletionNotes('');
+  };
+
+  // Submit task completion with notes
+  const handleSubmitCompletion = async () => {
+    if (!completionNotes.trim()) {
+      alert('Please provide completion notes before marking the task as complete.');
+      return;
+    }
+
     try {
+      setSubmittingCompletion(true);
       let token = accessToken;
       if (!token) {
         token = await refreshAccessToken();
@@ -118,7 +142,7 @@ export default function TaskViewPage() {
         }
       }
 
-      // Use the task status update endpoint instead
+      // Use the task status update endpoint with notes
       const response = await fetch(`${API_BASE_URL}/tasks/${id}/status/`, {
         method: 'POST',
         headers: {
@@ -127,7 +151,7 @@ export default function TaskViewPage() {
         },
         body: JSON.stringify({
           status: 'COMPLETED',
-          notes: 'Task marked as completed' // Optional note
+          notes: completionNotes.trim()
         }),
       });
 
@@ -162,10 +186,14 @@ export default function TaskViewPage() {
         setUpdates(updatesData);
       }
 
-      alert('Task marked as completed!');
+      // Close modal and show success
+      setShowCompletionModal(false);
+      alert('Task marked as completed successfully!');
     } catch (err) {
       console.error('Error updating task:', err);
       alert(err.message || 'Failed to update task. Please try again.');
+    } finally {
+      setSubmittingCompletion(false);
     }
   };
 
@@ -256,11 +284,11 @@ export default function TaskViewPage() {
               </button>
               {task.status !== 'COMPLETED' && task.status !== 'CANCELLED' && (
                 <button
-                  onClick={handleMarkComplete}
+                  onClick={handleOpenCompletionModal}
                   className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-200 hover:shadow-xl"
                 >
                   <CheckCircle className="w-4 h-4" />
-                  Complete
+                  Mark Complete
                 </button>
               )}
             </div>
@@ -458,6 +486,67 @@ export default function TaskViewPage() {
           </div>
         </div>
       </div>
+
+      {/* Completion Modal */}
+      {showCompletionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 animate-fadeIn">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 bg-emerald-100 rounded-xl">
+                <CheckCircle className="w-6 h-6 text-emerald-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900">Complete Task</h2>
+            </div>
+
+            <p className="text-slate-600 mb-6">
+              Please provide details about the task completion. This information will be saved in the activity history.
+            </p>
+
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Completion Notes <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={completionNotes}
+                onChange={(e) => setCompletionNotes(e.target.value)}
+                placeholder="Describe what was completed, any challenges faced, results achieved, etc..."
+                rows="6"
+                className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all resize-none"
+              />
+              <p className="text-xs text-slate-500 mt-2">
+                Minimum 10 characters required
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleCloseCompletionModal}
+                disabled={submittingCompletion}
+                className="flex-1 px-6 py-3 border-2 border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitCompletion}
+                disabled={submittingCompletion || !completionNotes.trim() || completionNotes.trim().length < 10}
+                className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-200 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {submittingCompletion ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4" />
+                    Complete Task
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
