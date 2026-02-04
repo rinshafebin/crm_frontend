@@ -118,23 +118,38 @@ export default function TaskViewPage() {
         }
       }
 
-      const response = await fetch(`${API_BASE_URL}/tasks/${id}/`, {
-        method: 'PATCH',
+      // Use the task status update endpoint instead
+      const response = await fetch(`${API_BASE_URL}/tasks/${id}/status/`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: 'COMPLETED' }),
+        body: JSON.stringify({
+          status: 'COMPLETED',
+          notes: 'Task marked as completed' // Optional note
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update task');
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to update task');
       }
 
-      const updatedTask = await response.json();
-      setTask(updatedTask);
-      
-      // Refresh updates after status change
+      // Refresh task details
+      const taskResponse = await fetch(`${API_BASE_URL}/tasks/${id}/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (taskResponse.ok) {
+        const taskData = await taskResponse.json();
+        setTask(taskData);
+      }
+
+      // Refresh updates
       const updatesResponse = await fetch(`${API_BASE_URL}/tasks/${id}/updates/`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -150,7 +165,7 @@ export default function TaskViewPage() {
       alert('Task marked as completed!');
     } catch (err) {
       console.error('Error updating task:', err);
-      alert('Failed to update task. Please try again.');
+      alert(err.message || 'Failed to update task. Please try again.');
     }
   };
 
@@ -312,13 +327,13 @@ export default function TaskViewPage() {
                     {updates.length} {updates.length === 1 ? 'update' : 'updates'}
                   </span>
                 </div>
-                
+
                 <div className="space-y-4">
                   {updates.map((update, index) => (
                     <div key={update.id || index} className="border-l-2 border-slate-200 pl-6 pb-6 last:pb-0 relative">
                       {/* Timeline dot */}
                       <div className="absolute -left-2 top-0 w-4 h-4 bg-indigo-600 rounded-full border-2 border-white"></div>
-                      
+
                       <div className="bg-slate-50 rounded-xl p-4 hover:bg-slate-100 transition-colors">
                         <div className="flex items-start justify-between gap-4 mb-2">
                           <div className="flex items-center gap-2">
@@ -334,12 +349,12 @@ export default function TaskViewPage() {
                             {formatDateTime(update.created_at)}
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center gap-2 text-sm text-slate-600 mb-2">
                           <User className="w-4 h-4" />
                           <span className="font-medium">{update.updated_by_name || 'Unknown user'}</span>
                         </div>
-                        
+
                         {update.notes && (
                           <div className="mt-3 pt-3 border-t border-slate-200">
                             <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
