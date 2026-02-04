@@ -4,11 +4,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Loader } from 'lucide-react';
 import PageHeader from '../Components/common/PageHeader'
-import FormActions from '../components/common/FormActions';
-import LoadingState from '../components/common/LoadingState';
-import TaskFormFields from '../components/tasks/TaskFormFields';
-import PrioritySelector from '../components/tasks/PrioritySelector';
-import StatusSelector from '../components/tasks/StatusSelector';
+import FormActions from '../Components/common/FormActions'
+import LoadingState from '../Components/common/LoadingState'
+import TaskFormFields from '../Components/tasks/TaskFormFields'
+import PrioritySelector from '../Components/tasks/PrioritySelector'
+import StatusSelector from '../Components/tasks/StatusSelector'
 
 export default function EditTaskPage() {
   const { id } = useParams();
