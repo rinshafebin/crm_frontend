@@ -40,7 +40,7 @@ export default function TaskCreationForm() {
     'FOE': { label: 'Front of Exec', color: 'bg-cyan-100 text-cyan-700', icon: '🎯' },
     'TRAINER': { label: 'Trainer', color: 'bg-green-100 text-green-700', icon: '📚' },
     'ACCOUNTS': { label: 'Accounts', color: 'bg-amber-100 text-amber-700', icon: '💰' },
-    'CM': { label: 'Content Manager', color: 'bg-teal-100 text-teal-700', icon: '✍️' },
+    'CM': { label: 'Central Manager', color: 'bg-teal-100 text-teal-700', icon: '✍️' },
     'OPS': { label: 'Operations', color: 'bg-orange-100 text-orange-700', icon: '⚙️' },
   };
 
