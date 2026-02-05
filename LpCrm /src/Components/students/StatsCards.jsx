@@ -25,7 +25,7 @@ export default function StatsCards() {
         }
 
         try {
-          const res = await axios.get(`${API_BASE_URL}/students/stats/`, {
+          const res = await axios.get(`${API_BASE_URL}stats/students/`, {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           });
