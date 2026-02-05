@@ -40,7 +40,7 @@ export default function StudentAttendanceRecordsPage() {
       if (!token) return;
 
       const res = await fetch(`${API_BASE_URL}/students/${studentId}/`, {
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
@@ -63,8 +63,8 @@ export default function StudentAttendanceRecordsPage() {
       let token = accessToken || await refreshAccessToken();
       if (!token) return;
 
-      const res = await fetch(`${API_BASE_URL}/students/${studentId}/attendance-records/?page=${page}`, {
-        headers: { 
+      const res = await fetch(`${API_BASE_URL}/attendance/student/${studentId}/?page=${page}`, {
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
@@ -75,7 +75,7 @@ export default function StudentAttendanceRecordsPage() {
         const data = await res.json();
         const recordsList = data.results || data;
         setRecords(recordsList);
-        
+
         // Calculate stats
         const total = recordsList.length;
         const present = recordsList.filter(r => r.status === 'PRESENT').length;
@@ -106,9 +106,8 @@ export default function StudentAttendanceRecordsPage() {
     try {
       let token = accessToken || await refreshAccessToken();
       if (!token) return;
-
-      const res = await fetch(`${API_BASE_URL}/students/${studentId}/export-attendance/`, {
-        headers: { 
+      const res = await fetch(`${API_BASE_URL}/attendance/export/${studentId}/`, {
+        headers: {
           'Authorization': `Bearer ${token}`
         },
         credentials: 'include'
@@ -131,14 +130,14 @@ export default function StudentAttendanceRecordsPage() {
   };
 
   // Calculate attendance percentage
-  const attendancePercentage = stats.total > 0 
-    ? Math.round((stats.present / stats.total) * 100) 
+  const attendancePercentage = stats.total > 0
+    ? Math.round((stats.present / stats.total) * 100)
     : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <Navbar />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <button
@@ -174,7 +173,7 @@ export default function StudentAttendanceRecordsPage() {
                 )}
               </div>
             </div>
-            
+
             <button
               onClick={handleExport}
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-semibold"
@@ -196,7 +195,7 @@ export default function StudentAttendanceRecordsPage() {
               <Calendar className="text-blue-500" size={32} />
             </div>
           </div>
-          
+
           <div className="bg-white rounded-xl p-4 shadow-md border border-green-100">
             <div className="flex items-center justify-between">
               <div>
@@ -206,7 +205,7 @@ export default function StudentAttendanceRecordsPage() {
               <CheckCircle className="text-green-500" size={32} />
             </div>
           </div>
-          
+
           <div className="bg-white rounded-xl p-4 shadow-md border border-red-100">
             <div className="flex items-center justify-between">
               <div>
@@ -216,7 +215,7 @@ export default function StudentAttendanceRecordsPage() {
               <XCircle className="text-red-500" size={32} />
             </div>
           </div>
-          
+
           <div className="bg-white rounded-xl p-4 shadow-md border border-yellow-100">
             <div className="flex items-center justify-between">
               <div>
@@ -226,7 +225,7 @@ export default function StudentAttendanceRecordsPage() {
               <Clock className="text-yellow-500" size={32} />
             </div>
           </div>
-          
+
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-4 shadow-md text-white">
             <div className="flex items-center justify-between">
               <div>
@@ -278,7 +277,7 @@ export default function StudentAttendanceRecordsPage() {
                     {records.map((record, idx) => {
                       const config = statusConfig[record.status] || statusConfig.PRESENT;
                       const Icon = config.icon;
-                      
+
                       return (
                         <tr key={idx} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4">
