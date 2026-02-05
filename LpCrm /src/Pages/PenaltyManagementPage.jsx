@@ -106,7 +106,7 @@ export default function PenaltyManagementPage() {
   const fetchEmployees = async () => {
     try {
       let allEmployees = [];
-      let nextUrl = `${API_BASE_URL}/employees/`;
+      let nextUrl = `${API_BASE_URL}/staffs/`;
       
       // Fetch all pages
       while (nextUrl) {
