@@ -42,8 +42,6 @@ export default function PenaltyManagementPage() {
   });
 
   const [errors, setErrors] = useState({});
-
-  // Check if user has permission to manage penalties (Admin, HR, or Accounts)
   const canManagePenalties = user?.role === 'ADMIN' || user?.role === 'HR' || user?.role === 'ACCOUNTS';
 
   const generateMonthOptions = () => {

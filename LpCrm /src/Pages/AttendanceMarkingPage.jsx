@@ -23,14 +23,15 @@ export default function AttendanceMarkingPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
 
-  // Fetch students for the trainer
+  // Fetch students for the trainer (excludes COMPLETED students)
   const fetchStudents = useCallback(async () => {
     try {
       setLoading(true);
       let token = accessToken || await refreshAccessToken();
       if (!token) return;
       
-      const res = await fetch(`${API_BASE_URL}/students/?status=ACTIVE`, {
+      // Use the new endpoint that automatically excludes COMPLETED students
+      const res = await fetch(`${API_BASE_URL}/attendance/students/`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -38,8 +39,12 @@ export default function AttendanceMarkingPage() {
         credentials: 'include'
       });
 
+      if (!res.ok) {
+        throw new Error('Failed to fetch students');
+      }
+
       const data = await res.json();
-      const studentsList = data.results || data;
+      const studentsList = data.results || [];
       setStudents(studentsList);
       
       // Initialize attendance records with default PRESENT
@@ -101,6 +106,9 @@ export default function AttendanceMarkingPage() {
         type: 'success', 
         text: `Attendance marked successfully for ${records.length} students on ${selectedDate}` 
       });
+
+      // Optional: Auto-dismiss success message after 3 seconds
+      setTimeout(() => setMessage(null), 3000);
     } catch (err) {
       console.error('Failed to save attendance', err);
       setMessage({ 
@@ -119,11 +127,16 @@ export default function AttendanceMarkingPage() {
       allPresent[student.id] = 'PRESENT';
     });
     setAttendanceRecords(allPresent);
+    setMessage({ 
+      type: 'success', 
+      text: 'All students marked as present' 
+    });
+    setTimeout(() => setMessage(null), 2000);
   };
 
   // Get status counts
   const getStatusCounts = () => {
-    const counts = { PRESENT: 0, ABSENT: 0, LATE: 0 };
+    const counts = { PRESENT: 0, ABSENT: 0, NO_SESSION: 0 };
     Object.values(attendanceRecords).forEach(status => {
       counts[status] = (counts[status] || 0) + 1;
     });

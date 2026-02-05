@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Users, CheckCircle, XCircle, MinusCircle } from 'lucide-react';
 import MetricCard from '../common/MetricCard'
 
 export default function AttendanceStats({ totalStudents, statusCounts }) {
@@ -13,24 +13,24 @@ export default function AttendanceStats({ totalStudents, statusCounts }) {
     },
     {
       title: 'Present',
-      value: statusCounts.PRESENT,
+      value: statusCounts.PRESENT || 0,
       icon: CheckCircle,
       gradient: 'from-green-500 to-green-600',
       hoverColor: 'green'
     },
     {
       title: 'Absent',
-      value: statusCounts.ABSENT,
+      value: statusCounts.ABSENT || 0,
       icon: XCircle,
       gradient: 'from-red-500 to-red-600',
       hoverColor: 'red'
     },
     {
-      title: 'Late',
-      value: statusCounts.LATE,
-      icon: Clock,
-      gradient: 'from-yellow-500 to-yellow-600',
-      hoverColor: 'yellow'
+      title: 'No Session',
+      value: statusCounts.NO_SESSION || 0,
+      icon: MinusCircle,
+      gradient: 'from-gray-500 to-gray-600',
+      hoverColor: 'gray'
     }
   ];
 
