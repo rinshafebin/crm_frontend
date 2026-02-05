@@ -10,7 +10,7 @@ import StaffPage from './Pages/StaffPage.jsx';
 import AddStaffPage from './Pages/AddStaffPage.jsx';
 import EditStaffPage from './Pages/EditStaffPage.jsx';
 import TasksPage from './Pages/TasksPage.jsx';
-import TaskCreationForm from "./Pages/TaskCreationForm.jsx";
+import TaskCreationPage from './Pages/TaskCreationPage.jsx';
 import TaskViewPage from "./Pages/TaskViewPage.jsx";
 import EditTaskPage from "./Pages/EditTaskPage.jsx";
 import ReportsPage from './Pages/ReportsPage.jsx';
@@ -49,7 +49,7 @@ export default function App() {
         <Route path="/staff/edit/:id" element={<ProtectedRoute><EditStaffPage /></ProtectedRoute>} />
 
         <Route path="/staff/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
-        <Route path="/tasks/new" element={<ProtectedRoute><TaskCreationForm /></ProtectedRoute>} />
+        <Route path="/tasks/new" element={<ProtectedRoute><TaskCreationPage /></ProtectedRoute>} />
         <Route path="/tasks/:id" element={<ProtectedRoute><TaskViewPage /></ProtectedRoute>} />
         <Route path="/tasks/edit/:id" element={<ProtectedRoute><EditTaskPage /></ProtectedRoute>} />
 
