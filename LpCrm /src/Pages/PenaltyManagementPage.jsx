@@ -328,6 +328,9 @@ export default function PenaltyManagementPage() {
 
   const totalPenalty = calculateTotalPenalty();
 
+  // Filter out ADMIN role from employee list for dropdowns
+  const nonAdminEmployees = employees.filter(emp => emp.role !== 'ADMIN');
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <Navbar />
@@ -432,7 +435,7 @@ export default function PenaltyManagementPage() {
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               >
                 <option value="">All Employees</option>
-                {employees.map(emp => (
+                {nonAdminEmployees.map(emp => (
                   <option key={emp.id} value={emp.id}>
                     {emp.full_name || emp.username || `Employee #${emp.id}`}
                   </option>
@@ -655,7 +658,7 @@ export default function PenaltyManagementPage() {
                       }`}
                     >
                       <option value="">Select Employee</option>
-                      {employees.map(emp => (
+                      {nonAdminEmployees.map(emp => (
                         <option key={emp.id} value={emp.id}>
                           {emp.full_name || emp.username || `Employee #${emp.id}`}
                         </option>
