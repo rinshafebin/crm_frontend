@@ -6,7 +6,7 @@ import { ArrowLeft, Calendar, User, Flag, FileText, Clock, Edit2, CheckCircle, A
 export default function TaskViewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { accessToken, refreshAccessToken } = useAuth();
+  const { accessToken, refreshAccessToken, user } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const [task, setTask] = useState(null);
@@ -115,6 +115,18 @@ export default function TaskViewPage() {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  // Check if current user created this task
+  const canEditTask = () => {
+    if (!task || !user) return false;
+    return task.assigned_by === user.id;
+  };
+
+  // Check if current user is assigned to this task
+  const canUpdateStatus = () => {
+    if (!task || !user) return false;
+    return task.assigned_to === user.id;
   };
 
   // Open completion modal
@@ -281,14 +293,19 @@ export default function TaskViewPage() {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-4">
-            <button
-              onClick={() => navigate(`/tasks/edit/${id}`)}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-indigo-600 text-indigo-600 font-semibold rounded-xl hover:bg-indigo-50 transition-all shadow-sm hover:shadow-md"
-            >
-              <Edit2 className="w-4 h-4" />
-              Edit Task
-            </button>
-            {task.status !== 'COMPLETED' && task.status !== 'CANCELLED' && (
+            {/* Show Edit button only if current user created the task */}
+            {canEditTask() && (
+              <button
+                onClick={() => navigate(`/tasks/edit/${id}`)}
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-indigo-600 text-indigo-600 font-semibold rounded-xl hover:bg-indigo-50 transition-all shadow-sm hover:shadow-md"
+              >
+                <Edit2 className="w-4 h-4" />
+                Edit Task
+              </button>
+            )}
+            
+            {/* Show Mark Complete button only if user is assigned to the task */}
+            {canUpdateStatus() && task.status !== 'COMPLETED' && task.status !== 'CANCELLED' && (
               <button
                 onClick={handleOpenCompletionModal}
                 className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-200 hover:shadow-xl"
