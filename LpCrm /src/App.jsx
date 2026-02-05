@@ -20,7 +20,6 @@ import StudentEditPage from "./Pages/StudentEditPage.jsx";
 import StudentViewPage from "./Pages/StudentViewPage.jsx";
 import AddStudentPage from "./Pages/AddStudentPage.jsx";
 import MyReportsPage from "./Pages/MyReportsPage.jsx";
-import MyTasksPage from "./Pages/MyTasksPage.jsx";
 import AttendanceMarkingPage from './Pages/AttendanceMarkingPage';
 import StudentAttendanceRecordsPage from './Pages/StudentAttendanceRecordsPage';
 import AttendanceDocumentsPage from "./Pages/AttendanceDocumentsPage.jsx";
@@ -53,7 +52,6 @@ export default function App() {
         <Route path="/tasks/new" element={<ProtectedRoute><TaskCreationForm /></ProtectedRoute>} />
         <Route path="/tasks/:id" element={<ProtectedRoute><TaskViewPage /></ProtectedRoute>} />
         <Route path="/tasks/edit/:id" element={<ProtectedRoute><EditTaskPage /></ProtectedRoute>} />
-        <Route path="/mytasks" element={<ProtectedRoute><MyTasksPage /></ProtectedRoute>} />
 
         <Route path="/daily/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
         <Route path="/reports/view/:id" element={<ProtectedRoute><ReportViewPage /></ProtectedRoute>} />
