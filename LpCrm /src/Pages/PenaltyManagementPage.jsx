@@ -33,7 +33,6 @@ export default function PenaltyManagementPage() {
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // FIXED: Changed 'employee' to 'user' to match backend serializer
   const [formData, setFormData] = useState({
     user: '',
     act: '',
@@ -43,6 +42,9 @@ export default function PenaltyManagementPage() {
   });
 
   const [errors, setErrors] = useState({});
+
+  // Check if user has permission to manage penalties (Admin, HR, or Accounts)
+  const canManagePenalties = user?.role === 'ADMIN' || user?.role === 'HR' || user?.role === 'ACCOUNTS';
 
   const generateMonthOptions = () => {
     const months = [
@@ -100,13 +102,36 @@ export default function PenaltyManagementPage() {
     }
   };
 
-  // Fetch employees
+  // Fetch all employees (handle pagination)
   const fetchEmployees = async () => {
     try {
-      const data = await fetchWithAuth(`${API_BASE_URL}/employees/`);
-      setEmployees(data.results || data || []);
+      let allEmployees = [];
+      let nextUrl = `${API_BASE_URL}/employees/`;
+      
+      // Fetch all pages
+      while (nextUrl) {
+        const data = await fetchWithAuth(nextUrl);
+        
+        if (data.results) {
+          // Paginated response
+          allEmployees = [...allEmployees, ...data.results];
+          nextUrl = data.next;
+        } else if (Array.isArray(data)) {
+          // Direct array response
+          allEmployees = data;
+          nextUrl = null;
+        } else {
+          // Single object or other structure
+          console.warn('Unexpected employee data structure:', data);
+          nextUrl = null;
+        }
+      }
+      
+      console.log('Fetched employees:', allEmployees);
+      setEmployees(allEmployees);
     } catch (err) {
       console.error('Error fetching employees:', err);
+      setEmployees([]);
     }
   };
 
@@ -115,9 +140,11 @@ export default function PenaltyManagementPage() {
     try {
       setLoading(true);
       const data = await fetchWithAuth(`${API_BASE_URL}/penalties/`);
+      console.log('Fetched penalties:', data);
       setPenalties(data.results || data || []);
     } catch (err) {
       console.error('Error fetching penalties:', err);
+      setPenalties([]);
     } finally {
       setLoading(false);
     }
@@ -276,13 +303,15 @@ export default function PenaltyManagementPage() {
     });
   };
 
-  // FIXED: Changed to handle 'user' field
+  // Get employee name by user ID
   const getEmployeeName = (userId) => {
-    const employee = employees.find(e => e.id === userId);
-    return employee ? (employee.name || employee.username || 'Unknown') : 'Unknown';
+    if (!userId) return 'Unknown';
+    const employee = employees.find(e => e.id === userId || e.user === userId);
+    if (!employee) return 'Unknown';
+    return employee.name || employee.username || employee.first_name || `Employee #${userId}`;
   };
 
-  // Filter penalties - FIXED: Changed to use 'user' field
+  // Filter penalties
   const filteredPenalties = penalties.filter(penalty => {
     const matchesMonth = !selectedMonth || penalty.month === selectedMonth;
     const matchesEmployee = !selectedEmployee || penalty.user === parseInt(selectedEmployee);
@@ -310,25 +339,34 @@ export default function PenaltyManagementPage() {
                 Track and manage employee penalties
               </p>
             </div>
-            <button
-              onClick={() => {
-                setEditingPenalty(null);
-                setFormData({
-                  user: '',
-                  act: '',
-                  amount: '',
-                  month: '',
-                  date: new Date().toISOString().split('T')[0]
-                });
-                setShowModal(true);
-              }}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-semibold"
-            >
-              <Plus className="w-5 h-5" />
-              Add Penalty
-            </button>
+            {canManagePenalties && (
+              <button
+                onClick={() => {
+                  setEditingPenalty(null);
+                  setFormData({
+                    user: '',
+                    act: '',
+                    amount: '',
+                    month: '',
+                    date: new Date().toISOString().split('T')[0]
+                  });
+                  setShowModal(true);
+                }}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-semibold"
+              >
+                <Plus className="w-5 h-5" />
+                Add Penalty
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Debug Info - Remove in production */}
+        {employees.length === 0 && !loading && (
+          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6">
+            <p className="text-yellow-800 font-semibold">⚠️ No employees loaded. Check API endpoint or permissions.</p>
+          </div>
+        )}
 
         {/* Stats Card */}
         {selectedMonth && (
@@ -392,7 +430,7 @@ export default function PenaltyManagementPage() {
                 <option value="">All Employees</option>
                 {employees.map(emp => (
                   <option key={emp.id} value={emp.id}>
-                    {emp.name || emp.username}
+                    {emp.name || emp.username || emp.first_name || `Employee #${emp.id}`}
                   </option>
                 ))}
               </select>
@@ -450,7 +488,9 @@ export default function PenaltyManagementPage() {
                       <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">Amount</th>
                       <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">Month</th>
                       <th className="px-6 py-4 text-left text-sm font-bold text-gray-900">Date</th>
-                      <th className="px-6 py-4 text-center text-sm font-bold text-gray-900">Actions</th>
+                      {canManagePenalties && (
+                        <th className="px-6 py-4 text-center text-sm font-bold text-gray-900">Actions</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -484,24 +524,26 @@ export default function PenaltyManagementPage() {
                             <span>{formatDate(penalty.date)}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => handleEdit(penalty)}
-                              className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
-                              title="Edit"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(penalty.id)}
-                              className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
+                        {canManagePenalties && (
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => handleEdit(penalty)}
+                                className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+                                title="Edit"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(penalty.id)}
+                                className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -544,20 +586,22 @@ export default function PenaltyManagementPage() {
                       <Calendar className="w-4 h-4" />
                       <span>{formatDate(penalty.date)}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleEdit(penalty)}
-                        className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(penalty.id)}
-                        className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+                    {canManagePenalties && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEdit(penalty)}
+                          className="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(penalty.id)}
+                          className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -593,7 +637,7 @@ export default function PenaltyManagementPage() {
                 )}
 
                 <div className="space-y-5">
-                  {/* Employee - FIXED: Changed from 'employee' to 'user' */}
+                  {/* Employee */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Employee <span className="text-red-500">*</span>
@@ -609,7 +653,7 @@ export default function PenaltyManagementPage() {
                       <option value="">Select Employee</option>
                       {employees.map(emp => (
                         <option key={emp.id} value={emp.id}>
-                          {emp.name || emp.username}
+                          {emp.name || emp.username || emp.first_name || `Employee #${emp.id}`}
                         </option>
                       ))}
                     </select>
