@@ -105,32 +105,35 @@ export default function PenaltyManagementPage() {
   // Fetch all employees (handle pagination)
   const fetchEmployees = async () => {
     try {
-      let allEmployees = [];
-      let nextUrl = `${API_BASE_URL}/staffs/`;
+      console.log('🔍 Fetching employees from:', `${API_BASE_URL}/staffs/`);
+      const data = await fetchWithAuth(`${API_BASE_URL}/staffs/`);
       
-      // Fetch all pages
-      while (nextUrl) {
-        const data = await fetchWithAuth(nextUrl);
-        
-        if (data.results) {
-          // Paginated response
-          allEmployees = [...allEmployees, ...data.results];
-          nextUrl = data.next;
-        } else if (Array.isArray(data)) {
-          // Direct array response
-          allEmployees = data;
-          nextUrl = null;
-        } else {
-          // Single object or other structure
-          console.warn('Unexpected employee data structure:', data);
-          nextUrl = null;
-        }
+      console.log('📦 Raw API response:', data);
+      
+      // Handle the response structure
+      let employeeList = [];
+      if (data.results && Array.isArray(data.results)) {
+        employeeList = data.results;
+        console.log('✅ Found paginated results:', employeeList.length, 'employees');
+      } else if (Array.isArray(data)) {
+        employeeList = data;
+        console.log('✅ Found direct array:', employeeList.length, 'employees');
+      } else {
+        console.error('❌ Unexpected data structure:', data);
+        employeeList = [];
       }
       
-      console.log('Fetched employees:', allEmployees);
-      setEmployees(allEmployees);
+      // Log first employee for debugging
+      if (employeeList.length > 0) {
+        console.log('👤 Sample employee:', employeeList[0]);
+      } else {
+        console.warn('⚠️ No employees found in response');
+      }
+      
+      setEmployees(employeeList);
     } catch (err) {
-      console.error('Error fetching employees:', err);
+      console.error('❌ Error fetching employees:', err);
+      console.error('Error message:', err.message);
       setEmployees([]);
     }
   };
@@ -308,7 +311,8 @@ export default function PenaltyManagementPage() {
     if (!userId) return 'Unknown';
     const employee = employees.find(e => e.id === userId || e.user === userId);
     if (!employee) return 'Unknown';
-    return employee.name || employee.username || employee.first_name || `Employee #${userId}`;
+    // Use full_name from backend serializer
+    return employee.full_name || employee.username || `Employee #${userId}`;
   };
 
   // Filter penalties
@@ -364,7 +368,7 @@ export default function PenaltyManagementPage() {
         {/* Debug Info - Remove in production */}
         {employees.length === 0 && !loading && (
           <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6">
-            <p className="text-yellow-800 font-semibold">⚠️ No employees loaded. Check API endpoint or permissions.</p>
+            <p className="text-yellow-800 font-semibold">⚠️ No employees loaded. Check browser console for details.</p>
           </div>
         )}
 
@@ -430,7 +434,7 @@ export default function PenaltyManagementPage() {
                 <option value="">All Employees</option>
                 {employees.map(emp => (
                   <option key={emp.id} value={emp.id}>
-                    {emp.name || emp.username || emp.first_name || `Employee #${emp.id}`}
+                    {emp.full_name || emp.username || `Employee #${emp.id}`}
                   </option>
                 ))}
               </select>
@@ -653,7 +657,7 @@ export default function PenaltyManagementPage() {
                       <option value="">Select Employee</option>
                       {employees.map(emp => (
                         <option key={emp.id} value={emp.id}>
-                          {emp.name || emp.username || emp.first_name || `Employee #${emp.id}`}
+                          {emp.full_name || emp.username || `Employee #${emp.id}`}
                         </option>
                       ))}
                     </select>
