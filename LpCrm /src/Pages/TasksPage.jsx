@@ -12,7 +12,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function TasksPage() {
   const navigate = useNavigate();
-  const { accessToken, refreshAccessToken } = useAuth();
+  const { accessToken, refreshAccessToken, user } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const [tasks, setTasks] = useState([]);
@@ -29,6 +29,9 @@ export default function TasksPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Check if current user is admin
+  const isAdmin = user?.role === 'ADMIN';
 
   const statsData = stats ? [
     {
@@ -256,13 +259,15 @@ export default function TasksPage() {
               </h1>
               <p className="text-gray-600 text-lg">Organize and track all your tasks efficiently</p>
             </div>
-            <button
-              onClick={() => navigate('/tasks/new')}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
-            >
-              <Plus size={20} />
-              Create New Task
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => navigate('/tasks/new')}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+              >
+                <Plus size={20} />
+                Create New Task
+              </button>
+            )}
           </div>
         </div>
 
@@ -349,7 +354,7 @@ export default function TasksPage() {
                 ? "Get started by creating your first task to organize your work"
                 : "Try adjusting your search criteria or filters"}
             </p>
-            {tasks.length === 0 && (
+            {tasks.length === 0 && isAdmin && (
               <button
                 onClick={() => navigate('/tasks/new')}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-semibold inline-flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
@@ -426,12 +431,14 @@ export default function TasksPage() {
                     >
                       View Details
                     </button>
-                    <button
-                      onClick={() => navigate(`/tasks/edit/${task.id}`)}
-                      className="flex-1 lg:flex-none px-4 py-2.5 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-200 text-sm font-semibold border border-indigo-200 hover:border-indigo-300 hover:shadow-md"
-                    >
-                      Edit Task
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => navigate(`/tasks/edit/${task.id}`)}
+                        className="flex-1 lg:flex-none px-4 py-2.5 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-200 text-sm font-semibold border border-indigo-200 hover:border-indigo-300 hover:shadow-md"
+                      >
+                        Edit Task
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
