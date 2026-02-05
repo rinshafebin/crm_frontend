@@ -10,15 +10,14 @@ export default function StudentFormFields({
   trainersLoading,
   onChange,
   batchChoices,
-  classChoices,
   statusChoices,
 }) {
   // Transform trainers for select options
   const trainerOptions = trainers.map(trainer => ({
     value: trainer.id,
-    label: trainer.user_name || 
-      `${trainer.user?.first_name || ''} ${trainer.user?.last_name || ''}`.trim() || 
-      trainer.email || 
+    label: trainer.user_name ||
+      `${trainer.user?.first_name || ''} ${trainer.user?.last_name || ''}`.trim() ||
+      trainer.email ||
       `Trainer ${trainer.id}`
   }));
 
@@ -53,12 +52,13 @@ export default function StudentFormFields({
       <FormField
         label="Class"
         name="student_class"
-        type="select"
+        type="text"
         value={formData.student_class}
         onChange={onChange}
-        options={classChoices}
-        placeholder="Select Class"
+        placeholder="Enter class"
+        error={errors.student_class}
       />
+
 
       {/* Trainer */}
       <div>
