@@ -1,4 +1,3 @@
-// Components/students/StudentFormFields.jsx
 import React from 'react';
 import FormField from '../../common/FormField';
 import { Mail, Phone, Link as LinkIcon } from 'lucide-react';
@@ -12,18 +11,18 @@ export default function StudentFormFields({
   batchChoices,
   statusChoices,
 }) {
-  // Transform trainers for select options
   const trainerOptions = trainers.map(trainer => ({
     value: trainer.id,
-    label: trainer.user_name ||
+    label:
+      trainer.user_name ||
       `${trainer.user?.first_name || ''} ${trainer.user?.last_name || ''}`.trim() ||
       trainer.email ||
-      `Trainer ${trainer.id}`
+      `Trainer ${trainer.id}`,
   }));
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Name */}
+      {/* Student Name */}
       <FormField
         label="Student Name"
         name="name"
@@ -48,17 +47,16 @@ export default function StudentFormFields({
         error={errors.batch}
       />
 
-      {/* Class */}
+      {/* Class (TEXT FIELD) */}
       <FormField
         label="Class"
         name="student_class"
         type="text"
         value={formData.student_class}
         onChange={onChange}
-        placeholder="Enter class"
+        placeholder="Enter class (e.g. 10th, Plus Two)"
         error={errors.student_class}
       />
-
 
       {/* Trainer */}
       <div>
@@ -74,7 +72,9 @@ export default function StudentFormFields({
           error={errors.trainer}
         />
         {trainers.length === 0 && !trainersLoading && (
-          <p className="mt-1 text-sm text-yellow-600">No trainers available</p>
+          <p className="mt-1 text-sm text-yellow-600">
+            No trainers available
+          </p>
         )}
       </div>
 

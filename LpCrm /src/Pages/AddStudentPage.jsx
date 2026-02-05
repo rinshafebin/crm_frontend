@@ -1,16 +1,15 @@
-// pages/AddStudentPage.jsx
 import { useNavigate } from 'react-router-dom';
 import Card from '../Components/common/Card';
-import Alert from '../Components/common/Alert'
-import StudentFormHeader from '../Components/students/addstudent/StudentFormHeader'
+import Alert from '../Components/common/Alert';
+import StudentFormHeader from '../Components/students/addstudent/StudentFormHeader';
 import StudentFormFields from '../Components/students/addstudent/StudentFormFields';
 import StudentFormActions from '../Components/students/addstudent/StudentFormActions';
 import { useStudentForm } from '../hooks/useStudentForm';
-
+import { BATCH_CHOICES, STATUS_CHOICES } from '../constants/studentConstants';
 
 export default function AddStudentPage() {
   const navigate = useNavigate();
-  
+
   const {
     formData,
     trainers,
@@ -23,9 +22,7 @@ export default function AddStudentPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    submitStudent(() => {
-      navigate('/students');
-    });
+    submitStudent(() => navigate('/students'));
   };
 
   const handleCancel = () => {
@@ -35,23 +32,13 @@ export default function AddStudentPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <StudentFormHeader 
-          onBack={handleCancel}
-          title="Add New Student"
-          subtitle="Fill in the student information below"
-        />
+        <StudentFormHeader onBack={handleCancel} />
 
         <form onSubmit={handleSubmit}>
-          {/* Error Alert */}
           {errors.submit && (
-            <Alert
-              type="error"
-              message={errors.submit}
-              className="mb-6"
-            />
+            <Alert type="error" message={errors.submit} className="mb-6" />
           )}
 
-          {/* Form Card */}
           <Card padding="p-6">
             <StudentFormFields
               formData={formData}
@@ -65,10 +52,8 @@ export default function AddStudentPage() {
 
             <StudentFormActions
               onCancel={handleCancel}
-              onSubmit={handleSubmit}
               loading={loading}
               disabled={trainersLoading}
-              submitLabel="Save Student"
             />
           </Card>
         </form>

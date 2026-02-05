@@ -8,10 +8,10 @@ export const BATCH_CHOICES = [
   { value: 'B1 ONLINE', label: 'B1 (Online)' },
   { value: 'B2 ONLINE', label: 'B2 (Online)' },
   { value: 'ONLINE', label: 'Online' },
-  { value: 'A1 EXAM PREPERATION', label: 'A1 (Exam Preparation)' },
-  { value: 'A2 EXAM PREPERATION', label: 'A2 (Exam Preparation)' },
-  { value: 'B1 EXAM PREPERATION', label: 'B1 (Exam Preparation)' },
-  { value: 'B2 EXAM PREPERATION', label: 'B2 (Exam Preparation)' },
+  { value: 'A1 EXAM PREPARATION', label: 'A1 (Exam Preparation)' },
+  { value: 'A2 EXAM PREPARATION', label: 'A2 (Exam Preparation)' },
+  { value: 'B1 EXAM PREPARATION', label: 'B1 (Exam Preparation)' },
+  { value: 'B2 EXAM PREPARATION', label: 'B2 (Exam Preparation)' },
 ];
 
 export const STATUS_CHOICES = [
@@ -21,14 +21,13 @@ export const STATUS_CHOICES = [
   { value: 'DROPPED', label: 'Dropped' },
 ];
 
-
 export const initialStudentFormData = {
   name: '',
   batch: '',
+  student_class: '',
   trainer: '',
   status: 'ACTIVE',
   admission_date: new Date().toISOString().split('T')[0],
-  student_class: '',
   email: '',
   phone_number: '',
   drive_link: '',
