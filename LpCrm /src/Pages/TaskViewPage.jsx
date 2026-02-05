@@ -117,15 +117,29 @@ export default function TaskViewPage() {
     });
   };
 
-  // Check if current user created this task
+  // Check if current user created this task AND task is not completed/cancelled
   const canEditTask = () => {
     if (!task || !user) return false;
+    
+    // Cannot edit if task is completed or cancelled
+    if (task.status === 'COMPLETED' || task.status === 'CANCELLED') {
+      return false;
+    }
+    
+    // Can edit only if user created the task
     return task.assigned_by === user.id;
   };
 
-  // Check if current user is assigned to this task
+  // Check if current user is assigned to this task AND can update status
   const canUpdateStatus = () => {
     if (!task || !user) return false;
+    
+    // Cannot update status if already completed or cancelled
+    if (task.status === 'COMPLETED' || task.status === 'CANCELLED') {
+      return false;
+    }
+    
+    // Can update only if assigned to the user
     return task.assigned_to === user.id;
   };
 
@@ -291,9 +305,9 @@ export default function TaskViewPage() {
             </span>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons - Only show if task is not completed/cancelled */}
           <div className="flex flex-wrap gap-4">
-            {/* Show Edit button only if current user created the task */}
+            {/* Show Edit button only if current user created the task AND task is not completed/cancelled */}
             {canEditTask() && (
               <button
                 onClick={() => navigate(`/tasks/edit/${id}`)}
@@ -304,8 +318,8 @@ export default function TaskViewPage() {
               </button>
             )}
             
-            {/* Show Mark Complete button only if user is assigned to the task */}
-            {canUpdateStatus() && task.status !== 'COMPLETED' && task.status !== 'CANCELLED' && (
+            {/* Show Mark Complete button only if user is assigned AND task is not completed/cancelled */}
+            {canUpdateStatus() && (
               <button
                 onClick={handleOpenCompletionModal}
                 className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-200 hover:shadow-xl"
