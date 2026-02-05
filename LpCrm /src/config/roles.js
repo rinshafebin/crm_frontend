@@ -43,7 +43,7 @@ export const roleNavigation = {
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
     { id: "voxbay", label: "Call Dashboard", icon: PhoneCall, external: true, path: "https://x.voxbay.com/admin/dashboard" },
-    {id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
 
@@ -72,7 +72,8 @@ export const roleNavigation = {
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
-    { id: "allTasks", label: "All Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
     { id: "staffReports", label: "Staff Reports", icon: FileText, path: "/daily/reports" }
   ],
@@ -82,7 +83,7 @@ export const roleNavigation = {
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
     { id: "penalties", label: "Penalties", icon: ShieldAlert, path: "/hr/penalties" },
     { id: "attendanceDocs", label: "Attendance Docs", icon: FolderClock, path: "/hr/attendance" },
-    { id: "allTasks", label: "All Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
 
@@ -95,7 +96,7 @@ export const roleNavigation = {
   ACCOUNTS: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "penalties", label: "Penalties", icon: ShieldAlert, path: "/hr/penalties" },
-    { id: "allTasks", label: "All Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ]
 };
