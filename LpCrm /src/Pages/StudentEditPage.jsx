@@ -16,6 +16,7 @@ const BATCH_CHOICES = [
   { value: 'A2 ONLINE', label: 'A2 (Online)' },
   { value: 'B1 ONLINE', label: 'B1 (Online)' },
   { value: 'B2 ONLINE', label: 'B2 (Online)' },
+  { value: 'ONLINE', label: 'Online' }, // Added ONLINE option
   { value: 'A1 EXAM PREPERATION', label: 'A1 (Exam Preparation)' },
   { value: 'A2 EXAM PREPERATION', label: 'A2 (Exam Preparation)' },
   { value: 'B1 EXAM PREPERATION', label: 'B1 (Exam Preparation)' },
@@ -36,6 +37,7 @@ export default function StudentEditPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [trainers, setTrainers] = useState([]);
+  const [loadingTrainers, setLoadingTrainers] = useState(true);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -57,14 +59,25 @@ export default function StudentEditPage() {
 
   const fetchTrainers = async () => {
     try {
+      setLoadingTrainers(true);
       let token = accessToken || await refreshAccessToken();
-      const response = await axios.get(`${API_BASE_URL}/trainers/`, {
+      
+      // Using the trainer-users endpoint which returns users with trainer profiles
+      const response = await axios.get(`${API_BASE_URL}/trainer-users/`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
-      setTrainers(response.data.results || response.data);
+      
+      console.log('Trainers response:', response.data);
+      
+      // The response should be an array of users with trainer profiles
+      const trainersList = response.data.results || response.data;
+      setTrainers(Array.isArray(trainersList) ? trainersList : []);
     } catch (err) {
       console.error('Failed to fetch trainers:', err);
+      setTrainers([]);
+    } finally {
+      setLoadingTrainers(false);
     }
   };
 
@@ -78,6 +91,7 @@ export default function StudentEditPage() {
         withCredentials: true,
       });
       
+      console.log('Student data:', response.data);
       setFormData(response.data);
       setError(null);
     } catch (err) {
@@ -280,15 +294,21 @@ export default function StudentEditPage() {
                     value={formData.trainer}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    disabled={loadingTrainers}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-100"
                   >
-                    <option value="">Select Trainer</option>
+                    <option value="">
+                      {loadingTrainers ? 'Loading trainers...' : 'Select Trainer'}
+                    </option>
                     {trainers.map((trainer) => (
-                      <option key={trainer.id} value={trainer.id}>
-                        {trainer.user.first_name} {trainer.user.last_name}
+                      <option key={trainer.trainer_profile?.id || trainer.id} value={trainer.trainer_profile?.id || trainer.id}>
+                        {trainer.first_name} {trainer.last_name}
                       </option>
                     ))}
                   </select>
+                  {!loadingTrainers && trainers.length === 0 && (
+                    <p className="text-sm text-red-500 mt-1">No trainers available. Please add trainers first.</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
