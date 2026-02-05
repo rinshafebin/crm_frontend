@@ -1,18 +1,58 @@
 import React from 'react';
 import { Mail, Phone, BookOpen, Calendar, Edit, Trash2, Eye, User, ClipboardCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const statusColors = {
   ACTIVE: 'bg-green-100 text-green-700 border-green-200',
+  active: 'bg-green-100 text-green-700 border-green-200',
   COMPLETED: 'bg-blue-100 text-blue-700 border-blue-200',
+  completed: 'bg-blue-100 text-blue-700 border-blue-200',
   PAUSED: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  paused: 'bg-yellow-100 text-yellow-700 border-yellow-200',
   DROPPED: 'bg-red-100 text-red-700 border-red-200',
+  dropped: 'bg-red-100 text-red-700 border-red-200',
   INACTIVE: 'bg-red-100 text-red-700 border-red-200',
+  inactive: 'bg-red-100 text-red-700 border-red-200',
+  pausedDropped: 'bg-red-100 text-red-700 border-red-200',
 };
 
-const StudentCard = React.memo(({ student }) => {
+const StudentCard = React.memo(({ student, onDelete }) => {
   const navigate = useNavigate();
+  const { accessToken, refreshAccessToken } = useAuth();
   const avatar = `https://api.dicebear.com/7.x/initials/svg?seed=${student.name}`;
+
+  const handleDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete ${student.name}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      let token = accessToken || await refreshAccessToken();
+      if (!token) {
+        alert('Authentication required. Please log in again.');
+        return;
+      }
+
+      await axios.delete(`${API_BASE_URL}/students/${student.id}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+
+      // Call the onDelete callback to refresh the student list
+      if (onDelete) {
+        onDelete(student.id);
+      }
+
+      alert('Student deleted successfully!');
+    } catch (error) {
+      console.error('Failed to delete student:', error);
+      alert('Failed to delete student. Please try again.');
+    }
+  };
 
   return (
     <div className="group bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-2xl hover:border-indigo-200 transition-all duration-300 transform hover:-translate-y-1">
@@ -33,14 +73,14 @@ const StudentCard = React.memo(({ student }) => {
                 statusColors[student.status] || 'bg-gray-100 text-gray-700 border-gray-200'
               }`}
             >
-              {student.status}
+              {typeof student.status === 'string' ? student.status.toUpperCase() : student.status}
             </span>
           </div>
         </div>
         <div className="text-right text-sm text-gray-600">
           <div className="flex items-center gap-1 justify-end">
             <User size={16} className="text-indigo-500" />
-            <span className="font-medium">{student.trainer_name}</span>
+            <span className="font-medium">{student.trainer_name || 'No Trainer'}</span>
           </div>
           <div className="text-xs text-gray-500 mt-1 font-medium">
             Batch {student.batch}
@@ -52,7 +92,7 @@ const StudentCard = React.memo(({ student }) => {
       <div className="mb-4 space-y-2">
         <div className="flex items-center gap-2 text-sm text-gray-700">
           <BookOpen size={16} className="text-indigo-600" />
-          <span className="font-medium">Class: {student.student_class}</span>
+          <span className="font-medium">Class: {student.student_class || 'N/A'}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Calendar size={16} className="text-gray-400" />
@@ -71,11 +111,11 @@ const StudentCard = React.memo(({ student }) => {
       <div className="space-y-2 mb-4 pb-4 border-b border-gray-200">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Mail size={14} className="text-gray-400" />
-          <span className="truncate">{student.email}</span>
+          <span className="truncate">{student.email || 'No email'}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Phone size={14} className="text-gray-400" />
-          <span>{student.phone_number}</span>
+          <span>{student.phone_number || 'No phone'}</span>
         </div>
       </div>
 
@@ -96,7 +136,7 @@ const StudentCard = React.memo(({ student }) => {
           Edit
         </button>
         
-        {/* ATTENDANCE BUTTON - NOTICE THE TEMPLATE LITERAL WITH student.id */}
+        {/* ATTENDANCE BUTTON */}
         <button 
           onClick={() => navigate(`/students/${student.id}/attendance`)} 
           className="px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold transition-all border border-purple-200 hover:border-purple-300"
@@ -105,13 +145,10 @@ const StudentCard = React.memo(({ student }) => {
           Attendance
         </button>
         
+        {/* DELETE BUTTON */}
         <button 
+          onClick={handleDelete}
           className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold transition-all border border-red-200 hover:border-red-300"
-          onClick={() => {
-            if (window.confirm('Are you sure you want to delete this student?')) {
-              console.log('Delete student:', student.id);
-            }
-          }}
         >
           <Trash2 size={16} />
           Delete

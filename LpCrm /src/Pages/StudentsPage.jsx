@@ -21,6 +21,7 @@ const BATCH_CHOICES = [
   { value: 'A2 ONLINE', label: 'A2 (Online)' },
   { value: 'B1 ONLINE', label: 'B1 (Online)' },
   { value: 'B2 ONLINE', label: 'B2 (Online)' },
+  { value: 'ONLINE', label: 'Online' },
   { value: 'A1 EXAM PREPARATION', label: 'A1 (Exam Preparation)' },
   { value: 'A2 EXAM PREPARATION', label: 'A2 (Exam Preparation)' },
   { value: 'B1 EXAM PREPARATION', label: 'B1 (Exam Preparation)' },
@@ -110,6 +111,15 @@ export default function StudentsPage() {
     fetchStudents();
   }, [fetchStudents]);
 
+  // Handle student deletion
+  const handleStudentDeleted = useCallback((deletedStudentId) => {
+    // Remove the deleted student from the local state
+    setStudents(prev => prev.filter(student => student.id !== deletedStudentId));
+    
+    // Optionally refetch to ensure data is in sync
+    // fetchStudents();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <Navbar />
@@ -152,7 +162,10 @@ export default function StudentsPage() {
         {loading ? (
           <div className="text-center py-20 text-gray-500">Loading students…</div>
         ) : (
-          <StudentGrid students={students} />
+          <StudentGrid 
+            students={students} 
+            onStudentDeleted={handleStudentDeleted}
+          />
         )}
 
         {/* Pagination */}

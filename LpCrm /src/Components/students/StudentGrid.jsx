@@ -2,7 +2,7 @@ import React from 'react';
 import StudentCard from './StudentCard';
 import { Users } from 'lucide-react';
 
-const StudentGrid = React.memo(({ students }) => {
+const StudentGrid = React.memo(({ students, onStudentDeleted }) => {
   if (students.length === 0) {
     return (
       <div className="bg-white rounded-2xl p-12 shadow-lg border border-gray-100 text-center">
@@ -18,7 +18,11 @@ const StudentGrid = React.memo(({ students }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
       {students.map((student) => (
-        <StudentCard key={student.id} student={student} />
+        <StudentCard 
+          key={student.id} 
+          student={student} 
+          onDelete={onStudentDeleted}
+        />
       ))}
     </div>
   );
