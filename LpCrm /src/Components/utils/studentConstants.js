@@ -7,6 +7,7 @@ export const BATCH_CHOICES = [
   { value: 'A2 ONLINE', label: 'A2 (Online)' },
   { value: 'B1 ONLINE', label: 'B1 (Online)' },
   { value: 'B2 ONLINE', label: 'B2 (Online)' },
+  { value: 'ONLINE', label: 'Online' },
   { value: 'A1 EXAM PREPERATION', label: 'A1 (Exam Preparation)' },
   { value: 'A2 EXAM PREPERATION', label: 'A2 (Exam Preparation)' },
   { value: 'B1 EXAM PREPERATION', label: 'B1 (Exam Preparation)' },
