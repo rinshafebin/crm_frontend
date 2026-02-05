@@ -25,13 +25,12 @@ export default function StatsCards() {
         }
 
         try {
-          const res = await axios.get(`${API_BASE_URL}stats/students/`, {
+          const res = await axios.get(`${API_BASE_URL}/stats/students/`, {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           });
 
           if (res.data.total !== undefined) {
-            // Normalize keys to camelCase
             setStats({
               total: res.data.total,
               active: res.data.ACTIVE || 0,
