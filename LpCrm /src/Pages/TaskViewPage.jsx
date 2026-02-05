@@ -44,31 +44,19 @@ export default function TaskViewPage() {
 
   useEffect(() => {
     const fetchTaskData = async () => {
-      console.log('=== FETCH TASK DATA START ===');
-      console.log('Task ID:', id);
-      console.log('API Base URL:', API_BASE_URL);
-      
       try {
         setLoading(true);
         let token = accessToken;
-        
-        console.log('Access token exists:', !!token);
-        
+                
         if (!token) {
-          console.log('No access token, attempting refresh...');
-          token = await refreshAccessToken();
-          console.log('Refreshed token exists:', !!token);
-          
+          token = await refreshAccessToken();          
           if (!token) {
-            console.error('❌ Failed to get access token');
             throw new Error('Authentication required');
           }
         }
 
         // Fetch task details
-        const taskUrl = `${API_BASE_URL}/tasks/${id}/`;
-        console.log('📡 Fetching task from:', taskUrl);
-        
+        const taskUrl = `${API_BASE_URL}/tasks/${id}/`;        
         const taskResponse = await fetch(taskUrl, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -76,27 +64,16 @@ export default function TaskViewPage() {
           },
         });
 
-        console.log('Task response status:', taskResponse.status);
-        console.log('Task response ok:', taskResponse.ok);
-
         if (!taskResponse.ok) {
           const errorText = await taskResponse.text();
-          console.error('❌ Task fetch failed:', errorText);
           throw new Error('Failed to fetch task details');
         }
 
         const taskData = await taskResponse.json();
-        console.log('✅ Task data received:', taskData);
-        console.log('Task title:', taskData.title);
-        console.log('Task status:', taskData.status);
-        console.log('Task notes field exists:', 'notes' in taskData);
-        console.log('Task notes value:', taskData.notes);
-        
         setTask(taskData);
 
         // Fetch task updates
         const updatesUrl = `${API_BASE_URL}/tasks/${id}/updates/`;
-        console.log('📡 Fetching updates from:', updatesUrl);
         
         const updatesResponse = await fetch(updatesUrl, {
           headers: {
@@ -105,16 +82,11 @@ export default function TaskViewPage() {
           },
         });
 
-        console.log('Updates response status:', updatesResponse.status);
-        console.log('Updates response ok:', updatesResponse.ok);
-
         if (updatesResponse.ok) {
           const updatesData = await updatesResponse.json();
-          console.log('✅ Updates data received:', updatesData);
           
           // Extract the results array from the paginated response
           const updatesList = updatesData.results || [];
-          console.log('Number of updates:', updatesList.length);
           
           // Log each update in detail
           updatesList.forEach((update, index) => {
