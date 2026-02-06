@@ -10,6 +10,7 @@ export const roleNavigation = {
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
     { id: "allTasks", label: "All Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
+    { id: "voxbay", label: "Call Dashboard", icon: PhoneCall, external: true, path: "https://x.voxbay.com/admin/dashboard" },
     { id: "staffReports", label: "Staff Reports", icon: FileText, path: "/daily/reports" }
   ],
 
