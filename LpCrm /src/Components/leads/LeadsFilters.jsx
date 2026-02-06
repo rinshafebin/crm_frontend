@@ -9,7 +9,10 @@ const LeadsFilters = ({
   filterPriority,
   setFilterPriority,
   filterSource,
-  setFilterSource
+  setFilterSource,
+  filterStaff,
+  setFilterStaff,
+  staffMembers
 }) => {
   return (
     <div className="bg-white rounded-2xl p-6 mb-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
@@ -27,7 +30,7 @@ const LeadsFilters = ({
         </div>
 
         {/* Filter Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {/* Status Filter */}
           <div className="relative">
             <select
@@ -79,6 +82,24 @@ const LeadsFilters = ({
             <SlidersHorizontal className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
           </div>
 
+          {/* Staff Filter */}
+          <div className="relative">
+            <select
+              value={filterStaff}
+              onChange={(e) => setFilterStaff(e.target.value)}
+              className="appearance-none w-full px-4 py-3 pr-10 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer font-semibold text-gray-700 bg-white hover:bg-gray-50"
+            >
+              <option value="all">All Staff</option>
+              <option value="unassigned">Unassigned</option>
+              {staffMembers && staffMembers.map((staff) => (
+                <option key={staff.id} value={staff.id}>
+                  {staff.first_name} {staff.last_name}
+                </option>
+              ))}
+            </select>
+            <SlidersHorizontal className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+          </div>
+
           {/* Clear Filters Button */}
           <button 
             onClick={() => {
@@ -86,6 +107,7 @@ const LeadsFilters = ({
               setFilterStatus('all');
               setFilterPriority('all');
               setFilterSource('all');
+              setFilterStaff('all');
             }}
             className="px-4 py-3 border-2 border-gray-200 rounded-xl hover:bg-gradient-to-r hover:from-red-50 hover:to-orange-50 hover:border-red-300 flex items-center justify-center gap-2 transition-all duration-200 font-semibold text-gray-700 hover:text-red-700 group"
           >

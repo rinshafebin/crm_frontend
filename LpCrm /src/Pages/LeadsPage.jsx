@@ -27,7 +27,9 @@ export default function LeadsPage() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterSource, setFilterSource] = useState('all');
+  const [filterStaff, setFilterStaff] = useState('all');
   const [loading, setLoading] = useState(false);
+  const [staffMembers, setStaffMembers] = useState([]);
   
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -92,6 +94,28 @@ export default function LeadsPage() {
     }
   };
 
+  // Fetch staff members for the filter dropdown
+  useEffect(() => {
+    if (authLoading || !accessToken) return;
+
+    const fetchStaffMembers = async () => {
+      try {
+        const res = await authFetch(`${API_BASE_URL}/auth/users/`);
+        
+        if (!res.ok) {
+          throw new Error('Failed to fetch staff members');
+        }
+
+        const data = await res.json();
+        setStaffMembers(data);
+      } catch (err) {
+        console.error('Failed to load staff members:', err);
+      }
+    };
+
+    fetchStaffMembers();
+  }, [authLoading, accessToken, authFetch]);
+
   useEffect(() => {
     if (authLoading || !accessToken) return;
 
@@ -105,6 +129,11 @@ export default function LeadsPage() {
           ...(filterStatus !== 'all' && { status: filterStatus.toUpperCase() }),
           ...(filterPriority !== 'all' && { priority: filterPriority.toUpperCase() }),
           ...(filterSource !== 'all' && { source: filterSource.toUpperCase() }),
+          ...(filterStaff !== 'all' && { 
+            ...(filterStaff === 'unassigned' 
+              ? { assigned_to: 'null' } 
+              : { assigned_to: filterStaff })
+          }),
         });
 
         const res = await authFetch(`${API_BASE_URL}/leads/?${params}`);
@@ -161,7 +190,7 @@ export default function LeadsPage() {
     };
 
     fetchLeads();
-  }, [authLoading, accessToken, authFetch, page, searchTerm, filterStatus, filterPriority, filterSource]);
+  }, [authLoading, accessToken, authFetch, page, searchTerm, filterStatus, filterPriority, filterSource, filterStaff]);
 
   const statsCards = useMemo(() => [
     { label: 'Total Leads', value: totalCount, color: 'bg-blue-500', icon: Users },
@@ -201,6 +230,9 @@ export default function LeadsPage() {
               setFilterPriority={(v) => { setPage(1); setFilterPriority(v); }}
               filterSource={filterSource}
               setFilterSource={(v) => { setPage(1); setFilterSource(v); }}
+              filterStaff={filterStaff}
+              setFilterStaff={(v) => { setPage(1); setFilterStaff(v); }}
+              staffMembers={staffMembers}
             />
 
             <LeadsTable
