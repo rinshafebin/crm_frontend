@@ -33,6 +33,7 @@ export default function StudentFormFields({
             name="name"
             value={formData.name}
             onChange={onChange}
+            placeholder="Enter student name"
             required
             error={errors.name}
             className="md:col-span-2"
@@ -45,6 +46,7 @@ export default function StudentFormFields({
             type="email"
             value={formData.email}
             onChange={onChange}
+            placeholder="student@example.com"
             icon={Mail}
             error={errors.email}
           />
@@ -56,6 +58,7 @@ export default function StudentFormFields({
             type="tel"
             value={formData.phone_number}
             onChange={onChange}
+            placeholder="1234567890"
             icon={Phone}
             error={errors.phone_number}
           />
@@ -97,6 +100,7 @@ export default function StudentFormFields({
             name="student_class"
             value={formData.student_class}
             onChange={onChange}
+            placeholder="Enter class name"
           />
 
           {/* Trainer */}
@@ -125,6 +129,7 @@ export default function StudentFormFields({
             value={formData.status}
             onChange={onChange}
             options={statusChoices}
+            placeholder="Select Status"
           />
 
           {/* Start Date */}
@@ -166,6 +171,7 @@ export default function StudentFormFields({
             type="textarea"
             value={formData.notes}
             onChange={onChange}
+            placeholder="Additional notes about the student..."
             rows={4}
             className="md:col-span-2"
           />
