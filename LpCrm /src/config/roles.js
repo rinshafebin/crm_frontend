@@ -8,10 +8,10 @@ export const roleNavigation = {
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
-    { id: "allTasks", label: "All Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "Tasks", label: "All Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
     { id: "voxbay", label: "Call Dashboard", icon: PhoneCall, external: true, path: "https://x.voxbay.com/admin/dashboard" },
-    { id: "staffReports", label: "Staff Reports", icon: FileText, path: "/daily/reports" }
+    { id: "Reports", label: "Staff Reports", icon: FileText, path: "/daily/reports" }
   ],
 
   BUSINESS_HEAD: [
