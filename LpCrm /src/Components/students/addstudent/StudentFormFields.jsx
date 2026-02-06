@@ -33,7 +33,6 @@ export default function StudentFormFields({
             name="name"
             value={formData.name}
             onChange={onChange}
-            placeholder="Enter student name"
             required
             error={errors.name}
             className="md:col-span-2"
@@ -46,7 +45,6 @@ export default function StudentFormFields({
             type="email"
             value={formData.email}
             onChange={onChange}
-            placeholder="student@example.com"
             icon={Mail}
             error={errors.email}
           />
@@ -58,7 +56,6 @@ export default function StudentFormFields({
             type="tel"
             value={formData.phone_number}
             onChange={onChange}
-            placeholder="1234567890"
             icon={Phone}
             error={errors.phone_number}
           />
@@ -72,40 +69,6 @@ export default function StudentFormFields({
             onChange={onChange}
             required
             error={errors.admission_date}
-          />
-
-          {/* Status */}
-          <FormField
-            label="Status"
-            name="status"
-            type="select"
-            value={formData.status}
-            onChange={onChange}
-            options={statusChoices}
-            placeholder="Select Status"
-          />
-
-          {/* Drive Link */}
-          <FormField
-            label="Drive Link"
-            name="drive_link"
-            type="url"
-            value={formData.drive_link}
-            onChange={onChange}
-            placeholder="https://drive.google.com/..."
-            icon={LinkIcon}
-            className="md:col-span-2"
-          />
-
-          {/* Notes */}
-          <FormField
-            label="Notes"
-            name="notes"
-            type="textarea"
-            value={formData.notes}
-            onChange={onChange}
-            placeholder="Additional notes about the student..."
-            rows={4}
             className="md:col-span-2"
           />
         </div>
@@ -134,7 +97,6 @@ export default function StudentFormFields({
             name="student_class"
             value={formData.student_class}
             onChange={onChange}
-            placeholder="Enter class name"
           />
 
           {/* Trainer */}
@@ -155,6 +117,16 @@ export default function StudentFormFields({
             )}
           </div>
 
+          {/* Status */}
+          <FormField
+            label="Status"
+            name="status"
+            type="select"
+            value={formData.status}
+            onChange={onChange}
+            options={statusChoices}
+          />
+
           {/* Start Date */}
           <FormField
             label="Start Date"
@@ -173,6 +145,28 @@ export default function StudentFormFields({
             value={formData.end_date}
             onChange={onChange}
             error={errors.end_date}
+          />
+
+          {/* Drive Link */}
+          <FormField
+            label="Drive Link"
+            name="drive_link"
+            type="url"
+            value={formData.drive_link}
+            onChange={onChange}
+            placeholder="https://drive.google.com/..."
+            icon={LinkIcon}
+            className="md:col-span-2"
+          />
+
+          {/* Notes */}
+          <FormField
+            label="Notes"
+            name="notes"
+            type="textarea"
+            value={formData.notes}
+            onChange={onChange}
+            rows={4}
             className="md:col-span-2"
           />
         </div>
