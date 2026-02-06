@@ -8,25 +8,9 @@ import StudentsSearchFilters from '../Components/students/StudentsSearchFilters'
 import StudentGrid from '../Components/students/StudentGrid';
 import Pagination from '../Components/common/Pagination';
 import { useAuth } from "../context/AuthContext";
+import { BATCH_CHOICES } from '../Components/utils/studentConstants';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-// Batch choices
-const BATCH_CHOICES = [
-  { value: 'A1', label: 'A1 (Beginner)' },
-  { value: 'A2', label: 'A2 (Elementary)' },
-  { value: 'B1', label: 'B1 (Intermediate)' },
-  { value: 'B2', label: 'B2 (Upper Intermediate)' },
-  { value: 'A1 ONLINE', label: 'A1 (Online)' },
-  { value: 'A2 ONLINE', label: 'A2 (Online)' },
-  { value: 'B1 ONLINE', label: 'B1 (Online)' },
-  { value: 'B2 ONLINE', label: 'B2 (Online)' },
-  { value: 'ONLINE', label: 'Online' },
-  { value: 'A1 EXAM PREPARATION', label: 'A1 (Exam Preparation)' },
-  { value: 'A2 EXAM PREPARATION', label: 'A2 (Exam Preparation)' },
-  { value: 'B1 EXAM PREPARATION', label: 'B1 (Exam Preparation)' },
-  { value: 'B2 EXAM PREPARATION', label: 'B2 (Exam Preparation)' },
-];
 
 export default function StudentsPage() {
   const navigate = useNavigate();
@@ -58,19 +42,6 @@ export default function StudentsPage() {
     };
   }, [searchTerm]);
 
-  // Normalize status to camelCase
-  const normalizeStatus = (status) => {
-    switch (status) {
-      case "ACTIVE": return "active";
-      case "COMPLETED": return "completed";
-      case "PAUSED":
-      case "DROPPED":
-      case "INACTIVE":
-        return "pausedDropped";
-      default: return status.toLowerCase();
-    }
-  };
-
   // Fetch students
   const fetchStudents = useCallback(async () => {
     try {
@@ -80,28 +51,42 @@ export default function StudentsPage() {
       if (!token) token = await refreshAccessToken();
       if (!token) return;
 
+      // Build params object
+      const params = {
+        page,
+      };
+
+      // Add search if present
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+
+      // Add batch filter if not "all"
+      if (filterCourse !== "all") {
+        params.batch = filterCourse;
+      }
+
+      // Add status filter if not "all" - convert to uppercase
+      if (filterStatus !== "all") {
+        params.status = filterStatus.toUpperCase();
+      }
+
       const res = await axios.get(`${API_BASE_URL}/students/`, {
-        params: {
-          search: debouncedSearch || undefined,
-          course: filterCourse !== "all" ? filterCourse : undefined,
-          status: filterStatus !== "all" ? filterStatus : undefined,
-          page,
-        },
+        params,
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
 
-      const normalizedStudents = (res.data.results || res.data).map(student => ({
-        ...student,
-        status: normalizeStatus(student.status),
-      }));
+      // Get students from response
+      const studentsData = res.data.results || res.data;
+      setStudents(studentsData);
 
-      setStudents(normalizedStudents);
-
-      const totalCount = res.data.count || (res.data.results?.length) || normalizedStudents.length || 0;
+      // Calculate total pages
+      const totalCount = res.data.count || studentsData.length || 0;
       setTotalPages(Math.ceil(totalCount / 10));
     } catch (err) {
       console.error("Failed to load students", err);
+      console.error("Error details:", err.response?.data);
     } finally {
       setLoading(false);
     }

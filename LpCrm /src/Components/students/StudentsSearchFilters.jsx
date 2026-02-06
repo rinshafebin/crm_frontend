@@ -40,7 +40,7 @@ const StudentsSearchFilters = React.memo(({
           />
         </div>
 
-        {/* Course Filter */}
+        {/* Course/Batch Filter */}
         <select
           value={filterCourse}
           onChange={handleCourseChange}
@@ -48,7 +48,7 @@ const StudentsSearchFilters = React.memo(({
                      focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent 
                      transition-all appearance-none cursor-pointer"
         >
-          <option value="all">All Courses</option>
+          <option value="all">All Batches</option>
           {courses.map((course) => (
             <option key={course.value} value={course.value}>
               {course.label}
@@ -67,7 +67,8 @@ const StudentsSearchFilters = React.memo(({
           <option value="all">All Status</option>
           <option value="active">Active</option>
           <option value="completed">Completed</option>
-          <option value="inactive">Inactive</option>
+          <option value="paused">Paused</option>
+          <option value="dropped">Dropped</option>
         </select>
       </div>
     </div>
