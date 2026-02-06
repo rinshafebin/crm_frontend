@@ -5,13 +5,21 @@ import { attendenceStatusOptions } from '../utils/attendenceStatusOptions'
 export default function StudentAttendanceRow({ 
   student, 
   selectedStatus, 
-  onStatusChange 
+  onStatusChange,
+  isSelected,
+  onToggleSelect
 }) {
   return (
-    <div className="p-4 hover:bg-gray-50 transition-colors">
+    <div className={`p-4 transition-colors ${isSelected ? 'bg-indigo-50' : 'hover:bg-gray-50'}`}>
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        {/* Student Info */}
+        {/* Checkbox + Student Info */}
         <div className="flex items-center gap-3 flex-1 min-w-0">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => onToggleSelect(student.id)}
+            className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+          />
           <img
             src={`https://api.dicebear.com/7.x/initials/svg?seed=${student.name}`}
             alt={student.name}

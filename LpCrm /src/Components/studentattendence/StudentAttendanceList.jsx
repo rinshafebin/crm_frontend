@@ -8,15 +8,41 @@ export default function StudentAttendanceList({
   students, 
   attendanceRecords, 
   onStatusChange, 
-  loading 
+  loading,
+  selectedStudents,
+  onToggleSelect,
+  onToggleSelectAll
 }) {
+  const allSelected = students.length > 0 && selectedStudents.length === students.length;
+  const someSelected = selectedStudents.length > 0 && selectedStudents.length < students.length;
+
   return (
     <Card padding="p-0" className="mb-6 overflow-hidden">
       <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
-        <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-          <Users size={24} className="text-indigo-600" />
-          Student Attendance ({students.length})
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            <Users size={24} className="text-indigo-600" />
+            Student Attendance ({students.length})
+          </h2>
+          
+          {/* Select All Checkbox */}
+          {students.length > 0 && (
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                ref={input => {
+                  if (input) input.indeterminate = someSelected;
+                }}
+                onChange={onToggleSelectAll}
+                className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              />
+              <label className="text-sm font-semibold text-gray-700 cursor-pointer" onClick={onToggleSelectAll}>
+                {allSelected ? 'Deselect All' : someSelected ? `Selected (${selectedStudents.length})` : 'Select All'}
+              </label>
+            </div>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -40,6 +66,8 @@ export default function StudentAttendanceList({
               student={student}
               selectedStatus={attendanceRecords[student.id]}
               onStatusChange={onStatusChange}
+              isSelected={selectedStudents.includes(student.id)}
+              onToggleSelect={onToggleSelect}
             />
           ))}
         </div>

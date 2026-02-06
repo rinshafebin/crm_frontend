@@ -19,6 +19,7 @@ export default function AttendanceMarkingPage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [students, setStudents] = useState([]);
   const [attendanceRecords, setAttendanceRecords] = useState({});
+  const [selectedStudents, setSelectedStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
@@ -53,6 +54,9 @@ export default function AttendanceMarkingPage() {
         initialRecords[student.id] = 'PRESENT';
       });
       setAttendanceRecords(initialRecords);
+      
+      // Select all students by default
+      setSelectedStudents(studentsList.map(s => s.id));
     } catch (err) {
       console.error('Failed to load students', err);
       setMessage({ type: 'error', text: 'Failed to load students' });
@@ -65,12 +69,47 @@ export default function AttendanceMarkingPage() {
     fetchStudents();
   }, [fetchStudents]);
 
+  // Handle individual student selection
+  const handleToggleSelect = (studentId) => {
+    setSelectedStudents(prev => 
+      prev.includes(studentId)
+        ? prev.filter(id => id !== studentId)
+        : [...prev, studentId]
+    );
+  };
+
+  // Handle select all / deselect all
+  const handleToggleSelectAll = () => {
+    if (selectedStudents.length === students.length) {
+      setSelectedStudents([]);
+    } else {
+      setSelectedStudents(students.map(s => s.id));
+    }
+  };
+
   // Handle attendance status change
   const handleStatusChange = (studentId, status) => {
     setAttendanceRecords(prev => ({
       ...prev,
       [studentId]: status
     }));
+  };
+
+  // Bulk mark selected students with a specific status
+  const handleBulkMarkSelected = (status) => {
+    const updatedRecords = { ...attendanceRecords };
+    selectedStudents.forEach(studentId => {
+      updatedRecords[studentId] = status;
+    });
+    setAttendanceRecords(updatedRecords);
+    
+    const statusLabel = status === 'PRESENT' ? 'present' : 
+                        status === 'ABSENT' ? 'absent' : 'no session';
+    setMessage({ 
+      type: 'success', 
+      text: `${selectedStudents.length} student(s) marked as ${statusLabel}` 
+    });
+    setTimeout(() => setMessage(null), 2000);
   };
 
   // Submit attendance
@@ -167,6 +206,8 @@ export default function AttendanceMarkingPage() {
           selectedDate={selectedDate}
           onDateChange={setSelectedDate}
           onMarkAllPresent={markAllPresent}
+          selectedStudents={selectedStudents}
+          onBulkMarkSelected={handleBulkMarkSelected}
         />
 
         {/* Stats Cards */}
@@ -181,6 +222,9 @@ export default function AttendanceMarkingPage() {
           attendanceRecords={attendanceRecords}
           onStatusChange={handleStatusChange}
           loading={loading}
+          selectedStudents={selectedStudents}
+          onToggleSelect={handleToggleSelect}
+          onToggleSelectAll={handleToggleSelectAll}
         />
 
         {/* Submit Button */}
