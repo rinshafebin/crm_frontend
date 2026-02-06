@@ -6,7 +6,7 @@ import StudentFormHeader from '../Components/students/addstudent/StudentFormHead
 import StudentFormFields from '../Components/students/addstudent/StudentFormFields';
 import StudentFormActions from '../Components/students/addstudent/StudentFormActions';
 import { useStudentForm } from '../hooks/useStudentForm';
-import { STATUS_CHOICES, CLASS_CHOICES } from '../Components/utils/studentConstants';
+import { STATUS_CHOICES, BATCH_CHOICES } from '../Components/utils/studentConstants';
 
 export default function AddStudentPage() {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ export default function AddStudentPage() {
               trainers={trainers}
               trainersLoading={trainersLoading}
               onChange={handleChange}
-              classChoices={CLASS_CHOICES}
+              batchChoices={BATCH_CHOICES}
               statusChoices={STATUS_CHOICES}
             />
 
