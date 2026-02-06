@@ -17,7 +17,10 @@ import {
   Search,
   Loader2,
   Edit,
-  Trash2
+  Trash2,
+  FileSpreadsheet,
+  File,
+  Image
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -47,6 +50,28 @@ export default function MyReportsPage() {
 
   const userRole = user?.role || 'STAFF';
   const userName = user?.name || user?.username || 'User';
+
+  // Helper function to get file icon based on file type
+  const getFileIcon = (fileUrl) => {
+    if (!fileUrl) return <FileText className="w-8 h-8 text-blue-600" />;
+    
+    const fileName = fileUrl.toLowerCase();
+    
+    if (fileName.includes('.xlsx') || fileName.includes('.xls')) {
+      return <FileSpreadsheet className="w-8 h-8 text-green-600" />;
+    }
+    if (fileName.includes('.pdf')) {
+      return <File className="w-8 h-8 text-red-600" />;
+    }
+    if (fileName.includes('.doc') || fileName.includes('.docx')) {
+      return <FileText className="w-8 h-8 text-blue-600" />;
+    }
+    if (fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png')) {
+      return <Image className="w-8 h-8 text-purple-600" />;
+    }
+    
+    return <FileText className="w-8 h-8 text-gray-600" />;
+  };
 
   // Fetch reports with auth
   const fetchWithAuth = async (url, options = {}) => {
@@ -584,11 +609,11 @@ export default function MyReportsPage() {
                     <input
                       type="file"
                       onChange={handleFileChange}
-                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png"
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <p className="mt-1 text-xs text-gray-500">
-                      Max file size: 10MB. Accepted formats: PDF, DOC, DOCX, TXT, JPG, PNG
+                      Max file size: 10MB. Accepted formats: PDF, DOC, DOCX, XLS, XLSX, TXT, JPG, PNG
                     </p>
                     {errors.attached_file && (
                       <p className="mt-1 text-sm text-red-500">{errors.attached_file}</p>
@@ -758,11 +783,11 @@ export default function MyReportsPage() {
                     <input
                       type="file"
                       onChange={handleFileChange}
-                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png"
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <p className="mt-1 text-xs text-gray-500">
-                      Max file size: 10MB. Accepted formats: PDF, DOC, DOCX, TXT, JPG, PNG
+                      Max file size: 10MB. Accepted formats: PDF, DOC, DOCX, XLS, XLSX, TXT, JPG, PNG
                     </p>
                     {errors.attached_file && (
                       <p className="mt-1 text-sm text-red-500">{errors.attached_file}</p>
@@ -861,7 +886,7 @@ export default function MyReportsPage() {
                   <div className="bg-blue-50 rounded-lg p-4 mb-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <FileText className="w-8 h-8 text-blue-600" />
+                        {getFileIcon(selectedReport.attached_file)}
                         <div>
                           <p className="font-semibold text-gray-900">Attached File</p>
                           <p className="text-sm text-gray-600">Click to download</p>

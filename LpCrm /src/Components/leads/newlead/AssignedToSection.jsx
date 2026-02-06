@@ -8,14 +8,6 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
   const { accessToken, refreshAccessToken } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  const ALLOWED_ROLES = [
-    'ADM_MANAGER',      
-    'ADM_EXEC',         
-    'FOE',              
-    'CM',              
-    'BDM',             
-  ];
-
   const formatRole = (role) => {
     const roleMap = {
       'ADM_MANAGER': 'Admission Manager',
@@ -40,9 +32,8 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
           return;
         }
 
-        // Use the /staff/ endpoint and filter client-side for now
-        // In production, you might want to use /leads/available-users/
-        const response = await fetch(`${API_BASE_URL}/staff/`, {
+        // Use the dedicated available-users endpoint which has proper permission logic
+        const response = await fetch(`${API_BASE_URL}/leads/available-users/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -52,25 +43,14 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch employees');
+          throw new Error('Failed to fetch available users');
         }
 
         const data = await response.json();
         
-        // Filter to only show sales/admission roles
-        const filteredEmployees = (data.results || data).filter(emp => 
-          emp.is_active && ALLOWED_ROLES.includes(emp.role)
-        );
-        
-        // Sort by role priority, then by name
-        const sortedEmployees = filteredEmployees.sort((a, b) => {
-          const roleIndexA = ALLOWED_ROLES.indexOf(a.role);
-          const roleIndexB = ALLOWED_ROLES.indexOf(b.role);
-          
-          if (roleIndexA !== roleIndexB) {
-            return roleIndexA - roleIndexB;
-          }
-          
+        // Data is already filtered by backend based on user role
+        // Just sort by name
+        const sortedEmployees = data.sort((a, b) => {
           const nameA = `${a.first_name} ${a.last_name}`.toLowerCase();
           const nameB = `${b.first_name} ${b.last_name}`.toLowerCase();
           return nameA.localeCompare(nameB);
@@ -113,7 +93,7 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
             <div className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg bg-gray-50">
               <div className="flex items-center gap-2 text-gray-500">
                 <AlertCircle size={16} />
-                <span className="text-sm sm:text-base">No sales team members available</span>
+                <span className="text-sm sm:text-base">No team members available for assignment</span>
               </div>
             </div>
           ) : (
