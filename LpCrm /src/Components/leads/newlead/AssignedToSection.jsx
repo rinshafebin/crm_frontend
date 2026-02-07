@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserCircle, Users, AlertCircle } from 'lucide-react';
+import { UserCircle, Users, AlertCircle, Info } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 
 const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
@@ -18,6 +18,9 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
     };
     return roleMap[role] || role;
   };
+
+  // Roles that should NOT be assignable for leads
+  const EXCLUDED_ROLES = ['TRAINER', 'PROCESSING', 'MEDIA', 'HR', 'ACCOUNTS'];
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -48,9 +51,11 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
 
         const data = await response.json();
         
-        // Data is already filtered by backend based on user role
-        // Just sort by name
-        const sortedEmployees = data.sort((a, b) => {
+        // Filter out roles that shouldn't handle leads
+        const filteredData = data.filter(user => !EXCLUDED_ROLES.includes(user.role));
+        
+        // Sort by name
+        const sortedEmployees = filteredData.sort((a, b) => {
           const nameA = `${a.first_name} ${a.last_name}`.toLowerCase();
           const nameB = `${b.first_name} ${b.last_name}`.toLowerCase();
           return nameA.localeCompare(nameB);
@@ -97,21 +102,33 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
               </div>
             </div>
           ) : (
-            <select
-              name="assignedTo"
-              value={formData.assignedTo || ''}
-              onChange={onChange}
-              className={`w-full px-3 sm:px-4 py-2 border ${
-                errors.assignedTo ? 'border-red-500' : 'border-gray-300'
-              } rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base`}
-            >
-              <option value="">Unassigned</option>
-              {employees.map((employee) => (
-                <option key={employee.id} value={employee.id}>
-                  {employee.first_name} {employee.last_name} - {formatRole(employee.role)}
-                </option>
-              ))}
-            </select>
+            <>
+              <select
+                name="assignedTo"
+                value={formData.assignedTo || ''}
+                onChange={onChange}
+                className={`w-full px-3 sm:px-4 py-2 border ${
+                  errors.assignedTo ? 'border-red-500' : 'border-gray-300'
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm sm:text-base`}
+              >
+                <option value="">Unassigned</option>
+                {employees.map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.first_name} {employee.last_name} - {formatRole(employee.role)}
+                  </option>
+                ))}
+              </select>
+              
+              {/* Show helpful message if only one option (self-assignment) */}
+              {employees.length === 1 && (
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-xs text-blue-700 flex items-center gap-1">
+                    <Info size={14} />
+                    Lead will be automatically assigned to you
+                  </p>
+                </div>
+              )}
+            </>
           )}
           
           {errors.assignedTo && (
