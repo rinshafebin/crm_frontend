@@ -186,7 +186,6 @@ export default function ReportsPage() {
             <table className="w-full">
               <thead className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-indigo-100">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Heading</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Submitted By</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
@@ -196,7 +195,7 @@ export default function ReportsPage() {
               <tbody className="divide-y divide-gray-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center">
+                    <td colSpan={4} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center">
                         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mb-4"></div>
                         <p className="text-gray-500 text-sm font-medium">Loading reports...</p>
@@ -205,7 +204,7 @@ export default function ReportsPage() {
                   </tr>
                 ) : recentReports.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center">
+                    <td colSpan={4} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center">
                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                           <FileText className="w-8 h-8 text-gray-400" />
@@ -218,13 +217,8 @@ export default function ReportsPage() {
                 ) : (
                   recentReports.map((report) => (
                     <tr key={report.id} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200">
-                      <td className="px-6 py-4">
-                        <span className="text-gray-700 font-medium">
-                          {report.heading}
-                        </span>
-                      </td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-700">{report.user_name || 'N/A'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600 font-medium">{report.report_date}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600 font-medium whitespace-nowrap">{report.report_date}</td>
                       <td className="px-6 py-4">
                         {getStatusBadge(report)}
                       </td>
