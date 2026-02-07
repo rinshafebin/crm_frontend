@@ -186,7 +186,7 @@ export default function ReportsPage() {
             <table className="w-full">
               <thead className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-indigo-100">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Report Name</th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Heading</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Submitted By</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
@@ -219,12 +219,9 @@ export default function ReportsPage() {
                   recentReports.map((report) => (
                     <tr key={report.id} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200">
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-                            <FileText className="text-white w-5 h-5" />
-                          </div>
-                          <span className="font-semibold text-gray-900">{report.name}</span>
-                        </div>
+                        <span className="text-gray-700 font-medium">
+                          {report.heading}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-700">{report.user_name || 'N/A'}</td>
                       <td className="px-6 py-4 text-sm text-gray-600 font-medium">{report.report_date}</td>
