@@ -18,7 +18,7 @@ export default function ReportsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  const PAGE_SIZE = 50;
+  const PAGE_SIZE = 10;
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
   const fetchStats = async () => {
@@ -42,7 +42,21 @@ export default function ReportsPage() {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
-      setRecentReports(res.data.results || []);
+      // Sort reports: pending first, then approved, then rejected, each group sorted by date
+      const sortedReports = (res.data.results || []).sort((a, b) => {
+        const statusPriority = { pending: 0, approved: 1, rejected: 2 };
+        const statusA = a.status?.toLowerCase() || 'pending';
+        const statusB = b.status?.toLowerCase() || 'pending';
+        
+        // First, sort by status priority
+        const priorityDiff = (statusPriority[statusA] ?? 3) - (statusPriority[statusB] ?? 3);
+        if (priorityDiff !== 0) return priorityDiff;
+        
+        // If same status, sort by date (newest first)
+        return new Date(b.report_date) - new Date(a.report_date);
+      });
+
+      setRecentReports(sortedReports);
       setTotalCount(res.data.count || 0);
       setTotalPages(Math.ceil((res.data.count || 0) / PAGE_SIZE));
     } catch (err) {
@@ -172,8 +186,6 @@ export default function ReportsPage() {
             <table className="w-full">
               <thead className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-indigo-100">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Report Name</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Heading</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Submitted By</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
@@ -183,7 +195,7 @@ export default function ReportsPage() {
               <tbody className="divide-y divide-gray-100">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
+                    <td colSpan={4} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center">
                         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mb-4"></div>
                         <p className="text-gray-500 text-sm font-medium">Loading reports...</p>
@@ -192,7 +204,7 @@ export default function ReportsPage() {
                   </tr>
                 ) : recentReports.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
+                    <td colSpan={4} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center">
                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                           <FileText className="w-8 h-8 text-gray-400" />
@@ -205,21 +217,8 @@ export default function ReportsPage() {
                 ) : (
                   recentReports.map((report) => (
                     <tr key={report.id} className="hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-                            <FileText className="text-white w-5 h-5" />
-                          </div>
-                          <span className="font-semibold text-gray-900">{report.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-gray-700 font-medium">
-                          {report.heading}
-                        </span>
-                      </td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-700">{report.user_name || 'N/A'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-600 font-medium">{report.report_date}</td>
+                      <td className="px-6 py-4 text-sm text-gray-600 font-medium whitespace-nowrap">{report.report_date}</td>
                       <td className="px-6 py-4">
                         {getStatusBadge(report)}
                       </td>
