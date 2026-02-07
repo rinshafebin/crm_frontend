@@ -164,7 +164,7 @@ export default function ReportsPage() {
               }}
               className="text-indigo-600 text-sm font-semibold hover:text-indigo-700 hover:underline transition-colors"
             >
-              Refresh â†’
+              Refresh →
             </button>
           </div>
 
