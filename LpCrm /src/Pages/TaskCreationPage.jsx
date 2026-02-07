@@ -45,6 +45,7 @@ export default function TaskCreationPage() {
             Authorization: `Bearer ${token}`,
           },
         });
+        console.log("employees response:", res);
 
         if (!res.ok) {
           throw new Error(`Failed to fetch employees: ${res.status}`);
