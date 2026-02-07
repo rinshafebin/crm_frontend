@@ -1,18 +1,11 @@
 import React from 'react';
-import { Mail, Phone, MapPin, Calendar, Edit, Trash2, ExternalLink, UserCheck, Users, Eye, Activity, Loader2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Edit, Trash2, ExternalLink, UserCheck, Users, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const LeadsTable = ({ leads, statusColors, onDeleteLead, loading }) => {
+const LeadsTable = ({ leads, statusColors, onDeleteLead }) => {
   const navigate = useNavigate();
 
-  const processingStatusColors = {
-    pending: 'bg-gray-100 text-gray-700',
-    in_progress: 'bg-blue-100 text-blue-700',
-    completed: 'bg-green-100 text-green-700',
-    on_hold: 'bg-orange-100 text-orange-700',
-  };
-
-  if (leads.length === 0 && !loading) {
+  if (leads.length === 0) {
     return (
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12">
         <div className="text-center">
@@ -28,13 +21,6 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, loading }) => {
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow">
-      {loading && (
-        <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 flex items-center gap-2 text-blue-700">
-          <Loader2 className="animate-spin" size={16} />
-          <span className="text-sm font-medium">Loading leads...</span>
-        </div>
-      )}
-      
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-gray-200">
@@ -44,7 +30,6 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, loading }) => {
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Source</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Priority</th>
-              <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Processing</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Assignment</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
@@ -74,26 +59,22 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, loading }) => {
                 <td className="px-6 py-5">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-gray-700">
-                      <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
                         <Mail size={14} className="text-blue-600" />
                       </div>
-                      <span className="font-medium truncate max-w-[180px]" title={lead.email}>
-                        {lead.email}
-                      </span>
+                      <span className="font-medium">{lead.email}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-700">
-                      <div className="w-7 h-7 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="w-7 h-7 bg-green-100 rounded-lg flex items-center justify-center">
                         <Phone size={14} className="text-green-600" />
                       </div>
                       <span className="font-medium">{lead.phone}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-700">
-                      <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
                         <MapPin size={14} className="text-purple-600" />
                       </div>
-                      <span className="font-medium truncate max-w-[180px]" title={lead.location}>
-                        {lead.location}
-                      </span>
+                      <span className="font-medium">{lead.location}</span>
                     </div>
                   </div>
                 </td>
@@ -107,7 +88,7 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, loading }) => {
 
                 {/* Source */}
                 <td className="px-6 py-5">
-                  <span className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1.5 rounded-lg inline-block">
+                  <span className="text-sm font-semibold text-gray-700 bg-gray-100 px-3 py-1.5 rounded-lg">
                     {lead.source}
                   </span>
                 </td>
@@ -122,30 +103,14 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, loading }) => {
                     {lead.priority}
                   </span>
                 </td>
-
-                {/* Processing Status */}
-                <td className="px-6 py-5">
-                  {lead.processing_status ? (
-                    <div className="flex items-center gap-2">
-                      <Activity size={14} className="text-gray-500 flex-shrink-0" />
-                      <span className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide ${
-                        processingStatusColors[lead.processing_status?.toLowerCase()] || 'bg-gray-100 text-gray-700'
-                      }`}>
-                        {lead.processing_status.replace('_', ' ')}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-sm text-gray-400 italic">Not set</span>
-                  )}
-                </td>
                 
-                {/* Assignment - Two levels */}
+                {/* Assignment - Updated to show both levels */}
                 <td className="px-6 py-5">
-                  <div className="space-y-2 min-w-[150px]">
+                  <div className="space-y-2">
                     {/* Primary Assignment */}
                     {lead.assigned_to ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <div className="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center">
                           <UserCheck size={14} className="text-indigo-600" />
                         </div>
                         <div>
@@ -160,7 +125,7 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, loading }) => {
                     {/* Sub Assignment */}
                     {lead.sub_assigned_to ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
                           <Users size={14} className="text-purple-600" />
                         </div>
                         <div>
@@ -175,7 +140,7 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, loading }) => {
                     {/* Unassigned State */}
                     {!lead.assigned_to && !lead.sub_assigned_to && (
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <div className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center">
                           <UserCheck size={14} className="text-gray-400" />
                         </div>
                         <span className="text-sm font-medium text-gray-400 italic">
@@ -199,10 +164,10 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, loading }) => {
                 {/* Date */}
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
-                    <div className="w-7 h-7 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-7 h-7 bg-orange-100 rounded-lg flex items-center justify-center">
                       <Calendar size={14} className="text-orange-600" />
                     </div>
-                    <span className="whitespace-nowrap">{lead.date}</span>
+                    {lead.date}
                   </div>
                 </td>
 
