@@ -23,11 +23,16 @@ export default function LeadsPage() {
     total_sub_assigned: 0,
   });
 
-  const [searchTerm, setSearchTerm] = useState('');
+  // Search with debounce
+  const [searchInput, setSearchInput] = useState(''); // What user types
+  const [searchTerm, setSearchTerm] = useState(''); // What actually triggers API call
+  
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterSource, setFilterSource] = useState('all');
   const [filterStaff, setFilterStaff] = useState('all');
+  const [filterSubStaff, setFilterSubStaff] = useState('all');
+  const [filterProcessingStatus, setFilterProcessingStatus] = useState('all');
   const [loading, setLoading] = useState(false);
   const [staffMembers, setStaffMembers] = useState([]);
   
@@ -43,6 +48,16 @@ export default function LeadsPage() {
     registered: 'bg-teal-100 text-teal-700',
     lost: 'bg-red-100 text-red-700',
   }), []);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(searchInput);
+      setPage(1); // Reset to page 1 when search changes
+    }, 500); // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const authFetch = useCallback(
     async (url, options = {}, retry = true) => {
@@ -129,10 +144,16 @@ export default function LeadsPage() {
           ...(filterStatus !== 'all' && { status: filterStatus.toUpperCase() }),
           ...(filterPriority !== 'all' && { priority: filterPriority.toUpperCase() }),
           ...(filterSource !== 'all' && { source: filterSource.toUpperCase() }),
+          ...(filterProcessingStatus !== 'all' && { processing_status: filterProcessingStatus.toUpperCase() }),
           ...(filterStaff !== 'all' && { 
             ...(filterStaff === 'unassigned' 
               ? { assigned_to: 'null' } 
               : { assigned_to: filterStaff })
+          }),
+          ...(filterSubStaff !== 'all' && { 
+            ...(filterSubStaff === 'unassigned' 
+              ? { sub_assigned_to: 'null' } 
+              : { sub_assigned_to: filterSubStaff })
           }),
         });
 
@@ -190,7 +211,7 @@ export default function LeadsPage() {
     };
 
     fetchLeads();
-  }, [authLoading, accessToken, authFetch, page, searchTerm, filterStatus, filterPriority, filterSource, filterStaff]);
+  }, [authLoading, accessToken, authFetch, page, searchTerm, filterStatus, filterPriority, filterSource, filterStaff, filterSubStaff, filterProcessingStatus]);
 
   const statsCards = useMemo(() => [
     { label: 'Total Leads', value: totalCount, color: 'bg-blue-500', icon: Users },
@@ -222,8 +243,8 @@ export default function LeadsPage() {
             <LeadsStatsCards stats={statsCards} />
 
             <LeadsFilters
-              searchTerm={searchTerm}
-              setSearchTerm={(v) => { setPage(1); setSearchTerm(v); }}
+              searchInput={searchInput}
+              setSearchInput={setSearchInput}
               filterStatus={filterStatus}
               setFilterStatus={(v) => { setPage(1); setFilterStatus(v); }}
               filterPriority={filterPriority}
@@ -232,13 +253,29 @@ export default function LeadsPage() {
               setFilterSource={(v) => { setPage(1); setFilterSource(v); }}
               filterStaff={filterStaff}
               setFilterStaff={(v) => { setPage(1); setFilterStaff(v); }}
+              filterSubStaff={filterSubStaff}
+              setFilterSubStaff={(v) => { setPage(1); setFilterSubStaff(v); }}
+              filterProcessingStatus={filterProcessingStatus}
+              setFilterProcessingStatus={(v) => { setPage(1); setFilterProcessingStatus(v); }}
               staffMembers={staffMembers}
+              onClearAll={() => {
+                setSearchInput('');
+                setSearchTerm('');
+                setFilterStatus('all');
+                setFilterPriority('all');
+                setFilterSource('all');
+                setFilterStaff('all');
+                setFilterSubStaff('all');
+                setFilterProcessingStatus('all');
+                setPage(1);
+              }}
             />
 
             <LeadsTable
               leads={leads}
               statusColors={statusColors}
               onDeleteLead={handleDeleteLead}
+              loading={loading}
             />
             
             {totalPages > 1 && (
