@@ -18,7 +18,7 @@ export default function ReportsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  const PAGE_SIZE = 50;
+  const PAGE_SIZE = 10;
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
   const fetchStats = async () => {
@@ -164,7 +164,7 @@ export default function ReportsPage() {
               }}
               className="text-indigo-600 text-sm font-semibold hover:text-indigo-700 hover:underline transition-colors"
             >
-              Refresh →
+              Refresh â†’
             </button>
           </div>
 
