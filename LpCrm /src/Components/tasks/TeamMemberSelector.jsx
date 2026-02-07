@@ -17,10 +17,10 @@ export default function TeamMemberSelector({
 
   // Role display configuration
   const roleConfig = {
-    'ADM_EXEC': { label: 'Admin Executive', color: 'bg-purple-100 text-purple-700', icon: '👔' },
-    'ADMIN': { label: 'Admin', color: 'bg-indigo-100 text-indigo-700', icon: '⚙️' },
-    'ADM_MANAGER': { label: 'Admin Manager', color: 'bg-blue-100 text-blue-700', icon: '📊' },
-    'MEDIA': { label: 'Media', color: 'bg-pink-100 text-pink-700', icon: '📱' },
+    'ADM_EXEC': { label: 'Admin Executive', color: 'bg-purple-100 text-purple-700'},
+    'ADMIN': { label: 'Admin', color: 'bg-indigo-100 text-indigo-700'},
+    'ADM_MANAGER': { label: 'Admin Manager', color: 'bg-blue-100 text-blue-700'},
+    'MEDIA': { label: 'Media', color: 'bg-pink-100 text-pink-700'},
     'FOE': { label: 'Front of Exec', color: 'bg-cyan-100 text-cyan-700', icon: '🎯' },
     'TRAINER': { label: 'Trainer', color: 'bg-green-100 text-green-700', icon: '👨‍🏫' },
     'ACCOUNTS': { label: 'Accounts', color: 'bg-amber-100 text-amber-700', icon: '💰' },

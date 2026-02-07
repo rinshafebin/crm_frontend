@@ -18,7 +18,7 @@ export default function ReportsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 50;
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
   const fetchStats = async () => {
