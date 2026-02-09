@@ -17,7 +17,6 @@ export default function ReportsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [viewingFile, setViewingFile] = useState(null);
 
   const PAGE_SIZE = 50;
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
@@ -239,22 +238,32 @@ export default function ReportsPage() {
                           {/* View Attachment Button */}
                           {report.attached_file && (
                             <button
-                              onClick={async () => {
-                                try {
-                                  // Fetch the view URL from backend
-                                  const res = await axios.get(
-                                    `${API_BASE}/admin/reports/${report.id}/view-file/`,
-                                    { headers: { Authorization: `Bearer ${accessToken}` } }
-                                  );
-                                  
-                                  setViewingFile({ 
-                                    url: res.data.view_url,
-                                    name: res.data.report_name || report.name,
-                                    download_url: report.file_url
-                                  });
-                                } catch (err) {
-                                  console.error('Failed to get view URL:', err);
-                                  alert('Failed to load file for viewing');
+                              onClick={() => {
+                                const fileUrl = report.file_url;
+                                const fileName = report.name || 'file';
+                                
+                                // Check file extension
+                                const lowerUrl = fileUrl?.toLowerCase() || '';
+                                const isPdf = lowerUrl.includes('.pdf');
+                                const isDoc = lowerUrl.match(/\.(doc|docx)$/);
+                                const isImage = lowerUrl.match(/\.(jpg|jpeg|png|gif|webp)$/);
+                                
+                                if (isPdf || isDoc) {
+                                  // Use Google Docs Viewer for PDFs and Word docs
+                                  const encodedUrl = encodeURIComponent(fileUrl);
+                                  const viewerUrl = `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`;
+                                  window.open(viewerUrl, '_blank', 'noopener,noreferrer');
+                                } else if (isImage) {
+                                  // Images open directly
+                                  window.open(fileUrl, '_blank', 'noopener,noreferrer');
+                                } else {
+                                  // For other file types, try to open directly
+                                  // If Cloudinary URL, add inline flag
+                                  let viewUrl = fileUrl;
+                                  if (viewUrl.includes('cloudinary.com') && viewUrl.includes('/upload/')) {
+                                    viewUrl = viewUrl.replace('/upload/', '/upload/fl_attachment/');
+                                  }
+                                  window.open(viewUrl, '_blank', 'noopener,noreferrer');
                                 }
                               }}
                               className="p-2.5 text-green-600 hover:bg-green-100 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
@@ -281,53 +290,6 @@ export default function ReportsPage() {
               totalPages={totalPages}
               onPageChange={(newPage) => setPage(newPage)}
             />
-          </div>
-        )}
-
-        {/* File Viewer Modal */}
-        {viewingFile && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900">
-                  {viewingFile.name} - Attachment
-                </h3>
-                <button
-                  onClick={() => setViewingFile(null)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <XCircle size={24} />
-                </button>
-              </div>
-              
-              {/* Modal Body */}
-              <div className="flex-1 overflow-auto p-6">
-                <iframe
-                  src={viewingFile.url}
-                  className="w-full h-full min-h-[600px] border-0 rounded-lg"
-                  title="File Viewer"
-                />
-              </div>
-
-              {/* Modal Footer */}
-              <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
-                <a
-                  href={viewingFile.download_url || viewingFile.url}
-                  download
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors inline-flex items-center gap-2"
-                >
-                  <Download size={16} />
-                  Download File
-                </a>
-                <button
-                  onClick={() => setViewingFile(null)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
           </div>
         )}
       </main>
