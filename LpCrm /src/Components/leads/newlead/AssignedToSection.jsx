@@ -32,7 +32,6 @@ const AssignedToSection = ({ formData, errors, onChange }) => {
 
       const data = await response.json();
       
-      // Apply frontend filtering based on user role
       const filteredUsers = filterUsersByRole(data, user?.role);
       setAvailableUsers(filteredUsers);
     } catch (error) {
@@ -43,11 +42,10 @@ const AssignedToSection = ({ formData, errors, onChange }) => {
     }
   };
 
-  // Frontend filtering logic based on logged-in user's role
   const filterUsersByRole = (users, userRole) => {
     if (!userRole) return users;
 
-    // ADM_MANAGER: Only see ADM_MANAGER, ADM_EXEC, and FOE
+
     if (userRole === 'ADM_MANAGER') {
       return users.filter(u => 
         u.role === 'ADM_MANAGER' || 
@@ -56,16 +54,14 @@ const AssignedToSection = ({ formData, errors, onChange }) => {
       );
     }
 
-    // FOE and ADM_EXEC: Only see themselves
     if (userRole === 'FOE' || userRole === 'ADM_EXEC') {
       return users.filter(u => u.id === user?.id);
     }
 
-    // ADMIN, OPS, CM, BDM, and other roles: See all users (no filtering)
     return users;
   };
 
-  // Get role display name
+
   const getRoleDisplayName = (role) => {
     const roleMap = {
       'ADMIN': 'General Manager',
@@ -122,26 +118,7 @@ const AssignedToSection = ({ formData, errors, onChange }) => {
               <span>{errors.assignedTo}</span>
             </div>
           )}
-
-          {/* Info message based on user role */}
-          {user?.role === 'ADM_MANAGER' && (
-            <p className="mt-2 text-sm text-gray-600 flex items-start gap-2">
-              <AlertCircle size={16} className="mt-0.5 flex-shrink-0 text-blue-500" />
-              <span>
-                As an Admission Manager, you can assign leads to Admission Managers, Admission Executives, or FOE Cum TC.
-              </span>
-            </p>
-          )}
-
-          {(user?.role === 'FOE' || user?.role === 'ADM_EXEC') && (
-            <p className="mt-2 text-sm text-gray-600 flex items-start gap-2">
-              <AlertCircle size={16} className="mt-0.5 flex-shrink-0 text-blue-500" />
-              <span>
-                You can only assign leads to yourself.
-              </span>
-            </p>
-          )}
-
+          
           {!loading && availableUsers.length === 0 && (
             <p className="mt-2 text-sm text-red-600 flex items-start gap-2">
               <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
