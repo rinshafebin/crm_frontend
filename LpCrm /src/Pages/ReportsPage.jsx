@@ -225,7 +225,7 @@ export default function ReportsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          {/* View Button */}
+                          {/* View Report Details Button */}
                           <button
                             onClick={() => navigate(`/reports/view/${report.id}`)}
                             className="p-2.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
@@ -235,16 +235,16 @@ export default function ReportsPage() {
                             View
                           </button>
 
-                          {/* Download Button */}
+                          {/* View Attachment Button */}
                           {report.attached_file && (
                             <a
                               href={report.file_url}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="p-2.5 text-green-600 hover:bg-green-100 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
-                              title="Download Attachment"
+                              title="View Attachment"
                             >
-                              <Download size={18} />
+                              <Eye size={18} />
                             </a>
                           )}
                         </div>
