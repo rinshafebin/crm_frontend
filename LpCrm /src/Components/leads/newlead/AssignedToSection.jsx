@@ -102,7 +102,7 @@ const AssignedToSection = ({ formData, errors, onChange }) => {
             } ${loading ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'}`}
           >
             <option value="">
-              {loading ? 'Loading users...' : 'Select a staff member (optional)'}
+              {loading ? 'Loading users...' : 'Select a staff member'}
             </option>
             
             {availableUsers.map((staff) => (
@@ -118,7 +118,7 @@ const AssignedToSection = ({ formData, errors, onChange }) => {
               <span>{errors.assignedTo}</span>
             </div>
           )}
-          
+
           {!loading && availableUsers.length === 0 && (
             <p className="mt-2 text-sm text-red-600 flex items-start gap-2">
               <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
