@@ -1,4 +1,4 @@
-// Pages/AddLeadPage.jsx - CORRECTED
+// Pages/AddLeadPage.jsx - UPDATED WITH MANDATORY ASSIGNMENT
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -56,12 +56,24 @@ export default function AddLeadPage() {
     if (formData.source === 'OTHER' && !formData.customSource.trim())
       newErrors.customSource = 'Please specify custom source';
 
+    // Assignment is now mandatory
+    if (!formData.assignedTo) newErrors.assignedTo = 'Please assign this lead to a staff member';
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      // Scroll to the first error
+      const firstErrorField = Object.keys(errors)[0];
+      const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        errorElement.focus();
+      }
+      return;
+    }
 
     const leadData = {
       name: formData.name.trim(),
@@ -74,7 +86,7 @@ export default function AddLeadPage() {
       priority: formData.priority,
       status: formData.status,
       remarks: formData.remarks?.trim() || '',
-      assigned_to: formData.assignedTo ? parseInt(formData.assignedTo) : null,
+      assigned_to: parseInt(formData.assignedTo), // Now guaranteed to exist due to validation
     };
 
     try {
@@ -155,7 +167,6 @@ export default function AddLeadPage() {
 
         {/* Form Card */}
         <Card padding="p-8" className="mb-6">
-          {/* CORRECTED: Pass onChange instead of handleInputChange */}
           <ContactInfoSection 
             formData={formData} 
             errors={errors} 
