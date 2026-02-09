@@ -18,7 +18,7 @@ export default function UpcomingTasks({ tasks, formatTaskTime, getPriorityColor,
   return (
     <Card>
       <SectionHeader 
-        title="Upcoming Tasks" 
+        title="Pending Tasks" 
         onActionClick={onViewAll}
       />
       
@@ -26,7 +26,7 @@ export default function UpcomingTasks({ tasks, formatTaskTime, getPriorityColor,
         {tasks.length === 0 ? (
           <EmptyState
             icon={CheckCircle2}
-            title="No upcoming tasks"
+            title="No pending tasks"
             description="You're all caught up!"
           />
         ) : (

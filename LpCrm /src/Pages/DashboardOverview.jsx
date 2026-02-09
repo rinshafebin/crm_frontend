@@ -6,6 +6,7 @@ import AdminStatsGrid from '../Components/dashboard/AdminStatsGrid';
 import UserQuickActions from '../Components/dashboard/UserQuickActions';
 import RecentActivities from '../Components/dashboard/RecentActivities';
 import UpcomingTasks from '../Components/dashboard/UpcomingTasks';
+import UpcomingTasksSection from '../Components/dashboard/UpcomingTasksSection';
 import ErrorAlert from '../Components/dashboard/ErrorAlert';
 import LoadingSpinner from '../Components/dashboard/LoadingSpinner';
 import { formatTimeAgo, formatTaskTime, getPriorityColor } from '../Components/utils/dashboardHelpers';
@@ -26,6 +27,7 @@ export default function DashboardOverview() {
   
   const [activities, setActivities] = useState([]);
   const [tasks, setTasks] = useState([]);
+  const [upcomingTasks, setUpcomingTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -81,7 +83,10 @@ export default function DashboardOverview() {
       
       const fetchPromises = [
         fetchData('/activities/', setActivities, 'Failed to load recent activities'),
-        fetchData('/upcoming/', setTasks, 'Failed to load upcoming tasks')
+        // Fetch all pending tasks
+        fetchData('/tasks/pending/', setTasks, 'Failed to load pending tasks'),
+        // Also fetch upcoming tasks
+        fetchData('/upcoming/', setUpcomingTasks, 'Failed to load upcoming tasks')
       ];
 
       if (isAdmin) {
@@ -127,10 +132,11 @@ export default function DashboardOverview() {
           <UserQuickActions 
             tasksCount={tasks.length}
             activitiesCount={activities.length}
+            upcomingCount={upcomingTasks.length}
           />
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <RecentActivities 
             activities={activities}
             formatTimeAgo={formatTimeAgo}
@@ -138,6 +144,12 @@ export default function DashboardOverview() {
           
           <UpcomingTasks 
             tasks={tasks}
+            formatTaskTime={formatTaskTime}
+            getPriorityColor={getPriorityColor}
+          />
+
+          <UpcomingTasksSection 
+            tasks={upcomingTasks}
             formatTaskTime={formatTaskTime}
             getPriorityColor={getPriorityColor}
           />
