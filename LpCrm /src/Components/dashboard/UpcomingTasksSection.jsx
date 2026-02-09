@@ -45,38 +45,36 @@ export default function UpcomingTasksSection({ tasks, formatTaskTime, getPriorit
             return (
               <div 
                 key={task.id || index} 
-                className={`group relative flex items-start space-x-3 p-4 rounded-lg transition-all duration-200 border ${
-                  isSoon 
-                    ? 'bg-amber-50 border-amber-200 hover:border-amber-300 hover:shadow-sm' 
-                    : 'border-gray-100 hover:bg-gradient-to-r hover:from-orange-50 hover:to-amber-50 hover:border-orange-200 hover:shadow-sm'
-                }`}
+                className="group relative flex items-center gap-4 p-4 rounded-xl bg-white border border-gray-200 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:border-purple-300 hover:shadow-md transition-all duration-200"
               >
                 <input 
                   type="checkbox" 
                   checked={task.completed || task.status === 'COMPLETED'}
                   onChange={() => {}}
-                  className="mt-1 w-5 h-5 text-orange-600 rounded-md border-2 border-gray-300 focus:ring-2 focus:ring-orange-500 cursor-pointer hover:border-orange-400 transition-colors flex-shrink-0" 
+                  className="w-5 h-5 text-purple-600 rounded-md border-2 border-gray-300 focus:ring-2 focus:ring-purple-500 cursor-pointer hover:border-purple-400 transition-colors flex-shrink-0" 
                 />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <p className={`text-sm font-semibold ${isSoon ? 'text-amber-900' : 'text-gray-900'} group-hover:text-orange-700 transition-colors`}>
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-gray-900 group-hover:text-purple-700 transition-colors truncate">
                       {task.title || task.name || 'Untitled Task'}
                     </p>
-                    {task.priority && (
-                      <Badge variant={getPriorityVariant(task.priority)} size="sm">
-                        {task.priority.toUpperCase()}
-                      </Badge>
-                    )}
-                    {isSoon && (
-                      <Badge variant="medium" size="sm">
-                        <Clock className="w-3 h-3 mr-1" />
-                        SOON
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {task.priority && (
+                        <Badge variant={getPriorityVariant(task.priority)} size="sm">
+                          {task.priority}
+                        </Badge>
+                      )}
+                      {isSoon && (
+                        <Badge variant="medium" size="sm" className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          SOON
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                  <div className={`flex items-center text-xs ${isSoon ? 'text-amber-700 font-semibold' : 'text-gray-500'}`}>
+                  <div className="flex items-center text-xs text-gray-500">
                     <CalendarClock className="w-3.5 h-3.5 mr-1.5 flex-shrink-0" />
-                    <span className="truncate">{formatTaskTime(task.due_date || task.deadline)}</span>
+                    <span>{formatTaskTime(task.due_date || task.deadline)}</span>
                   </div>
                 </div>
               </div>

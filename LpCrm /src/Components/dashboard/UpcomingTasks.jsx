@@ -39,38 +39,40 @@ export default function UpcomingTasks({ tasks, formatTaskTime, getPriorityColor 
             return (
               <div 
                 key={task.id || index} 
-                className={`group relative flex items-start space-x-3 p-4 rounded-lg transition-all duration-200 border ${
+                className={`group relative flex items-center gap-4 p-4 rounded-xl transition-all duration-200 border ${
                   overdue 
-                    ? 'bg-red-50 border-red-200 hover:border-red-300 hover:shadow-sm' 
-                    : 'border-gray-100 hover:bg-gradient-to-r hover:from-gray-50 hover:to-slate-50 hover:border-gray-200 hover:shadow-sm'
+                    ? 'bg-red-50 border-red-200 hover:border-red-300 hover:shadow-md' 
+                    : 'bg-white border-gray-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:border-blue-300 hover:shadow-md'
                 }`}
               >
                 <input 
                   type="checkbox" 
                   checked={task.completed || task.status === 'COMPLETED'}
                   onChange={() => {}}
-                  className="mt-1 w-5 h-5 text-blue-600 rounded-md border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 cursor-pointer hover:border-blue-400 transition-colors flex-shrink-0" 
+                  className="w-5 h-5 text-blue-600 rounded-md border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 cursor-pointer hover:border-blue-400 transition-colors flex-shrink-0" 
                 />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <p className={`text-sm font-semibold ${overdue ? 'text-red-900' : 'text-gray-900'} group-hover:text-blue-700 transition-colors`}>
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className={`text-sm font-semibold ${overdue ? 'text-red-900' : 'text-gray-900'} group-hover:text-blue-700 transition-colors truncate`}>
                       {task.title || task.name || 'Untitled Task'}
                     </p>
-                    {task.priority && (
-                      <Badge variant={getPriorityVariant(task.priority)} size="sm">
-                        {task.priority.toUpperCase()}
-                      </Badge>
-                    )}
-                    {overdue && (
-                      <Badge variant="high" size="sm">
-                        <AlertCircle className="w-3 h-3 mr-1" />
-                        OVERDUE
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {task.priority && (
+                        <Badge variant={getPriorityVariant(task.priority)} size="sm">
+                          {task.priority}
+                        </Badge>
+                      )}
+                      {overdue && (
+                        <Badge variant="high" size="sm" className="flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" />
+                          OVERDUE
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                  <div className={`flex items-center text-xs ${overdue ? 'text-red-700 font-semibold' : 'text-gray-500'}`}>
+                  <div className={`flex items-center text-xs ${overdue ? 'text-red-700 font-medium' : 'text-gray-500'}`}>
                     <Clock className="w-3.5 h-3.5 mr-1.5 flex-shrink-0" />
-                    <span className="truncate">{formatTaskTime(task.due_date || task.deadline)}</span>
+                    <span>{formatTaskTime(task.due_date || task.deadline)}</span>
                   </div>
                 </div>
               </div>
