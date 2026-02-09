@@ -43,15 +43,7 @@ export default function ReportsPage() {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
-      // Add view_url for each report
-      const reportsWithViewUrl = (res.data.results || []).map(report => ({
-        ...report,
-        view_url: report.attached_file 
-          ? `${API_BASE}/admin/reports/${report.id}/view-file/`
-          : null
-      }));
-
-      setRecentReports(reportsWithViewUrl);
+      setRecentReports(res.data.results || []);
       setTotalCount(res.data.count || 0);
       setTotalPages(Math.ceil((res.data.count || 0) / PAGE_SIZE));
     } catch (err) {
@@ -247,11 +239,24 @@ export default function ReportsPage() {
                           {/* View Attachment Button */}
                           {report.attached_file && (
                             <button
-                              onClick={() => setViewingFile({ 
-                                url: report.view_url || report.file_url, 
-                                name: report.name,
-                                download_url: report.file_url
-                              })}
+                              onClick={async () => {
+                                try {
+                                  // Fetch the view URL from backend
+                                  const res = await axios.get(
+                                    `${API_BASE}/admin/reports/${report.id}/view-file/`,
+                                    { headers: { Authorization: `Bearer ${accessToken}` } }
+                                  );
+                                  
+                                  setViewingFile({ 
+                                    url: res.data.view_url,
+                                    name: res.data.report_name || report.name,
+                                    download_url: report.file_url
+                                  });
+                                } catch (err) {
+                                  console.error('Failed to get view URL:', err);
+                                  alert('Failed to load file for viewing');
+                                }
+                              }}
                               className="p-2.5 text-green-600 hover:bg-green-100 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
                               title="View Attachment"
                             >
