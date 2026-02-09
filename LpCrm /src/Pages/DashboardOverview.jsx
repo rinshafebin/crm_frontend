@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import DashboardHeader from '../Components/dashboard/DashboardHeader';
 import AdminStatsGrid from '../Components/dashboard/AdminStatsGrid';
 import UserQuickActions from '../Components/dashboard/UserQuickActions';
-import RecentActivities from '../Components/dashboard/RecentActivities';
 import UpcomingTasks from '../Components/dashboard/UpcomingTasks';
 import UpcomingTasksSection from '../Components/dashboard/UpcomingTasksSection';
 import ErrorAlert from '../Components/dashboard/ErrorAlert';
@@ -131,20 +130,12 @@ export default function DashboardOverview() {
         ) : (
           <UserQuickActions 
             tasksCount={tasks.length}
-            activitiesCount={activities.length}
             upcomingCount={upcomingTasks.length}
           />
         )}
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          <div className="xl:col-span-1">
-            <RecentActivities 
-              activities={activities}
-              formatTimeAgo={formatTimeAgo}
-            />
-          </div>
-          
-          <div className="xl:col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="lg:col-span-1">
             <UpcomingTasks 
               tasks={tasks}
               formatTaskTime={formatTaskTime}
@@ -152,7 +143,7 @@ export default function DashboardOverview() {
             />
           </div>
 
-          <div className="xl:col-span-1">
+          <div className="lg:col-span-1">
             <UpcomingTasksSection 
               tasks={upcomingTasks}
               formatTaskTime={formatTaskTime}
