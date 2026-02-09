@@ -5,7 +5,7 @@ import SectionHeader from '../common/SectionHeader';
 import EmptyState from '../common/EmptyState';
 import Badge from '../common/Badge';
 
-export default function UpcomingTasks({ tasks, formatTaskTime, getPriorityColor, onViewAll }) {
+export default function UpcomingTasks({ tasks, formatTaskTime, getPriorityColor }) {
   const getPriorityVariant = (priority) => {
     const variantMap = {
       'HIGH': 'high',
@@ -23,8 +23,7 @@ export default function UpcomingTasks({ tasks, formatTaskTime, getPriorityColor,
   return (
     <Card className="h-full">
       <SectionHeader 
-        title="Pending Tasks" 
-        onActionClick={onViewAll}
+        title="Pending Tasks"
       />
       
       <div className="space-y-2">
