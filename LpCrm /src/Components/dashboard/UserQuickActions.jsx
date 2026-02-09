@@ -24,13 +24,6 @@ export default function UserQuickActions({ tasksCount, activitiesCount, upcoming
       icon: FileText,
       gradient: "from-blue-500 to-cyan-600",
       hoverColor: "blue"
-    },
-    {
-      title: "Today",
-      value: new Date().getDate(),
-      icon: Calendar,
-      gradient: "from-green-500 to-emerald-600",
-      hoverColor: "green"
     }
   ];
 
