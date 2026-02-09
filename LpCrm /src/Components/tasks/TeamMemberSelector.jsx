@@ -21,11 +21,11 @@ export default function TeamMemberSelector({
     'ADMIN': { label: 'Admin', color: 'bg-indigo-100 text-indigo-700'},
     'ADM_MANAGER': { label: 'Admin Manager', color: 'bg-blue-100 text-blue-700'},
     'MEDIA': { label: 'Media', color: 'bg-pink-100 text-pink-700'},
-    'FOE': { label: 'Front of Exec', color: 'bg-cyan-100 text-cyan-700', icon: '🎯' },
-    'TRAINER': { label: 'Trainer', color: 'bg-green-100 text-green-700', icon: '👨‍🏫' },
-    'ACCOUNTS': { label: 'Accounts', color: 'bg-amber-100 text-amber-700', icon: '💰' },
-    'CM': { label: 'Central Manager', color: 'bg-teal-100 text-teal-700', icon: '🎖️' },
-    'OPS': { label: 'Operations', color: 'bg-orange-100 text-orange-700', icon: '⚡' },
+    'FOE': { label: 'Front of Exec', color: 'bg-cyan-100 text-cyan-700'},
+    'TRAINER': { label: 'Trainer', color: 'bg-green-100 text-green-700'},
+    'ACCOUNTS': { label: 'Accounts', color: 'bg-amber-100 text-amber-700' },
+    'CM': { label: 'Central Manager', color: 'bg-teal-100 text-teal-700' },
+    'OPS': { label: 'Operations', color: 'bg-orange-100 text-orange-700' },
   };
 
   // Get initials for avatar

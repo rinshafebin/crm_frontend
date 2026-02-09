@@ -10,7 +10,6 @@ export const roleNavigation = {
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
     { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
-    { id: "voxbay", label: "Call Dashboard", icon: PhoneCall, external: true, path: "https://x.voxbay.com/admin/dashboard" },
     { id: "Reports", label: "Reports", icon: FileText, path: "/daily/reports" }
   ],
 
@@ -18,7 +17,6 @@ export const roleNavigation = {
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
-    { id: "voxbay", label: "Call Dashboard", icon: PhoneCall, external: true, path: "https://x.voxbay.com/admin/dashboard" },
     { id: "myTasks", label: "My Tasks", icon: ListTodo, path: "/mytasks" },
     { id: "allTasks", label: "All Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
@@ -35,7 +33,6 @@ export const roleNavigation = {
   ADM_MANAGER: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
-    { id: "voxbay", label: "Call Dashboard", icon: PhoneCall, external: true, path: "https://x.voxbay.com/admin/dashboard" },
     { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
@@ -43,7 +40,6 @@ export const roleNavigation = {
   ADM_EXEC: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
-    { id: "voxbay", label: "Call Dashboard", icon: PhoneCall, external: true, path: "https://x.voxbay.com/admin/dashboard" },
     { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
