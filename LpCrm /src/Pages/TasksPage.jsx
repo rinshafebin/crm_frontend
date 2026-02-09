@@ -324,8 +324,6 @@ export default function TasksPage() {
               <option value="PENDING">Pending</option>
               <option value="IN_PROGRESS">In Progress</option>
               <option value="COMPLETED">Completed</option>
-              <option value="OVERDUE">Overdue</option>
-              <option value="CANCELLED">Cancelled</option>
             </select>
 
             <select
