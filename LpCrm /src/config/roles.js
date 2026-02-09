@@ -91,6 +91,7 @@ export const roleNavigation = {
   FOE: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
+        { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
 
