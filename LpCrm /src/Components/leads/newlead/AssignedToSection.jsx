@@ -19,9 +19,6 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
     return roleMap[role] || role;
   };
 
-  // Roles that should NOT be assignable for leads
-  const EXCLUDED_ROLES = ['TRAINER', 'PROCESSING', 'MEDIA', 'HR', 'ACCOUNTS'];
-
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
@@ -51,11 +48,8 @@ const AssignedToSection = React.memo(({ formData, errors, onChange }) => {
 
         const data = await response.json();
         
-        // Filter out roles that shouldn't handle leads
-        const filteredData = data.filter(user => !EXCLUDED_ROLES.includes(user.role));
-        
-        // Sort by name
-        const sortedEmployees = filteredData.sort((a, b) => {
+        // Sort by name - NO FILTERING, backend handles permissions
+        const sortedEmployees = data.sort((a, b) => {
           const nameA = `${a.first_name} ${a.last_name}`.toLowerCase();
           const nameB = `${b.first_name} ${b.last_name}`.toLowerCase();
           return nameA.localeCompare(nameB);
