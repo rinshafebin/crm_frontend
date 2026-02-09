@@ -17,7 +17,6 @@ export default function ReportsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [viewingFile, setViewingFile] = useState(null);
 
   const PAGE_SIZE = 50;
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
@@ -226,7 +225,7 @@ export default function ReportsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          {/* View Report Details Button */}
+                          {/* View Button */}
                           <button
                             onClick={() => navigate(`/reports/view/${report.id}`)}
                             className="p-2.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
@@ -236,15 +235,17 @@ export default function ReportsPage() {
                             View
                           </button>
 
-                          {/* View Attachment Button */}
+                          {/* Download Button */}
                           {report.attached_file && (
-                            <button
-                              onClick={() => setViewingFile({ url: report.file_url, name: report.name })}
+                            <a
+                              href={report.file_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="p-2.5 text-green-600 hover:bg-green-100 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
-                              title="View Attachment"
+                              title="Download Attachment"
                             >
-                              <Eye size={18} />
-                            </button>
+                              <Download size={18} />
+                            </a>
                           )}
                         </div>
                       </td>
@@ -264,53 +265,6 @@ export default function ReportsPage() {
               totalPages={totalPages}
               onPageChange={(newPage) => setPage(newPage)}
             />
-          </div>
-        )}
-
-        {/* File Viewer Modal */}
-        {viewingFile && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900">
-                  {viewingFile.name} - Attachment
-                </h3>
-                <button
-                  onClick={() => setViewingFile(null)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <XCircle size={24} />
-                </button>
-              </div>
-              
-              {/* Modal Body */}
-              <div className="flex-1 overflow-auto p-6">
-                <iframe
-                  src={viewingFile.url}
-                  className="w-full h-full min-h-[600px] border-0 rounded-lg"
-                  title="File Viewer"
-                />
-              </div>
-
-              {/* Modal Footer */}
-              <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
-                <a
-                  href={viewingFile.url}
-                  download
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors inline-flex items-center gap-2"
-                >
-                  <Download size={16} />
-                  Download File
-                </a>
-                <button
-                  onClick={() => setViewingFile(null)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
           </div>
         )}
       </main>
