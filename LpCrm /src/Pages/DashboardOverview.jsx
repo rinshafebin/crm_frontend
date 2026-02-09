@@ -136,23 +136,29 @@ export default function DashboardOverview() {
           />
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <RecentActivities 
-            activities={activities}
-            formatTimeAgo={formatTimeAgo}
-          />
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="xl:col-span-1">
+            <RecentActivities 
+              activities={activities}
+              formatTimeAgo={formatTimeAgo}
+            />
+          </div>
           
-          <UpcomingTasks 
-            tasks={tasks}
-            formatTaskTime={formatTaskTime}
-            getPriorityColor={getPriorityColor}
-          />
+          <div className="xl:col-span-1">
+            <UpcomingTasks 
+              tasks={tasks}
+              formatTaskTime={formatTaskTime}
+              getPriorityColor={getPriorityColor}
+            />
+          </div>
 
-          <UpcomingTasksSection 
-            tasks={upcomingTasks}
-            formatTaskTime={formatTaskTime}
-            getPriorityColor={getPriorityColor}
-          />
+          <div className="xl:col-span-1">
+            <UpcomingTasksSection 
+              tasks={upcomingTasks}
+              formatTaskTime={formatTaskTime}
+              getPriorityColor={getPriorityColor}
+            />
+          </div>
         </div>
       </main>
     </div>
