@@ -88,13 +88,14 @@ const AssignedToSection = ({ formData, errors, onChange }) => {
         {/* Assigned To Dropdown */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Assign To
+            Assign To <span className="text-red-500">*</span>
           </label>
           <select
             name="assignedTo"
             value={formData.assignedTo}
             onChange={onChange}
             disabled={loading}
+            required
             className={`w-full px-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-4 transition-all ${
               errors.assignedTo
                 ? 'border-red-300 focus:border-red-500 focus:ring-red-100'
