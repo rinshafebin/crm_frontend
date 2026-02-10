@@ -36,7 +36,7 @@ export default function LeadsPage() {
 
   const [incomingCall, setIncomingCall] = useState({ isOpen: false, callData: null });
 
-  // Debounce search — wait 400 ms after the user stops typing
+  // Debounce search – wait 400 ms after the user stops typing
   const debounceTimer = useRef(null);
   const handleSearchChange = useCallback((value) => {
     setSearchTerm(value);
@@ -94,20 +94,47 @@ export default function LeadsPage() {
     });
   }, [leads, userRole]);
 
+  // Fetch staff members with better error handling
   useEffect(() => {
     if (authLoading || !accessToken) return;
-    authFetch(`${API_BASE_URL}/employees/`)
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(data => {
-        const filtered = data.filter(
+    
+    const fetchStaff = async () => {
+      try {
+        const res = await authFetch(`${API_BASE_URL}/employees/`);
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('Staff API Error:', res.status, errorText);
+          throw new Error(`Failed to fetch staff: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        console.log('Raw staff data:', data);
+        
+        // Handle different response formats
+        const staffArray = Array.isArray(data) ? data : (data.results || data.employees || []);
+        
+        if (!Array.isArray(staffArray)) {
+          console.error('Invalid staff data format:', data);
+          return;
+        }
+        
+        const filtered = staffArray.filter(
           u => !EXCLUDED_STAFF_ROLES.includes((u.role || '').toUpperCase())
         );
+        
+        console.log('Filtered staff members:', filtered);
         setStaffMembers(filtered);
-      })
-      .catch(() => console.error('Failed to load staff'));
+      } catch (err) {
+        console.error('Failed to load staff members:', err);
+        // Don't show alert - this is not critical for page functionality
+      }
+    };
+    
+    fetchStaff();
   }, [authLoading, accessToken, authFetch]);
 
-  // Fetch leads — uses debouncedSearch instead of searchTerm
+  // Fetch leads – uses debouncedSearch instead of searchTerm
   useEffect(() => {
     if (authLoading || !accessToken) return;
     const fetchLeads = async () => {
@@ -184,7 +211,7 @@ export default function LeadsPage() {
           <div className="mb-4">
             <button onClick={simulateIncomingCall}
               className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-sm transition-colors">
-              🔔 Simulate Incoming Call (Demo)
+              📞 Simulate Incoming Call (Demo)
             </button>
           </div>
         )}
