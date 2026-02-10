@@ -1,22 +1,6 @@
 import React from 'react';
 import { Search, Filter, SlidersHorizontal } from 'lucide-react';
 
-// Friendly labels for roles shown next to staff names in the dropdown
-const ROLE_LABELS = {
-  ADMIN:       'General Manager',
-  OPS:         'Operations Manager',
-  ADM_MANAGER: 'Admission Manager',
-  ADM_EXEC:    'Admission Executive',
-  CM:          'Center Manager',
-  BDM:         'Business Development Manager',
-  FOE:         'FOE Cum TC',
-  HR:          'HR',
-  MEDIA:       'Media',
-  BUSINESS_HEAD: 'Business Head',
-};
-
-const getRoleLabel = (role) => ROLE_LABELS[(role || '').toUpperCase()] || role;
-
 const LeadsFilters = ({
   searchTerm,
   setSearchTerm,
@@ -103,7 +87,7 @@ const LeadsFilters = ({
             <SlidersHorizontal className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
           </div>
 
-          {/* Staff Filter */}
+          {/* Staff Filter - Now showing username */}
           <div className="relative">
             <select
               value={filterStaff}
@@ -114,8 +98,8 @@ const LeadsFilters = ({
               <option value="unassigned">Unassigned</option>
               {staffMembers && staffMembers.map((staff) => (
                 <option key={staff.id} value={staff.id}>
-                  {staff.first_name} {staff.last_name}
-                  {staff.role ? ` — ${getRoleLabel(staff.role)}` : ''}
+                  {/* Show username if available, otherwise fallback to first_name last_name */}
+                  {staff.username || `${staff.first_name || ''} ${staff.last_name || ''}`.trim() || `Staff #${staff.id}`}
                 </option>
               ))}
             </select>
