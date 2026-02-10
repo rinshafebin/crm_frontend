@@ -13,7 +13,6 @@ import { canReceiveIncoming } from '../Components/utils/callPermissions.js'
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const PAGE_SIZE = 50;
 
-// Roles that should NOT appear in the staff filter dropdown
 const EXCLUDED_STAFF_ROLES = ['TRAINER', 'ACCOUNTS'];
 
 export default function LeadsPage() {
@@ -24,7 +23,7 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState([]);
   const [stats, setStats] = useState({ new: 0, qualified: 0, converted: 0 });
   const [searchTerm, setSearchTerm]           = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');   // ← actual API param
+  const [debouncedSearch, setDebouncedSearch] = useState('');   
   const [filterStatus, setFilterStatus]       = useState('all');
   const [filterPriority, setFilterPriority]   = useState('all');
   const [filterSource, setFilterSource]       = useState('all');
@@ -35,7 +34,6 @@ export default function LeadsPage() {
   const [totalPages, setTotalPages]           = useState(1);
   const [totalCount, setTotalCount]           = useState(0);
 
-  // Incoming call modal state
   const [incomingCall, setIncomingCall] = useState({ isOpen: false, callData: null });
 
   // Debounce search — wait 400 ms after the user stops typing
@@ -87,7 +85,6 @@ export default function LeadsPage() {
     }
   };
 
-  // Demo: trigger incoming call popup (remove in production)
   const simulateIncomingCall = useCallback(() => {
     if (!canReceiveIncoming(userRole) || leads.length === 0) return;
     const lead = leads[Math.floor(Math.random() * leads.length)];
@@ -97,10 +94,9 @@ export default function LeadsPage() {
     });
   }, [leads, userRole]);
 
-  // Fetch staff — exclude TRAINER and ACCOUNTS from the filter dropdown
   useEffect(() => {
     if (authLoading || !accessToken) return;
-    authFetch(`${API_BASE_URL}/auth/users/`)
+    authFetch(`${API_BASE_URL}/employees/`)
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(data => {
         const filtered = data.filter(
