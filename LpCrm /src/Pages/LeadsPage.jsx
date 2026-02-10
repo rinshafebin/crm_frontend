@@ -8,7 +8,7 @@ import IncomingCallModal from '../Components/leads/IncomingCallModal.jsx';
 import { Users, UserPlus, CheckCircle, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Pagination from '../Components/common/Pagination';
-import { canReceiveIncoming } from '../utils/callPermissions';
+import { canReceiveIncoming } from '../Components/utils/callPermissions.js'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const PAGE_SIZE = 50;
@@ -16,7 +16,6 @@ const PAGE_SIZE = 50;
 export default function LeadsPage() {
   const { accessToken, refreshAccessToken, loading: authLoading, user } = useAuth();
 
-  // Derive role from auth context — adjust field name to match your AuthContext shape
   const userRole = user?.role || user?.user_role || '';
 
   const [leads, setLeads] = useState([]);

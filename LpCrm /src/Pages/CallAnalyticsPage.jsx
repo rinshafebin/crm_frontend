@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Navbar from '../Components/layouts/Navbar';
 import { BarChart3, TrendingUp, Calendar, Download, Phone, PhoneIncoming, PhoneMissed, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { getRoleLabel } from '../utils/callPermissions';
+import { getRoleLabel } from '../Components/utils/callPermissions';
 
 export default function CallAnalyticsPage() {
   const { user } = useAuth();

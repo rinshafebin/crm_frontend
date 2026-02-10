@@ -4,7 +4,7 @@ import {
   ExternalLink, UserCheck, Users, Eye, PhoneCall, History,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { canMakeCall, canViewCallHistory } from '../../utils/callPermissions';
+import { canMakeCall, canViewCallHistory } from '../utils/callPermissions';
 
 const CALL_STATUS_META = {
   calling:   { text: 'Calling…',   cls: 'bg-blue-100 text-blue-700',     pulse: true  },
