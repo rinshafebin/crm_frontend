@@ -101,8 +101,6 @@ const LeadsFilters = ({
                   {staff.username || `${staff.first_name || ''} ${staff.last_name || ''}`.trim() || `Staff #${staff.id}`}
                 </option>
               ))}
-              <option value="Unassigned">Unassigned</option>
-
             </select>
             <SlidersHorizontal className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
           </div>
