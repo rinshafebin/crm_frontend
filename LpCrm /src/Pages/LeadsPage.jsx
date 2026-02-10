@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import Navbar from '../Components/layouts/Navbar';
 import LeadsPageHeader from '../Components/leads/LeadsPageHeader';
 import LeadsStatsCards from '../Components/leads/LeadsStatsCards';
@@ -13,34 +13,49 @@ import { canReceiveIncoming } from '../Components/utils/callPermissions.js'
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const PAGE_SIZE = 50;
 
+// Roles that should NOT appear in the staff filter dropdown
+const EXCLUDED_STAFF_ROLES = ['TRAINER', 'ACCOUNTS'];
+
 export default function LeadsPage() {
   const { accessToken, refreshAccessToken, loading: authLoading, user } = useAuth();
 
   const userRole = user?.role || user?.user_role || '';
 
   const [leads, setLeads] = useState([]);
-  const [stats, setStats] = useState({ new:0, qualified:0, converted:0 });
-  const [searchTerm, setSearchTerm]       = useState('');
-  const [filterStatus, setFilterStatus]   = useState('all');
-  const [filterPriority, setFilterPriority] = useState('all');
-  const [filterSource, setFilterSource]   = useState('all');
-  const [filterStaff, setFilterStaff]     = useState('all');
-  const [loading, setLoading]             = useState(false);
-  const [staffMembers, setStaffMembers]   = useState([]);
-  const [page, setPage]                   = useState(1);
-  const [totalPages, setTotalPages]       = useState(1);
-  const [totalCount, setTotalCount]       = useState(0);
+  const [stats, setStats] = useState({ new: 0, qualified: 0, converted: 0 });
+  const [searchTerm, setSearchTerm]           = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');   // ← actual API param
+  const [filterStatus, setFilterStatus]       = useState('all');
+  const [filterPriority, setFilterPriority]   = useState('all');
+  const [filterSource, setFilterSource]       = useState('all');
+  const [filterStaff, setFilterStaff]         = useState('all');
+  const [loading, setLoading]                 = useState(false);
+  const [staffMembers, setStaffMembers]       = useState([]);
+  const [page, setPage]                       = useState(1);
+  const [totalPages, setTotalPages]           = useState(1);
+  const [totalCount, setTotalCount]           = useState(0);
 
   // Incoming call modal state
   const [incomingCall, setIncomingCall] = useState({ isOpen: false, callData: null });
 
+  // Debounce search — wait 400 ms after the user stops typing
+  const debounceTimer = useRef(null);
+  const handleSearchChange = useCallback((value) => {
+    setSearchTerm(value);
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setPage(1);
+      setDebouncedSearch(value);
+    }, 400);
+  }, []);
+
   const statusColors = useMemo(() => ({
-    enquiry:   'bg-blue-100   text-blue-700',
-    contacted: 'bg-yellow-100 text-yellow-700',
-    qualified: 'bg-purple-100 text-purple-700',
-    converted: 'bg-green-100  text-green-700',
-    registered:'bg-teal-100   text-teal-700',
-    lost:      'bg-red-100    text-red-700',
+    enquiry:    'bg-blue-100   text-blue-700',
+    contacted:  'bg-yellow-100 text-yellow-700',
+    qualified:  'bg-purple-100 text-purple-700',
+    converted:  'bg-green-100  text-green-700',
+    registered: 'bg-teal-100   text-teal-700',
+    lost:       'bg-red-100    text-red-700',
   }), []);
 
   const authFetch = useCallback(async (url, options = {}, retry = true) => {
@@ -82,16 +97,21 @@ export default function LeadsPage() {
     });
   }, [leads, userRole]);
 
-  // Fetch staff
+  // Fetch staff — exclude TRAINER and ACCOUNTS from the filter dropdown
   useEffect(() => {
     if (authLoading || !accessToken) return;
     authFetch(`${API_BASE_URL}/auth/users/`)
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then(setStaffMembers)
+      .then(data => {
+        const filtered = data.filter(
+          u => !EXCLUDED_STAFF_ROLES.includes((u.role || '').toUpperCase())
+        );
+        setStaffMembers(filtered);
+      })
       .catch(() => console.error('Failed to load staff'));
   }, [authLoading, accessToken, authFetch]);
 
-  // Fetch leads
+  // Fetch leads — uses debouncedSearch instead of searchTerm
   useEffect(() => {
     if (authLoading || !accessToken) return;
     const fetchLeads = async () => {
@@ -99,13 +119,13 @@ export default function LeadsPage() {
       try {
         const params = new URLSearchParams({
           page, page_size: PAGE_SIZE,
-          ...(searchTerm                  && { search: searchTerm }),
-          ...(filterStatus  !== 'all'     && { status:      filterStatus.toUpperCase()  }),
-          ...(filterPriority !== 'all'    && { priority:    filterPriority.toUpperCase() }),
-          ...(filterSource  !== 'all'     && { source:      filterSource.toUpperCase()  }),
-          ...(filterStaff   !== 'all'     && (filterStaff === 'unassigned'
-                                               ? { assigned_to: 'null' }
-                                               : { assigned_to: filterStaff })),
+          ...(debouncedSearch                && { search: debouncedSearch }),
+          ...(filterStatus   !== 'all'       && { status:      filterStatus.toUpperCase()   }),
+          ...(filterPriority !== 'all'       && { priority:    filterPriority.toUpperCase() }),
+          ...(filterSource   !== 'all'       && { source:      filterSource.toUpperCase()   }),
+          ...(filterStaff    !== 'all'       && (filterStaff === 'unassigned'
+                                                  ? { assigned_to: 'null' }
+                                                  : { assigned_to: filterStaff })),
         });
         const res  = await authFetch(`${API_BASE_URL}/leads/?${params}`);
         if (!res.ok) throw new Error('Failed to fetch leads');
@@ -139,13 +159,13 @@ export default function LeadsPage() {
       }
     };
     fetchLeads();
-  }, [authLoading, accessToken, authFetch, page, searchTerm, filterStatus, filterPriority, filterSource, filterStaff]);
+  }, [authLoading, accessToken, authFetch, page, debouncedSearch, filterStatus, filterPriority, filterSource, filterStaff]);
 
   const statsCards = useMemo(() => [
-    { label:'Total Leads', value:totalCount,      color:'bg-blue-500',   icon:Users       },
-    { label:'New Leads',   value:stats.new || 0,  color:'bg-indigo-500', icon:UserPlus    },
-    { label:'Qualified',   value:stats.qualified||0, color:'bg-purple-500', icon:CheckCircle },
-    { label:'Converted',   value:stats.converted||0, color:'bg-green-500',  icon:TrendingUp  },
+    { label: 'Total Leads', value: totalCount,          color: 'bg-blue-500',   icon: Users       },
+    { label: 'New Leads',   value: stats.new || 0,      color: 'bg-indigo-500', icon: UserPlus    },
+    { label: 'Qualified',   value: stats.qualified || 0, color: 'bg-purple-500', icon: CheckCircle },
+    { label: 'Converted',   value: stats.converted || 0, color: 'bg-green-500',  icon: TrendingUp  },
   ], [totalCount, stats]);
 
   if (authLoading) {
@@ -180,11 +200,16 @@ export default function LeadsPage() {
             <LeadsStatsCards stats={statsCards} />
 
             <LeadsFilters
-              searchTerm={searchTerm}       setSearchTerm={v   => { setPage(1); setSearchTerm(v); }}
-              filterStatus={filterStatus}   setFilterStatus={v  => { setPage(1); setFilterStatus(v); }}
-              filterPriority={filterPriority} setFilterPriority={v => { setPage(1); setFilterPriority(v); }}
-              filterSource={filterSource}   setFilterSource={v  => { setPage(1); setFilterSource(v); }}
-              filterStaff={filterStaff}     setFilterStaff={v   => { setPage(1); setFilterStaff(v); }}
+              searchTerm={searchTerm}
+              setSearchTerm={handleSearchChange}           // ← debounced handler
+              filterStatus={filterStatus}
+              setFilterStatus={v  => { setPage(1); setFilterStatus(v); }}
+              filterPriority={filterPriority}
+              setFilterPriority={v => { setPage(1); setFilterPriority(v); }}
+              filterSource={filterSource}
+              setFilterSource={v  => { setPage(1); setFilterSource(v); }}
+              filterStaff={filterStaff}
+              setFilterStaff={v   => { setPage(1); setFilterStaff(v); }}
               staffMembers={staffMembers}
             />
 
@@ -207,7 +232,7 @@ export default function LeadsPage() {
         <IncomingCallModal
           isOpen={incomingCall.isOpen}
           callData={incomingCall.callData}
-          onClose={action => { console.log('Call', action); setIncomingCall({ isOpen:false, callData:null }); }}
+          onClose={action => { console.log('Call', action); setIncomingCall({ isOpen: false, callData: null }); }}
         />
       )}
     </div>

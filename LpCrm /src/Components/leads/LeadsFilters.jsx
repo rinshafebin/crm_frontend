@@ -1,10 +1,26 @@
 import React from 'react';
 import { Search, Filter, SlidersHorizontal } from 'lucide-react';
 
-const LeadsFilters = ({ 
-  searchTerm, 
-  setSearchTerm, 
-  filterStatus, 
+// Friendly labels for roles shown next to staff names in the dropdown
+const ROLE_LABELS = {
+  ADMIN:       'General Manager',
+  OPS:         'Operations Manager',
+  ADM_MANAGER: 'Admission Manager',
+  ADM_EXEC:    'Admission Executive',
+  CM:          'Center Manager',
+  BDM:         'Business Development Manager',
+  FOE:         'FOE Cum TC',
+  HR:          'HR',
+  MEDIA:       'Media',
+  BUSINESS_HEAD: 'Business Head',
+};
+
+const getRoleLabel = (role) => ROLE_LABELS[(role || '').toUpperCase()] || role;
+
+const LeadsFilters = ({
+  searchTerm,
+  setSearchTerm,
+  filterStatus,
   setFilterStatus,
   filterPriority,
   setFilterPriority,
@@ -12,14 +28,18 @@ const LeadsFilters = ({
   setFilterSource,
   filterStaff,
   setFilterStaff,
-  staffMembers
+  staffMembers,
 }) => {
   return (
     <div className="bg-white rounded-2xl p-6 mb-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
       <div className="space-y-4">
+
         {/* Search Bar */}
         <div className="relative group">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={20} />
+          <Search
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors"
+            size={20}
+          />
           <input
             type="text"
             placeholder="Search leads by name, email, phone, or program..."
@@ -31,6 +51,7 @@ const LeadsFilters = ({
 
         {/* Filter Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+
           {/* Status Filter */}
           <div className="relative">
             <select
@@ -94,14 +115,15 @@ const LeadsFilters = ({
               {staffMembers && staffMembers.map((staff) => (
                 <option key={staff.id} value={staff.id}>
                   {staff.first_name} {staff.last_name}
+                  {staff.role ? ` — ${getRoleLabel(staff.role)}` : ''}
                 </option>
               ))}
             </select>
             <SlidersHorizontal className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
           </div>
 
-          {/* Clear Filters Button */}
-          <button 
+          {/* Clear Filters */}
+          <button
             onClick={() => {
               setSearchTerm('');
               setFilterStatus('all');
