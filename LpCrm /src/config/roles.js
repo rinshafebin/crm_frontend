@@ -10,7 +10,9 @@ export const roleNavigation = {
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
     { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
-    { id: "Reports", label: "Reports", icon: FileText, path: "/daily/reports" }
+    { id: "Reports", label: "Reports", icon: FileText, path: "/daily/reports" },
+    { id: "call", label: "call", icon: PhoneCall, path: "/call-analytics" },
+
   ],
 
   BUSINESS_HEAD: [
