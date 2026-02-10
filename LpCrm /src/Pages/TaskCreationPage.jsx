@@ -60,7 +60,9 @@ export default function TaskCreationPage() {
         }
 
         if (Array.isArray(employeeList) && employeeList.length > 0) {
-          setTeamMembers(employeeList);
+          // Filter out ADMIN role employees
+          const filteredEmployees = employeeList.filter(emp => emp.role !== 'ADMIN');
+          setTeamMembers(filteredEmployees);
         } else {
           setTeamMembers([]);
         }

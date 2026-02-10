@@ -15,10 +15,9 @@ export default function TeamMemberSelector({
 }) {
   const dropdownRef = useRef(null);
 
-  // Role display configuration
+  // Role display configuration (ADMIN roles are excluded from selection)
   const roleConfig = {
     'ADM_EXEC': { label: 'Admin Executive', color: 'bg-purple-100 text-purple-700'},
-    'ADMIN': { label: 'Admin', color: 'bg-indigo-100 text-indigo-700'},
     'ADM_MANAGER': { label: 'Admin Manager', color: 'bg-blue-100 text-blue-700'},
     'MEDIA': { label: 'Media', color: 'bg-pink-100 text-pink-700'},
     'FOE': { label: 'Front of Exec', color: 'bg-cyan-100 text-cyan-700'},
