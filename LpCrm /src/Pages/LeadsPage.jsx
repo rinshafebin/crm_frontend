@@ -13,7 +13,8 @@ import { canReceiveIncoming } from '../Components/utils/callPermissions.js'
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const PAGE_SIZE = 50;
 
-const EXCLUDED_STAFF_ROLES = ['TRAINER', 'ACCOUNTS'];
+const EXCLUDED_STAFF_ROLES = ['TRAINER', 'ACCOUNTS','MEDIA','HR','ADMIN'];
+
 
 export default function LeadsPage() {
   const { accessToken, refreshAccessToken, loading: authLoading, user } = useAuth();
