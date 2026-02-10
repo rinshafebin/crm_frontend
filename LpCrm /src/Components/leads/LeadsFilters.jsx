@@ -95,13 +95,14 @@ const LeadsFilters = ({
               className="appearance-none w-full px-4 py-3 pr-10 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all cursor-pointer font-semibold text-gray-700 bg-white hover:bg-gray-50"
             >
               <option value="all">All Staff</option>
-              <option value="unassigned">Unassigned</option>
               {staffMembers && staffMembers.map((staff) => (
                 <option key={staff.id} value={staff.id}>
                   {/* Show username if available, otherwise fallback to first_name last_name */}
                   {staff.username || `${staff.first_name || ''} ${staff.last_name || ''}`.trim() || `Staff #${staff.id}`}
                 </option>
               ))}
+              <option value="Unassigned">Unassigned</option>
+
             </select>
             <SlidersHorizontal className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
           </div>
