@@ -13,8 +13,7 @@ import { canReceiveIncoming } from '../Components/utils/callPermissions.js'
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const PAGE_SIZE = 50;
 
-const EXCLUDED_STAFF_ROLES = ['TRAINER', 'ACCOUNTS','MEDIA','HR','ADMIN'];
-
+const EXCLUDED_STAFF_ROLES = ['TRAINER', 'ACCOUNTS'];
 
 export default function LeadsPage() {
   const { accessToken, refreshAccessToken, loading: authLoading, user } = useAuth();
@@ -141,19 +140,63 @@ export default function LeadsPage() {
     const fetchLeads = async () => {
       setLoading(true);
       try {
-        const params = new URLSearchParams({
-          page, page_size: PAGE_SIZE,
-          ...(debouncedSearch                && { search: debouncedSearch }),
-          ...(filterStatus   !== 'all'       && { status:      filterStatus.toUpperCase()   }),
-          ...(filterPriority !== 'all'       && { priority:    filterPriority.toUpperCase() }),
-          ...(filterSource   !== 'all'       && { source:      filterSource.toUpperCase()   }),
-          ...(filterStaff    !== 'all'       && (filterStaff === 'unassigned'
-                                                  ? { assigned_to: 'null' }
-                                                  : { assigned_to: filterStaff })),
-        });
-        const res  = await authFetch(`${API_BASE_URL}/leads/?${params}`);
-        if (!res.ok) throw new Error('Failed to fetch leads');
+        // Build params object
+        const paramsObj = {
+          page,
+          page_size: PAGE_SIZE,
+        };
+
+        // Add search if present
+        if (debouncedSearch) {
+          paramsObj.search = debouncedSearch;
+        }
+
+        // Add status filter
+        if (filterStatus !== 'all') {
+          paramsObj.status = filterStatus.toUpperCase();
+        }
+
+        // Add priority filter
+        if (filterPriority !== 'all') {
+          paramsObj.priority = filterPriority.toUpperCase();
+        }
+
+        // Add source filter
+        if (filterSource !== 'all') {
+          paramsObj.source = filterSource.toUpperCase();
+        }
+
+        // Handle staff/assignment filter - FIXED FOR UNASSIGNED
+        if (filterStaff !== 'all') {
+          if (filterStaff === 'unassigned') {
+            // Try multiple approaches for unassigned leads
+            // Your backend might expect one of these formats:
+            paramsObj.assigned_to__isnull = 'true';  // Django/DRF common format
+            // OR: paramsObj.assigned_to = '';          // Empty string
+            // OR: paramsObj.unassigned = 'true';       // Custom field
+            
+            // Log to help debug which format your backend expects
+            console.log('Filtering for unassigned leads');
+          } else {
+            paramsObj.assigned_to = filterStaff;
+          }
+        }
+
+        const params = new URLSearchParams(paramsObj);
+        const url = `${API_BASE_URL}/leads/?${params}`;
+        
+        console.log('Fetching leads with URL:', url);
+        console.log('Filter params:', paramsObj);
+        
+        const res = await authFetch(url);
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('Leads API Error:', res.status, errorText);
+          throw new Error('Failed to fetch leads');
+        }
+        
         const data = await res.json();
+        console.log('Leads response:', data);
 
         const leadsData = data.results?.leads || data.results || [];
         const statsData = data.results?.stats || {};
@@ -251,7 +294,7 @@ export default function LeadsPage() {
         )}
       </div>
 
-      {/* Incoming call modal – gated by role inside the component */}
+
       {canReceiveIncoming(userRole) && (
         <IncomingCallModal
           isOpen={incomingCall.isOpen}
