@@ -54,6 +54,7 @@ export default function StudentsPage() {
       // Build params object
       const params = {
         page,
+        page_size: 50, // Request 50 items per page
       };
 
       // Add search if present
@@ -81,9 +82,9 @@ export default function StudentsPage() {
       const studentsData = res.data.results || res.data;
       setStudents(studentsData);
 
-      // Calculate total pages
+      // Calculate total pages based on 50 items per page
       const totalCount = res.data.count || studentsData.length || 0;
-      setTotalPages(Math.ceil(totalCount / 10));
+      setTotalPages(Math.ceil(totalCount / 50));
     } catch (err) {
       console.error("Failed to load students", err);
       console.error("Error details:", err.response?.data);
@@ -155,7 +156,12 @@ export default function StudentsPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <Pagination page={page} setPage={setPage} totalPages={totalPages} />
+          <Pagination 
+            currentPage={page} 
+            totalPages={totalPages}
+            onPageChange={setPage}
+            className="mt-8"
+          />
         )}
       </div>
     </div>
