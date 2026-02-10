@@ -80,6 +80,7 @@ export default function StaffPage() {
         if (search) queryParams.append('search', search);
         if (team && team !== 'all') queryParams.append('team', team);
         queryParams.append('page', page);
+        queryParams.append('page_size', '50'); // Request 50 items per page
 
         const res = await authFetch(`${API_BASE_URL}/staff/?${queryParams.toString()}`);
         const data = await res.json();
@@ -202,7 +203,7 @@ export default function StaffPage() {
 
   if (authLoading) return <div className="p-10 text-center">Checking session…</div>;
 
-  const totalPages = Math.ceil(pagination.count / 10);
+  const totalPages = Math.ceil(pagination.count / 50);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -375,8 +376,8 @@ export default function StaffPage() {
               ))}
             </div>
 
-            {/* Only show pagination if there are more than 10 staff members */}
-            {pagination.count > 10 && (
+            {/* Only show pagination if there are more than 50 staff members */}
+            {pagination.count > 50 && (
               <Pagination
                 currentPage={pagination.currentPage}
                 totalPages={totalPages}
