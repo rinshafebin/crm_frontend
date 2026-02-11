@@ -211,8 +211,8 @@ export default function MyReportsPage() {
       let token = accessToken || await refreshAccessToken();
       if (!token) throw new Error('Authentication required');
 
-      // ✅ FIXED: correct update URL matches urls.py pattern
-      const response = await fetch(`${API_BASE_URL}/reports/my/${editingReport.id}/update/`, {
+      // ✅ FIXED: correct update URL matches urls.py pattern  reports/<pk>/edit/
+      const response = await fetch(`${API_BASE_URL}/reports/${editingReport.id}/edit/`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}` },
         body: buildFormData(),
