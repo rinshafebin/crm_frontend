@@ -269,7 +269,7 @@ export default function ReportsPage() {
                               className="p-2.5 text-green-600 hover:bg-green-100 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
                               title="View Attachment"
                             >
-                              <Eye size={18} />
+                              <Download size={18} />
                             </button>
                           )}
                         </div>
