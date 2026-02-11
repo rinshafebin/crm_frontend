@@ -34,6 +34,35 @@ export default function MyReportsPage() {
 
   const userName = user?.name || user?.username || 'User';
 
+  // ── Helper: force-download via fetch → blob → programmatic click ─────────
+  // The HTML <a download> attribute is silently ignored for cross-origin URLs.
+  // Cloudinary is always cross-origin, so we fetch the bytes ourselves and
+  // create a local blob: URL — that way the browser always respects `download`.
+  const downloadFile = async (attachment) => {
+    const url = attachment.download_url || attachment.view_url;
+    if (!url) return;
+
+    const filename = attachment.original_filename || url.split('/').pop().split('?')[0] || 'download';
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Network error');
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Download failed, falling back to new tab:', err);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const getFileIcon = (fileUrl) => {
     if (!fileUrl) return <FileText className="w-8 h-8 text-blue-600" />;
     const fileName = (typeof fileUrl === 'string' ? fileUrl : fileUrl.name || '').toLowerCase();
@@ -528,13 +557,12 @@ export default function MyReportsPage() {
                           <span className="text-sm text-gray-700 flex-1 truncate">
                             {attachment.original_filename || getFileName(attachment.view_url)}
                           </span>
-                          <a
-                            href={attachment.download_url || attachment.view_url}
-                            download target="_blank" rel="noopener noreferrer"
+                          <button
+                            onClick={() => downloadFile(attachment)}
                             className="text-blue-600 hover:text-blue-700"
                           >
                             <Download className="w-4 h-4" />
-                          </a>
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -604,14 +632,13 @@ export default function MyReportsPage() {
                               )}
                             </div>
                           </div>
-                          {/* ✅ FIXED: was attachment.attached_file — now uses download_url */}
-                          <a
-                            href={attachment.download_url || attachment.view_url}
-                            download target="_blank" rel="noopener noreferrer"
+                          {/* ✅ FIXED: blob-based download so filename is always the original name */}
+                          <button
+                            onClick={() => downloadFile(attachment)}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2 transition-colors ml-3"
                           >
                             <Download className="w-4 h-4" /> Download
-                          </a>
+                          </button>
                         </div>
                       ))}
                     </div>

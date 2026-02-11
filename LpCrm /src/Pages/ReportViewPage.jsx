@@ -96,6 +96,35 @@ export default function ReportViewPage() {
     return <FileText className="w-6 h-6 text-gray-600" />;
   };
 
+  // ── Helper: force-download via fetch → blob → programmatic click ─────────
+  // <a href="..." download> is silently ignored by all browsers for cross-origin
+  // URLs (Cloudinary is a different domain). We must fetch the bytes ourselves
+  // and hand them to the browser as a local blob URL so the download attribute works.
+  const downloadFile = async (attachment) => {
+    const url = attachment.download_url || attachment.view_url;
+    if (!url) return;
+
+    const filename = attachment.original_filename || url.split('/').pop().split('?')[0] || 'download';
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;   // original name — always respected for blob: URLs
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Download failed, falling back to new tab:', err);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   // ── Helper: open attachment in best viewer ───────────────────────────────
   const openAttachment = (attachment) => {
     const fileUrl = attachment.view_url;
@@ -362,16 +391,13 @@ export default function ReportViewPage() {
                       View
                     </button>
                     {attachment.download_url && (
-                      <a
-                        href={attachment.download_url}
-                        download
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => downloadFile(attachment)}
                         className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold text-sm transition-colors"
                       >
                         <Download size={16} />
                         Download
-                      </a>
+                      </button>
                     )}
                   </div>
                 </div>
