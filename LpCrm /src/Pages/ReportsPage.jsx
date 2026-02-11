@@ -60,23 +60,31 @@ export default function ReportsPage() {
     fetchReports(page);
   }, [accessToken, page]);
 
-  // ── Helper: open a single attachment in the best viewer ──────────────────
-  const openAttachment = (attachment) => {
-    const fileUrl = attachment.view_url || attachment.file_url;
-    if (!fileUrl) return;
 
-    const lower = fileUrl.toLowerCase();
-    const isPdf = lower.includes('.pdf');
-    const isDoc = lower.match(/\.(doc|docx)$/);
-    const isImage = lower.match(/\.(jpg|jpeg|png|gif|webp)$/);
-
-    if (isPdf || isDoc) {
-      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
-      window.open(viewerUrl, '_blank', 'noopener,noreferrer');
-    } else if (isImage) {
-      window.open(fileUrl, '_blank', 'noopener,noreferrer');
-    } else {
-      window.open(attachment.download_url || fileUrl, '_blank', 'noopener,noreferrer');
+  // ── Download via Django proxy ─────────────────────────────────────────────
+  // Django fetches from Cloudinary server-side and responds with
+  // Content-Disposition: attachment; filename="original_name.pdf"
+  const downloadFile = async (attachment) => {
+    if (!attachment?.id) return;
+    try {
+      const response = await fetch(
+        `${API_BASE}/reports/attachments/${attachment.id}/download/`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      if (!response.ok) throw new Error(`Server error ${response.status}`);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const filename = attachment.original_filename || 'download';
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Download failed:', err);
+      alert('Download failed. Please try again.');
     }
   };
 
@@ -226,13 +234,12 @@ export default function ReportsPage() {
                           {/* ✅ FIXED: was report.attached_file — now checks attachments array */}
                           {report.attachments?.length > 0 && (
                             <button
-                              onClick={() => openAttachment(report.attachments[0])}
+                              onClick={() => downloadFile(report.attachments[0])}
                               className="p-2.5 text-green-600 hover:bg-green-100 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
-                              title={`View ${report.attachments.length} attachment${report.attachments.length > 1 ? 's' : ''}`}
+                              title={`Download ${report.attachments[0].original_filename || 'attachment'}`}
                             >
                               <div className="flex items-center gap-1">
                                 <Download size={18} />
-                                {/* Show count badge if more than 1 */}
                                 {report.attachments.length > 1 && (
                                   <span className="text-xs font-bold bg-green-600 text-white rounded-full w-4 h-4 flex items-center justify-center">
                                     {report.attachments.length}
