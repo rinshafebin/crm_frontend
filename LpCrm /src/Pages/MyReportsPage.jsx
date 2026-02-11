@@ -20,7 +20,8 @@ import {
   Trash2,
   FileSpreadsheet,
   File,
-  Image
+  Image,
+  Paperclip
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -42,7 +43,7 @@ export default function MyReportsPage() {
     heading: '',
     report_text: '',
     report_date: new Date().toISOString().split('T')[0],
-    attached_file: null
+    attached_files: [] // Changed from single file to array
   });
   
   const [errors, setErrors] = useState({});
@@ -71,6 +72,17 @@ export default function MyReportsPage() {
     }
     
     return <FileText className="w-8 h-8 text-gray-600" />;
+  };
+
+  // Helper to get filename from URL or File object
+  const getFileName = (file) => {
+    if (file instanceof File) {
+      return file.name;
+    }
+    if (typeof file === 'string') {
+      return file.split('/').pop().split('?')[0];
+    }
+    return 'Unknown file';
   };
 
   // Fetch reports with auth
@@ -142,16 +154,45 @@ export default function MyReportsPage() {
     }
   };
 
+  // Updated to handle multiple files
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
+    const files = Array.from(e.target.files);
+    
+    if (files.length === 0) return;
+
+    // Validate each file
+    const validFiles = [];
+    const fileErrors = [];
+
+    files.forEach((file) => {
       if (file.size > 10 * 1024 * 1024) {
-        setErrors(prev => ({ ...prev, attached_file: 'File size must be less than 10MB' }));
-        return;
+        fileErrors.push(`${file.name} is too large (max 10MB)`);
+      } else {
+        validFiles.push(file);
       }
-      setFormData(prev => ({ ...prev, attached_file: file }));
-      setErrors(prev => ({ ...prev, attached_file: '' }));
+    });
+
+    if (fileErrors.length > 0) {
+      setErrors(prev => ({ 
+        ...prev, 
+        attached_files: fileErrors.join(', ')
+      }));
+      return;
     }
+
+    setFormData(prev => ({ 
+      ...prev, 
+      attached_files: [...prev.attached_files, ...validFiles]
+    }));
+    setErrors(prev => ({ ...prev, attached_files: '' }));
+  };
+
+  // Remove file from selection
+  const removeFile = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      attached_files: prev.attached_files.filter((_, i) => i !== index)
+    }));
   };
 
   const validateForm = () => {
@@ -189,9 +230,10 @@ export default function MyReportsPage() {
       submitData.append('report_text', formData.report_text);
       submitData.append('report_date', formData.report_date);
       
-      if (formData.attached_file) {
-        submitData.append('attached_file', formData.attached_file);
-      }
+      // Append all files with the same field name
+      formData.attached_files.forEach((file) => {
+        submitData.append('attached_files', file);
+      });
 
       const response = await fetch(`${API_BASE_URL}/reports/create/`, {
         method: 'POST',
@@ -213,7 +255,7 @@ export default function MyReportsPage() {
         heading: '',
         report_text: '',
         report_date: new Date().toISOString().split('T')[0],
-        attached_file: null
+        attached_files: []
       });
       setErrors({});
       fetchReports();
@@ -237,7 +279,7 @@ export default function MyReportsPage() {
       heading: report.heading,
       report_text: report.report_text,
       report_date: report.report_date,
-      attached_file: null
+      attached_files: [] // New files to add
     });
     setShowEditModal(true);
   };
@@ -257,10 +299,10 @@ export default function MyReportsPage() {
       submitData.append('report_text', formData.report_text);
       submitData.append('report_date', formData.report_date);
       
-      // Only append file if a new file was selected
-      if (formData.attached_file) {
-        submitData.append('attached_file', formData.attached_file);
-      }
+      // Append all new files
+      formData.attached_files.forEach((file) => {
+        submitData.append('attached_files', file);
+      });
 
       const response = await fetch(`${API_BASE_URL}/reports/${editingReport.id}/edit/`, {
         method: 'PUT',
@@ -283,7 +325,7 @@ export default function MyReportsPage() {
         heading: '',
         report_text: '',
         report_date: new Date().toISOString().split('T')[0],
-        attached_file: null
+        attached_files: []
       });
       setErrors({});
       fetchReports();
@@ -461,10 +503,11 @@ export default function MyReportsPage() {
                         <Clock className="w-4 h-4" />
                         <span>Submitted {formatDate(report.created_at)}</span>
                       </div>
-                      {report.attached_file && (
+                      {/* Updated to show count of attachments */}
+                      {report.attachments && report.attachments.length > 0 && (
                         <div className="flex items-center gap-1.5 text-indigo-600 font-medium">
-                          <Download className="w-4 h-4" />
-                          <span>Attachment</span>
+                          <Paperclip className="w-4 h-4" />
+                          <span>{report.attachments.length} Attachment{report.attachments.length !== 1 ? 's' : ''}</span>
                         </div>
                       )}
                     </div>
@@ -507,174 +550,12 @@ export default function MyReportsPage() {
                   onClick={() => {
                     setShowCreateModal(false);
                     setErrors({});
-                  }}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <X className="w-6 h-6 text-gray-500" />
-                </button>
-              </div>
-
-              <div className="p-6">
-                {errors.submit && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                    {errors.submit}
-                  </div>
-                )}
-
-                <div className="space-y-5">
-                  {/* Name */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Your Name <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      placeholder="Enter your name"
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                        errors.name ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    />
-                    {errors.name && (
-                      <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-                    )}
-                  </div>
-
-                  {/* Heading */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Report Heading <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="heading"
-                      value={formData.heading}
-                      onChange={handleInputChange}
-                      placeholder="Brief heading for your report"
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                        errors.heading ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    />
-                    {errors.heading && (
-                      <p className="mt-1 text-sm text-red-500">{errors.heading}</p>
-                    )}
-                  </div>
-
-                  {/* Report Date */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Report Date <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      name="report_date"
-                      value={formData.report_date}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                        errors.report_date ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    />
-                    {errors.report_date && (
-                      <p className="mt-1 text-sm text-red-500">{errors.report_date}</p>
-                    )}
-                  </div>
-
-                  {/* Report Text */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Report Details <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      name="report_text"
-                      value={formData.report_text}
-                      onChange={handleInputChange}
-                      rows={6}
-                      placeholder="Describe your daily activities, accomplishments, and any issues encountered..."
-                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                        errors.report_text ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    />
-                    {errors.report_text && (
-                      <p className="mt-1 text-sm text-red-500">{errors.report_text}</p>
-                    )}
-                  </div>
-
-                  {/* File Upload */}
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Attach File (Optional)
-                    </label>
-                    <input
-                      type="file"
-                      onChange={handleFileChange}
-                      accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                    <p className="mt-1 text-xs text-gray-500">
-                      Max file size: 10MB. Accepted formats: PDF, DOC, DOCX, XLS, XLSX, TXT, JPG, PNG
-                    </p>
-                    {errors.attached_file && (
-                      <p className="mt-1 text-sm text-red-500">{errors.attached_file}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Form Actions */}
-                <div className="mt-8 flex gap-3 justify-end">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCreateModal(false);
-                      setErrors({});
-                    }}
-                    disabled={submitting}
-                    className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-5 h-5" />
-                        Submit Report
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Edit Report Modal */}
-        {showEditModal && (
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-                <h2 className="text-2xl font-bold text-gray-900">Edit Report</h2>
-                <button
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingReport(null);
-                    setErrors({});
                     setFormData({
                       name: user?.name || user?.username || '',
                       heading: '',
                       report_text: '',
                       report_date: new Date().toISOString().split('T')[0],
-                      attached_file: null
+                      attached_files: []
                     });
                   }}
                   className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -770,27 +651,287 @@ export default function MyReportsPage() {
                     )}
                   </div>
 
-                  {/* File Upload */}
+                  {/* File Upload - Updated for multiple files */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Update Attached File (Optional)
+                      Attach Files (Optional)
                     </label>
-                    {editingReport?.attached_file && (
-                      <p className="text-sm text-gray-600 mb-2">
-                        Current file attached. Upload a new file to replace it.
-                      </p>
-                    )}
                     <input
                       type="file"
                       onChange={handleFileChange}
+                      multiple
                       accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png"
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                     <p className="mt-1 text-xs text-gray-500">
-                      Max file size: 10MB. Accepted formats: PDF, DOC, DOCX, XLS, XLSX, TXT, JPG, PNG
+                      Max file size: 10MB per file. Accepted formats: PDF, DOC, DOCX, XLS, XLSX, TXT, JPG, PNG
                     </p>
-                    {errors.attached_file && (
-                      <p className="mt-1 text-sm text-red-500">{errors.attached_file}</p>
+                    {errors.attached_files && (
+                      <p className="mt-1 text-sm text-red-500">{errors.attached_files}</p>
+                    )}
+
+                    {/* Display selected files */}
+                    {formData.attached_files.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <p className="text-sm font-medium text-gray-700">
+                          Selected Files ({formData.attached_files.length}):
+                        </p>
+                        {formData.attached_files.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              {getFileIcon(file.name)}
+                              <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                              <span className="text-xs text-gray-500">
+                                ({(file.size / 1024).toFixed(1)} KB)
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeFile(index)}
+                              className="p-1 hover:bg-red-100 rounded transition-colors"
+                              title="Remove file"
+                            >
+                              <X className="w-4 h-4 text-red-600" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Form Actions */}
+                <div className="mt-8 flex gap-3 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      setErrors({});
+                      setFormData({
+                        name: user?.name || user?.username || '',
+                        heading: '',
+                        report_text: '',
+                        report_date: new Date().toISOString().split('T')[0],
+                        attached_files: []
+                      });
+                    }}
+                    disabled={submitting}
+                    className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:shadow-lg font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-5 h-5" />
+                        Submit Report
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Report Modal - Similar updates */}
+        {showEditModal && (
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+                <h2 className="text-2xl font-bold text-gray-900">Edit Report</h2>
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingReport(null);
+                    setErrors({});
+                    setFormData({
+                      name: user?.name || user?.username || '',
+                      heading: '',
+                      report_text: '',
+                      report_date: new Date().toISOString().split('T')[0],
+                      attached_files: []
+                    });
+                  }}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <X className="w-6 h-6 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                {errors.submit && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {errors.submit}
+                  </div>
+                )}
+
+                <div className="space-y-5">
+                  {/* Name */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Your Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Enter your name"
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                        errors.name ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.name && (
+                      <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                    )}
+                  </div>
+
+                  {/* Heading */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Report Heading <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="heading"
+                      value={formData.heading}
+                      onChange={handleInputChange}
+                      placeholder="Brief heading for your report"
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                        errors.heading ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.heading && (
+                      <p className="mt-1 text-sm text-red-500">{errors.heading}</p>
+                    )}
+                  </div>
+
+                  {/* Report Date */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Report Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="report_date"
+                      value={formData.report_date}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                        errors.report_date ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.report_date && (
+                      <p className="mt-1 text-sm text-red-500">{errors.report_date}</p>
+                    )}
+                  </div>
+
+                  {/* Report Text */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Report Details <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      name="report_text"
+                      value={formData.report_text}
+                      onChange={handleInputChange}
+                      rows={6}
+                      placeholder="Describe your daily activities, accomplishments, and any issues encountered..."
+                      className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                        errors.report_text ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {errors.report_text && (
+                      <p className="mt-1 text-sm text-red-500">{errors.report_text}</p>
+                    )}
+                  </div>
+
+                  {/* Existing Attachments Display */}
+                  {editingReport?.attachments && editingReport.attachments.length > 0 && (
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Current Attachments
+                      </label>
+                      <div className="space-y-2">
+                        {editingReport.attachments.map((attachment, index) => (
+                          <div key={index} className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+                            {getFileIcon(attachment.original_filename || attachment.attached_file)}
+                            <span className="text-sm text-gray-700 flex-1">
+                              {attachment.original_filename || getFileName(attachment.attached_file)}
+                            </span>
+                            <a
+                              href={attachment.attached_file}
+                              download
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-700"
+                            >
+                              <Download className="w-4 h-4" />
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="mt-2 text-xs text-gray-500">
+                        Note: Existing attachments cannot be removed. You can only add new files.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* File Upload */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Add New Files (Optional)
+                    </label>
+                    <input
+                      type="file"
+                      onChange={handleFileChange}
+                      multiple
+                      accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Max file size: 10MB per file. Accepted formats: PDF, DOC, DOCX, XLS, XLSX, TXT, JPG, PNG
+                    </p>
+                    {errors.attached_files && (
+                      <p className="mt-1 text-sm text-red-500">{errors.attached_files}</p>
+                    )}
+
+                    {/* Display newly selected files */}
+                    {formData.attached_files.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <p className="text-sm font-medium text-gray-700">
+                          New Files to Add ({formData.attached_files.length}):
+                        </p>
+                        {formData.attached_files.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              {getFileIcon(file.name)}
+                              <span className="text-sm text-gray-700 truncate">{file.name}</span>
+                              <span className="text-xs text-gray-500">
+                                ({(file.size / 1024).toFixed(1)} KB)
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeFile(index)}
+                              className="p-1 hover:bg-red-100 rounded transition-colors"
+                              title="Remove file"
+                            >
+                              <X className="w-4 h-4 text-red-600" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -808,7 +949,7 @@ export default function MyReportsPage() {
                         heading: '',
                         report_text: '',
                         report_date: new Date().toISOString().split('T')[0],
-                        attached_file: null
+                        attached_files: []
                       });
                     }}
                     disabled={submitting}
@@ -840,7 +981,7 @@ export default function MyReportsPage() {
           </div>
         )}
 
-        {/* View Report Modal */}
+        {/* View Report Modal - Updated for multiple attachments */}
         {selectedReport && (
           <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
@@ -882,26 +1023,38 @@ export default function MyReportsPage() {
                   </p>
                 </div>
 
-                {selectedReport.attached_file && (
+                {/* Updated Attachments Display */}
+                {selectedReport.attachments && selectedReport.attachments.length > 0 && (
                   <div className="bg-blue-50 rounded-lg p-4 mb-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {getFileIcon(selectedReport.attached_file)}
-                        <div>
-                          <p className="font-semibold text-gray-900">Attached File</p>
-                          <p className="text-sm text-gray-600">Click to download</p>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                      Attachments ({selectedReport.attachments.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {selectedReport.attachments.map((attachment, index) => (
+                        <div key={index} className="flex items-center justify-between bg-white p-3 rounded-lg">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            {getFileIcon(attachment.original_filename || attachment.attached_file)}
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-gray-900 truncate">
+                                {attachment.original_filename || getFileName(attachment.attached_file)}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Uploaded {formatDate(attachment.uploaded_at)}
+                              </p>
+                            </div>
+                          </div>
+                          <a
+                            href={attachment.attached_file}
+                            download
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2 transition-colors ml-3"
+                          >
+                            <Download className="w-4 h-4" />
+                            Download
+                          </a>
                         </div>
-                      </div>
-                      <a
-                        href={selectedReport.attached_file}
-                        download
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2 transition-colors"
-                      >
-                        <Download className="w-4 h-4" />
-                        Download
-                      </a>
+                      ))}
                     </div>
                   </div>
                 )}
