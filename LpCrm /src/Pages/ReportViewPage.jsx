@@ -92,6 +92,38 @@ export default function ReportViewPage() {
     }
   };
 
+  // Handle file viewing with same logic as ReportsPage
+  const handleViewAttachment = () => {
+    if (!report?.file_url) return;
+    
+    const fileUrl = report.file_url;
+    const fileName = report.name || 'file';
+    
+    // Check file extension
+    const lowerUrl = fileUrl?.toLowerCase() || '';
+    const isPdf = lowerUrl.includes('.pdf');
+    const isDoc = lowerUrl.match(/\.(doc|docx)$/);
+    const isImage = lowerUrl.match(/\.(jpg|jpeg|png|gif|webp)$/);
+    
+    if (isPdf || isDoc) {
+      // Use Google Docs Viewer for PDFs and Word docs
+      const encodedUrl = encodeURIComponent(fileUrl);
+      const viewerUrl = `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`;
+      window.open(viewerUrl, '_blank', 'noopener,noreferrer');
+    } else if (isImage) {
+      // Images open directly
+      window.open(fileUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      // For other file types, try to open directly
+      // If Cloudinary URL, add inline flag
+      let viewUrl = fileUrl;
+      if (viewUrl.includes('cloudinary.com') && viewUrl.includes('/upload/')) {
+        viewUrl = viewUrl.replace('/upload/', '/upload/fl_attachment/');
+      }
+      window.open(viewUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -191,15 +223,13 @@ export default function ReportViewPage() {
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4 border-t border-gray-200">
             {report.attached_file && (
-              <a
-                href={report.file_url}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={handleViewAttachment}
                 className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
               >
                 <Download size={18} />
-                Download Attachment
-              </a>
+                View Attachment
+              </button>
             )}
             
             {report.status === 'pending' && (
@@ -295,14 +325,12 @@ export default function ReportViewPage() {
               </label>
               <p className="text-gray-900 font-medium">
                 {report.attached_file ? (
-                  <a 
-                    href={report.file_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+                  <button 
+                    onClick={handleViewAttachment}
                     className="text-indigo-600 hover:text-indigo-700 hover:underline"
                   >
                     View File
-                  </a>
+                  </button>
                 ) : 'No file attached'}
               </p>
             </div>
