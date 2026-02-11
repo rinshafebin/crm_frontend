@@ -9,13 +9,15 @@ import {
   User, 
   Calendar, 
   Download, 
-  Check, 
   Clock,
   Tag,
-  FileCheck,
   XCircle,
   MessageSquare,
-  CheckCircle
+  CheckCircle,
+  Paperclip,
+  FileSpreadsheet,
+  File,
+  Image
 } from 'lucide-react';
 
 export default function ReportViewPage() {
@@ -26,13 +28,12 @@ export default function ReportViewPage() {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [reviewModal, setReviewModal] = useState(false);
-  const [reviewAction, setReviewAction] = useState(''); 
+  const [reviewAction, setReviewAction] = useState('');
   const [reviewComment, setReviewComment] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
-  // Fetch report details
   const fetchReport = async () => {
     if (!accessToken) return;
     setLoading(true);
@@ -54,36 +55,28 @@ export default function ReportViewPage() {
     fetchReport();
   }, [id, accessToken]);
 
-  // Open review modal
   const openReviewModal = (action) => {
     setReviewAction(action);
     setReviewComment('');
     setReviewModal(true);
   };
 
-  // Handle review submission
   const handleReviewReport = async () => {
     if (!accessToken) return;
-    
-    // Validate rejection comment
     if (reviewAction === 'rejected' && !reviewComment.trim()) {
       alert('Please provide a reason for rejection');
       return;
     }
-    
     setActionLoading(true);
     try {
       await axios.patch(
         `${API_BASE}/admin/reports/${id}/review/`,
-        { 
-          status: reviewAction,
-          review_comment: reviewComment
-        },
+        { status: reviewAction, review_comment: reviewComment },
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       alert(`Report ${reviewAction} successfully!`);
       setReviewModal(false);
-      fetchReport(); // Refresh report data
+      fetchReport();
     } catch (err) {
       console.error('Failed to review report:', err);
       alert('Failed to review report');
@@ -92,35 +85,34 @@ export default function ReportViewPage() {
     }
   };
 
-  // Handle file viewing with same logic as ReportsPage
-  const handleViewAttachment = () => {
-    if (!report?.file_url) return;
-    
-    const fileUrl = report.file_url;
-    const fileName = report.name || 'file';
-    
-    // Check file extension
-    const lowerUrl = fileUrl?.toLowerCase() || '';
-    const isPdf = lowerUrl.includes('.pdf');
-    const isDoc = lowerUrl.match(/\.(doc|docx)$/);
-    const isImage = lowerUrl.match(/\.(jpg|jpeg|png|gif|webp)$/);
-    
+  // ── Helper: get icon based on filename ──────────────────────────────────
+  const getFileIcon = (filename) => {
+    if (!filename) return <FileText className="w-6 h-6 text-blue-600" />;
+    const name = filename.toLowerCase();
+    if (name.match(/\.(xlsx|xls)$/)) return <FileSpreadsheet className="w-6 h-6 text-green-600" />;
+    if (name.includes('.pdf'))        return <File className="w-6 h-6 text-red-600" />;
+    if (name.match(/\.(doc|docx)$/))  return <FileText className="w-6 h-6 text-blue-600" />;
+    if (name.match(/\.(jpg|jpeg|png|gif|webp)$/)) return <Image className="w-6 h-6 text-purple-600" />;
+    return <FileText className="w-6 h-6 text-gray-600" />;
+  };
+
+  // ── Helper: open attachment in best viewer ───────────────────────────────
+  const openAttachment = (attachment) => {
+    const fileUrl = attachment.view_url;
+    if (!fileUrl) return;
+
+    const lower = fileUrl.toLowerCase();
+    const isPdf = lower.includes('.pdf');
+    const isDoc = lower.match(/\.(doc|docx)$/);
+    const isImage = lower.match(/\.(jpg|jpeg|png|gif|webp)$/);
+
     if (isPdf || isDoc) {
-      // Use Google Docs Viewer for PDFs and Word docs
-      const encodedUrl = encodeURIComponent(fileUrl);
-      const viewerUrl = `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`;
+      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
       window.open(viewerUrl, '_blank', 'noopener,noreferrer');
     } else if (isImage) {
-      // Images open directly
       window.open(fileUrl, '_blank', 'noopener,noreferrer');
     } else {
-      // For other file types, try to open directly
-      // If Cloudinary URL, add inline flag
-      let viewUrl = fileUrl;
-      if (viewUrl.includes('cloudinary.com') && viewUrl.includes('/upload/')) {
-        viewUrl = viewUrl.replace('/upload/', '/upload/fl_attachment/');
-      }
-      window.open(viewUrl, '_blank', 'noopener,noreferrer');
+      window.open(attachment.download_url || fileUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -154,38 +146,36 @@ export default function ReportViewPage() {
     );
   }
 
-  // Get status badge
   const getStatusBadge = () => {
     if (report.status === 'approved') {
       return (
         <span className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2 border border-green-200">
-          <CheckCircle size={16} />
-          Approved
+          <CheckCircle size={16} /> Approved
         </span>
       );
     } else if (report.status === 'rejected') {
       return (
         <span className="bg-gradient-to-r from-red-100 to-rose-100 text-red-700 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2 border border-red-200">
-          <XCircle size={16} />
-          Rejected
+          <XCircle size={16} /> Rejected
         </span>
       );
     } else {
       return (
         <span className="bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-700 px-4 py-2 rounded-full text-sm font-bold inline-flex items-center gap-2 border border-yellow-200">
-          <Clock size={16} />
-          Pending Review
+          <Clock size={16} /> Pending Review
         </span>
       );
     }
   };
+
+  // ✅ FIXED: was checking report.attached_file — now checks attachments array
+  const hasAttachments = report.attachments?.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <Navbar />
       
       <div className="max-w-5xl mx-auto px-4 py-8">
-        {/* Back Button */}
         <button
           onClick={() => navigate('/daily/reports')}
           className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 mb-6 transition-colors duration-200 font-medium"
@@ -212,26 +202,32 @@ export default function ReportViewPage() {
                     <User size={16} className="text-indigo-500" />
                     <span className="font-medium">{report.user_name || report.name || 'N/A'}</span>
                   </div>
+                  {/* ✅ FIXED: show attachment count */}
+                  {hasAttachments && (
+                    <div className="flex items-center gap-1.5 text-indigo-600 font-medium">
+                      <Paperclip size={16} />
+                      <span>{report.attachments.length} file{report.attachments.length > 1 ? 's' : ''}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-            <div>
-              {getStatusBadge()}
-            </div>
+            <div>{getStatusBadge()}</div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 border-t border-gray-200">
-            {report.attached_file && (
+          <div className="flex gap-3 pt-4 border-t border-gray-200 flex-wrap">
+            {/* ✅ FIXED: was report.attached_file — now opens first attachment */}
+            {hasAttachments && (
               <button
-                onClick={handleViewAttachment}
+                onClick={() => openAttachment(report.attachments[0])}
                 className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
               >
                 <Download size={18} />
-                View Attachment
+                View Attachment{report.attachments.length > 1 ? `s (${report.attachments.length})` : ''}
               </button>
             )}
-            
+
             {report.status === 'pending' && (
               <>
                 <button
@@ -255,7 +251,7 @@ export default function ReportViewPage() {
           </div>
         </div>
 
-        {/* Report Content/Text */}
+        {/* Report Content */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <FileText size={20} className="text-indigo-600" />
@@ -268,7 +264,7 @@ export default function ReportViewPage() {
           </div>
         </div>
 
-        {/* Report Details */}
+        {/* Report Info */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Tag size={20} className="text-indigo-600" />
@@ -277,71 +273,118 @@ export default function ReportViewPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
-                <FileText size={16} />
-                Report Name
+                <FileText size={16} /> Report Name
               </label>
               <p className="text-gray-900 font-medium">{report.name || 'N/A'}</p>
             </div>
             <div>
               <label className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
-                <Tag size={16} />
-                Report Heading
+                <Tag size={16} /> Report Heading
               </label>
               <p className="text-gray-900 font-medium">{report.heading || 'N/A'}</p>
             </div>
             <div>
               <label className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
-                <User size={16} />
-                Submitted By
+                <User size={16} /> Submitted By
               </label>
               <p className="text-gray-900 font-medium">{report.user_name || report.name || 'N/A'}</p>
             </div>
             <div>
               <label className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
-                <Calendar size={16} />
-                Report Date
+                <Calendar size={16} /> Report Date
               </label>
               <p className="text-gray-900 font-medium">{report.report_date}</p>
             </div>
             <div>
               <label className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
-                <Clock size={16} />
-                Created At
+                <Clock size={16} /> Created At
               </label>
               <p className="text-gray-900 font-medium">
-                {new Date(report.created_at).toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
+                {new Date(report.created_at).toLocaleDateString('en-US', {
+                  year: 'numeric', month: 'long', day: 'numeric',
+                  hour: '2-digit', minute: '2-digit',
                 })}
               </p>
             </div>
+            {/* ✅ FIXED: was report.attached_file — now shows attachment count */}
             <div>
               <label className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
-                <Download size={16} />
-                Attached File
+                <Download size={16} /> Attachments
               </label>
               <p className="text-gray-900 font-medium">
-                {report.attached_file ? (
-                  <button 
-                    onClick={handleViewAttachment}
+                {hasAttachments ? (
+                  <button
+                    onClick={() => openAttachment(report.attachments[0])}
                     className="text-indigo-600 hover:text-indigo-700 hover:underline"
                   >
-                    View File
+                    {report.attachments.length} file{report.attachments.length > 1 ? 's' : ''} attached
                   </button>
-                ) : 'No file attached'}
+                ) : 'No files attached'}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Review Information */}
+        {/* ✅ NEW: All Attachments Section */}
+        {hasAttachments && (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Paperclip size={20} className="text-indigo-600" />
+              Attachments ({report.attachments.length})
+            </h2>
+            <div className="space-y-3">
+              {report.attachments.map((attachment, index) => (
+                <div
+                  key={attachment.id || index}
+                  className="flex items-center justify-between bg-blue-50 border border-blue-100 p-4 rounded-xl"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {getFileIcon(attachment.original_filename)}
+                    <div className="min-w-0">
+                      <p className="font-semibold text-gray-900 truncate">
+                        {attachment.original_filename || `Attachment ${index + 1}`}
+                      </p>
+                      {attachment.uploaded_at && (
+                        <p className="text-xs text-gray-500">
+                          Uploaded {new Date(attachment.uploaded_at).toLocaleDateString('en-US', {
+                            year: 'numeric', month: 'short', day: 'numeric'
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={() => openAttachment(attachment)}
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold text-sm transition-colors"
+                    >
+                      <Download size={16} />
+                      View
+                    </button>
+                    {attachment.download_url && (
+                      <a
+                        href={attachment.download_url}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold text-sm transition-colors"
+                      >
+                        <Download size={16} />
+                        Download
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Review Comment */}
         {(report.status === 'approved' || report.status === 'rejected') && report.review_comment && (
           <div className={`rounded-2xl shadow-lg border p-6 ${
-            report.status === 'approved' 
-              ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200' 
+            report.status === 'approved'
+              ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'
               : 'bg-gradient-to-br from-red-50 to-rose-50 border-red-200'
           }`}>
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -349,14 +392,10 @@ export default function ReportViewPage() {
               Review Comment
             </h2>
             <div className="bg-white rounded-xl p-4 mb-3">
-              <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
-                {report.review_comment}
-              </p>
+              <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">{report.review_comment}</p>
             </div>
             {report.reviewed_by_name && (
-              <p className="text-sm text-gray-700 font-medium">
-                Reviewed by: {report.reviewed_by_name}
-              </p>
+              <p className="text-sm text-gray-700 font-medium">Reviewed by: {report.reviewed_by_name}</p>
             )}
           </div>
         )}
@@ -370,8 +409,8 @@ export default function ReportViewPage() {
               {reviewAction === 'approved' ? 'Approve Report' : 'Reject Report'}
             </h3>
             <p className="text-gray-600 mb-4">
-              {reviewAction === 'approved' 
-                ? 'Are you sure you want to approve this report? You can add an optional comment below.' 
+              {reviewAction === 'approved'
+                ? 'Are you sure you want to approve this report? You can add an optional comment below.'
                 : 'Please provide a reason for rejecting this report.'}
             </p>
             <div className="mb-6">
@@ -397,8 +436,8 @@ export default function ReportViewPage() {
               <button
                 onClick={handleReviewReport}
                 className={`px-5 py-2.5 text-white rounded-xl font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
-                  reviewAction === 'approved' 
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:shadow-lg' 
+                  reviewAction === 'approved'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:shadow-lg'
                     : 'bg-gradient-to-r from-red-500 to-rose-600 hover:shadow-lg'
                 }`}
                 disabled={actionLoading || (reviewAction === 'rejected' && !reviewComment.trim())}
