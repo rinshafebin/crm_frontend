@@ -17,7 +17,8 @@ import {
   Paperclip,
   FileSpreadsheet,
   File,
-  Image
+  Image,
+  Eye
 } from 'lucide-react';
 
 export default function ReportViewPage() {
@@ -96,10 +97,7 @@ export default function ReportViewPage() {
     return <FileText className="w-6 h-6 text-gray-600" />;
   };
 
-  // ── Download via Django proxy ─────────────────────────────────────────────
-  // Django fetches from Cloudinary server-side and streams back with
-  // Content-Disposition: attachment; filename="original_name.pdf"
-  // We use fetch+blob so we can send the JWT Authorization header.
+  // ✅ FIXED: Download file using the same approach as ReportsPage
   const downloadFile = async (attachment) => {
     if (!attachment?.id) return;
     try {
@@ -124,23 +122,48 @@ export default function ReportViewPage() {
     }
   };
 
-  // ── Helper: open attachment in best viewer ───────────────────────────────
-  const openAttachment = (attachment) => {
-    const fileUrl = attachment.view_url;
-    if (!fileUrl) return;
-
-    const lower = fileUrl.toLowerCase();
-    const isPdf = lower.includes('.pdf');
-    const isDoc = lower.match(/\.(doc|docx)$/);
-    const isImage = lower.match(/\.(jpg|jpeg|png|gif|webp)$/);
-
-    if (isPdf || isDoc) {
-      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
-      window.open(viewerUrl, '_blank', 'noopener,noreferrer');
-    } else if (isImage) {
-      window.open(fileUrl, '_blank', 'noopener,noreferrer');
-    } else {
-      window.open(attachment.download_url || fileUrl, '_blank', 'noopener,noreferrer');
+  // ✅ FIXED: View attachment by fetching it and opening in new tab
+  const viewAttachment = async (attachment) => {
+    if (!attachment?.id) return;
+    try {
+      const response = await fetch(
+        `${API_BASE}/reports/attachments/${attachment.id}/download/`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      if (!response.ok) throw new Error(`Server error ${response.status}`);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      
+      // Determine file type and open appropriately
+      const filename = (attachment.original_filename || '').toLowerCase();
+      const isPdf = filename.includes('.pdf');
+      const isImage = filename.match(/\.(jpg|jpeg|png|gif|webp)$/);
+      
+      if (isPdf || isImage) {
+        // Open directly in new tab
+        window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      } else if (filename.match(/\.(doc|docx)$/)) {
+        // For Word docs, download and let user open
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = attachment.original_filename || 'document';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+      } else {
+        // For other files, just download
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = attachment.original_filename || 'file';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+      }
+    } catch (err) {
+      console.error('View failed:', err);
+      alert('Failed to view file. Please try again.');
     }
   };
 
@@ -196,7 +219,6 @@ export default function ReportViewPage() {
     }
   };
 
-  // ✅ FIXED: was checking report.attached_file — now checks attachments array
   const hasAttachments = report.attachments?.length > 0;
 
   return (
@@ -230,7 +252,6 @@ export default function ReportViewPage() {
                     <User size={16} className="text-indigo-500" />
                     <span className="font-medium">{report.user_name || report.name || 'N/A'}</span>
                   </div>
-                  {/* ✅ FIXED: show attachment count */}
                   {hasAttachments && (
                     <div className="flex items-center gap-1.5 text-indigo-600 font-medium">
                       <Paperclip size={16} />
@@ -245,13 +266,12 @@ export default function ReportViewPage() {
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4 border-t border-gray-200 flex-wrap">
-            {/* ✅ FIXED: was report.attached_file — now opens first attachment */}
             {hasAttachments && (
               <button
-                onClick={() => openAttachment(report.attachments[0])}
+                onClick={() => viewAttachment(report.attachments[0])}
                 className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
               >
-                <Download size={18} />
+                <Eye size={18} />
                 View Attachment{report.attachments.length > 1 ? `s (${report.attachments.length})` : ''}
               </button>
             )}
@@ -334,7 +354,6 @@ export default function ReportViewPage() {
                 })}
               </p>
             </div>
-            {/* ✅ FIXED: was report.attached_file — now shows attachment count */}
             <div>
               <label className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-2">
                 <Download size={16} /> Attachments
@@ -342,7 +361,7 @@ export default function ReportViewPage() {
               <p className="text-gray-900 font-medium">
                 {hasAttachments ? (
                   <button
-                    onClick={() => openAttachment(report.attachments[0])}
+                    onClick={() => viewAttachment(report.attachments[0])}
                     className="text-indigo-600 hover:text-indigo-700 hover:underline"
                   >
                     {report.attachments.length} file{report.attachments.length > 1 ? 's' : ''} attached
@@ -353,7 +372,7 @@ export default function ReportViewPage() {
           </div>
         </div>
 
-        {/* ✅ NEW: All Attachments Section */}
+        {/* All Attachments Section */}
         {hasAttachments && (
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -383,10 +402,10 @@ export default function ReportViewPage() {
                   </div>
                   <div className="flex items-center gap-2 ml-4">
                     <button
-                      onClick={() => openAttachment(attachment)}
+                      onClick={() => viewAttachment(attachment)}
                       className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold text-sm transition-colors"
                     >
-                      <Download size={16} />
+                      <Eye size={16} />
                       View
                     </button>
                     <button
