@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../Components/layouts/Navbar';
 import Pagination from '../Components/common/Pagination';
-import { Calendar, FileText, Download, FolderOpen, TrendingUp, Clock, CheckCircle, Eye, AlertCircle, XCircle } from 'lucide-react';
+import { Calendar, FileText, Download, FolderOpen, TrendingUp, Clock, CheckCircle, Eye, AlertCircle, XCircle, Paperclip } from 'lucide-react';
 
 export default function ReportsPage() {
   const { accessToken } = useAuth();
@@ -60,10 +60,28 @@ export default function ReportsPage() {
     fetchReports(page);
   }, [accessToken, page]);
 
-  // Get status badge based on report.status field
+  // ── Helper: open a single attachment in the best viewer ──────────────────
+  const openAttachment = (attachment) => {
+    const fileUrl = attachment.view_url || attachment.file_url;
+    if (!fileUrl) return;
+
+    const lower = fileUrl.toLowerCase();
+    const isPdf = lower.includes('.pdf');
+    const isDoc = lower.match(/\.(doc|docx)$/);
+    const isImage = lower.match(/\.(jpg|jpeg|png|gif|webp)$/);
+
+    if (isPdf || isDoc) {
+      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+      window.open(viewerUrl, '_blank', 'noopener,noreferrer');
+    } else if (isImage) {
+      window.open(fileUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      window.open(attachment.download_url || fileUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const getStatusBadge = (report) => {
     const status = report.status?.toLowerCase();
-    
     if (status === 'approved') {
       return (
         <span className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 px-3 py-1.5 rounded-full text-xs font-bold border border-green-200 inline-flex items-center gap-1">
@@ -88,32 +106,11 @@ export default function ReportsPage() {
     }
   };
 
-  // Stats cards from backend
   const stats = [
-    {
-      label: 'Total Reports',
-      value: statsData?.total || 0,
-      color: 'from-blue-500 to-blue-600',
-      icon: FolderOpen
-    },
-    {
-      label: 'This Month',
-      value: statsData?.this_month || 0,
-      color: 'from-purple-500 to-indigo-600',
-      icon: TrendingUp
-    },
-    {
-      label: 'Approved',
-      value: statsData?.approved || 0,
-      color: 'from-emerald-500 to-green-600',
-      icon: CheckCircle
-    },
-    {
-      label: 'Pending',
-      value: statsData?.pending || 0,
-      color: 'from-amber-500 to-orange-600',
-      icon: Clock
-    }
+    { label: 'Total Reports', value: statsData?.total || 0, color: 'from-blue-500 to-blue-600', icon: FolderOpen },
+    { label: 'This Month', value: statsData?.this_month || 0, color: 'from-purple-500 to-indigo-600', icon: TrendingUp },
+    { label: 'Approved', value: statsData?.approved || 0, color: 'from-emerald-500 to-green-600', icon: CheckCircle },
+    { label: 'Pending', value: statsData?.pending || 0, color: 'from-amber-500 to-orange-600', icon: Clock },
   ];
 
   return (
@@ -121,7 +118,6 @@ export default function ReportsPage() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
             Reports & Analytics
@@ -153,15 +149,12 @@ export default function ReportsPage() {
           })}
         </div>
 
-        {/* Recent Reports */}
+        {/* Reports Table */}
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">All Reports</h2>
-            <button 
-              onClick={() => {
-                fetchReports(page);
-                fetchStats();
-              }}
+            <button
+              onClick={() => { fetchReports(page); fetchStats(); }}
               className="text-indigo-600 text-sm font-semibold hover:text-indigo-700 hover:underline transition-colors"
             >
               Refresh →
@@ -214,62 +207,38 @@ export default function ReportsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-gray-700 font-medium">
-                          {report.heading}
-                        </span>
+                        <span className="text-gray-700 font-medium">{report.heading}</span>
                       </td>
                       <td className="px-6 py-4 text-sm font-medium text-gray-700">{report.user_name || 'N/A'}</td>
                       <td className="px-6 py-4 text-sm text-gray-600 font-medium">{report.report_date}</td>
-                      <td className="px-6 py-4">
-                        {getStatusBadge(report)}
-                      </td>
+                      <td className="px-6 py-4">{getStatusBadge(report)}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          {/* View Report Details Button */}
+                          {/* View Report Details */}
                           <button
                             onClick={() => navigate(`/reports/view/${report.id}`)}
                             className="p-2.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
                             title="View Report Details"
                           >
-                            {/* <Eye size={18} /> */}
                             View
                           </button>
 
-                          {/* View Attachment Button */}
-                          {report.attached_file && (
+                          {/* ✅ FIXED: was report.attached_file — now checks attachments array */}
+                          {report.attachments?.length > 0 && (
                             <button
-                              onClick={() => {
-                                const fileUrl = report.file_url;
-                                const fileName = report.name || 'file';
-                                
-                                // Check file extension
-                                const lowerUrl = fileUrl?.toLowerCase() || '';
-                                const isPdf = lowerUrl.includes('.pdf');
-                                const isDoc = lowerUrl.match(/\.(doc|docx)$/);
-                                const isImage = lowerUrl.match(/\.(jpg|jpeg|png|gif|webp)$/);
-                                
-                                if (isPdf || isDoc) {
-                                  // Use Google Docs Viewer for PDFs and Word docs
-                                  const encodedUrl = encodeURIComponent(fileUrl);
-                                  const viewerUrl = `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`;
-                                  window.open(viewerUrl, '_blank', 'noopener,noreferrer');
-                                } else if (isImage) {
-                                  // Images open directly
-                                  window.open(fileUrl, '_blank', 'noopener,noreferrer');
-                                } else {
-                                  // For other file types, try to open directly
-                                  // If Cloudinary URL, add inline flag
-                                  let viewUrl = fileUrl;
-                                  if (viewUrl.includes('cloudinary.com') && viewUrl.includes('/upload/')) {
-                                    viewUrl = viewUrl.replace('/upload/', '/upload/fl_attachment/');
-                                  }
-                                  window.open(viewUrl, '_blank', 'noopener,noreferrer');
-                                }
-                              }}
+                              onClick={() => openAttachment(report.attachments[0])}
                               className="p-2.5 text-green-600 hover:bg-green-100 rounded-lg transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
-                              title="View Attachment"
+                              title={`View ${report.attachments.length} attachment${report.attachments.length > 1 ? 's' : ''}`}
                             >
-                              <Download size={18} />
+                              <div className="flex items-center gap-1">
+                                <Download size={18} />
+                                {/* Show count badge if more than 1 */}
+                                {report.attachments.length > 1 && (
+                                  <span className="text-xs font-bold bg-green-600 text-white rounded-full w-4 h-4 flex items-center justify-center">
+                                    {report.attachments.length}
+                                  </span>
+                                )}
+                              </div>
                             </button>
                           )}
                         </div>
