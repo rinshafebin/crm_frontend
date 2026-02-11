@@ -9,6 +9,92 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// ✅ FIXED: Move components outside to prevent recreation on every render (which causes cursor jump)
+const FormFields = ({ formData, handleInputChange, errors }) => (
+  <div className="space-y-5">
+    <div>
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        Your Name <span className="text-red-500">*</span>
+      </label>
+      <input
+        type="text" name="name" value={formData.name}
+        onChange={handleInputChange} placeholder="Enter your name"
+        className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
+      />
+      {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
+    </div>
+
+    <div>
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        Report Heading <span className="text-red-500">*</span>
+      </label>
+      <input
+        type="text" name="heading" value={formData.heading}
+        onChange={handleInputChange} placeholder="Brief heading for your report"
+        className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.heading ? 'border-red-500' : 'border-gray-300'}`}
+      />
+      {errors.heading && <p className="mt-1 text-sm text-red-500">{errors.heading}</p>}
+    </div>
+
+    <div>
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        Report Date <span className="text-red-500">*</span>
+      </label>
+      <input
+        type="date" name="report_date" value={formData.report_date}
+        onChange={handleInputChange}
+        className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.report_date ? 'border-red-500' : 'border-gray-300'}`}
+      />
+      {errors.report_date && <p className="mt-1 text-sm text-red-500">{errors.report_date}</p>}
+    </div>
+
+    <div>
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
+        Report Details <span className="text-red-500">*</span>
+      </label>
+      <textarea
+        name="report_text" value={formData.report_text}
+        onChange={handleInputChange} rows={6}
+        placeholder="Describe your daily activities, accomplishments, and any issues encountered..."
+        className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.report_text ? 'border-red-500' : 'border-gray-300'}`}
+      />
+      {errors.report_text && <p className="mt-1 text-sm text-red-500">{errors.report_text}</p>}
+    </div>
+  </div>
+);
+
+const FileUploadSection = ({ label = 'Attach Files (Optional)', formData, errors, handleFileChange, removeFile, getFileIcon }) => (
+  <div className="mt-5">
+    <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
+    <input
+      type="file" onChange={handleFileChange} multiple
+      accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png"
+      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    />
+    <p className="mt-1 text-xs text-gray-500">Max 10MB per file. PDF, DOC, DOCX, XLS, XLSX, TXT, JPG, PNG</p>
+    {errors.attached_files && <p className="mt-1 text-sm text-red-500">{errors.attached_files}</p>}
+    {formData.attached_files.length > 0 && (
+      <div className="mt-3 space-y-2">
+        <p className="text-sm font-medium text-gray-700">
+          {label === 'Attach Files (Optional)' ? 'Selected' : 'New'} Files ({formData.attached_files.length}):
+        </p>
+        {formData.attached_files.map((file, index) => (
+          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              {getFileIcon(file.name)}
+              <span className="text-sm text-gray-700 truncate">{file.name}</span>
+              <span className="text-xs text-gray-500">({(file.size / 1024).toFixed(1)} KB)</span>
+            </div>
+            <button type="button" onClick={() => removeFile(index)} className="p-1 hover:bg-red-100 rounded transition-colors">
+              <X className="w-4 h-4 text-red-600" />
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
 export default function MyReportsPage() {
   const { accessToken, refreshAccessToken, user } = useAuth();
   
@@ -303,92 +389,6 @@ export default function MyReportsPage() {
     return matchesFilter && matchesSearch;
   });
 
-  // ── Reusable form fields ──────────────────────────────────────────────────
-  const FormFields = () => (
-    <div className="space-y-5">
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Your Name <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text" name="name" value={formData.name}
-          onChange={handleInputChange} placeholder="Enter your name"
-          className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
-        />
-        {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Report Heading <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text" name="heading" value={formData.heading}
-          onChange={handleInputChange} placeholder="Brief heading for your report"
-          className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.heading ? 'border-red-500' : 'border-gray-300'}`}
-        />
-        {errors.heading && <p className="mt-1 text-sm text-red-500">{errors.heading}</p>}
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Report Date <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="date" name="report_date" value={formData.report_date}
-          onChange={handleInputChange}
-          className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.report_date ? 'border-red-500' : 'border-gray-300'}`}
-        />
-        {errors.report_date && <p className="mt-1 text-sm text-red-500">{errors.report_date}</p>}
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Report Details <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          name="report_text" value={formData.report_text}
-          onChange={handleInputChange} rows={6}
-          placeholder="Describe your daily activities, accomplishments, and any issues encountered..."
-          className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${errors.report_text ? 'border-red-500' : 'border-gray-300'}`}
-        />
-        {errors.report_text && <p className="mt-1 text-sm text-red-500">{errors.report_text}</p>}
-      </div>
-    </div>
-  );
-
-  const FileUploadSection = ({ label = 'Attach Files (Optional)' }) => (
-    <div className="mt-5">
-      <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
-      <input
-        type="file" onChange={handleFileChange} multiple
-        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png"
-        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-      />
-      <p className="mt-1 text-xs text-gray-500">Max 10MB per file. PDF, DOC, DOCX, XLS, XLSX, TXT, JPG, PNG</p>
-      {errors.attached_files && <p className="mt-1 text-sm text-red-500">{errors.attached_files}</p>}
-      {formData.attached_files.length > 0 && (
-        <div className="mt-3 space-y-2">
-          <p className="text-sm font-medium text-gray-700">
-            {label === 'Attach Files (Optional)' ? 'Selected' : 'New'} Files ({formData.attached_files.length}):
-          </p>
-          {formData.attached_files.map((file, index) => (
-            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                {getFileIcon(file.name)}
-                <span className="text-sm text-gray-700 truncate">{file.name}</span>
-                <span className="text-xs text-gray-500">({(file.size / 1024).toFixed(1)} KB)</span>
-              </div>
-              <button type="button" onClick={() => removeFile(index)} className="p-1 hover:bg-red-100 rounded transition-colors">
-                <X className="w-4 h-4 text-red-600" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <Navbar />
@@ -517,8 +517,14 @@ export default function MyReportsPage() {
               </div>
               <div className="p-6">
                 {errors.submit && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{errors.submit}</div>}
-                <FormFields />
-                <FileUploadSection />
+                <FormFields formData={formData} handleInputChange={handleInputChange} errors={errors} />
+                <FileUploadSection 
+                  formData={formData} 
+                  errors={errors} 
+                  handleFileChange={handleFileChange} 
+                  removeFile={removeFile} 
+                  getFileIcon={getFileIcon}
+                />
                 <div className="mt-8 flex gap-3 justify-end">
                   <button type="button" onClick={() => { setShowCreateModal(false); setErrors({}); setFormData(resetForm()); }} disabled={submitting} className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors">
                     Cancel
@@ -544,7 +550,7 @@ export default function MyReportsPage() {
               </div>
               <div className="p-6">
                 {errors.submit && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{errors.submit}</div>}
-                <FormFields />
+                <FormFields formData={formData} handleInputChange={handleInputChange} errors={errors} />
 
                 {/* ✅ FIXED: was using attachment.attached_file for href — now uses attachment.view_url */}
                 {editingReport?.attachments?.length > 0 && (
@@ -570,7 +576,14 @@ export default function MyReportsPage() {
                   </div>
                 )}
 
-                <FileUploadSection label="Add New Files (Optional)" />
+                <FileUploadSection 
+                  label="Add New Files (Optional)" 
+                  formData={formData} 
+                  errors={errors} 
+                  handleFileChange={handleFileChange} 
+                  removeFile={removeFile} 
+                  getFileIcon={getFileIcon}
+                />
 
                 <div className="mt-8 flex gap-3 justify-end">
                   <button type="button" onClick={() => { setShowEditModal(false); setEditingReport(null); setErrors({}); setFormData(resetForm()); }} disabled={submitting} className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors">
