@@ -31,7 +31,6 @@ export default function AttendanceMarkingPage() {
       let token = accessToken || await refreshAccessToken();
       if (!token) return;
       
-      // Use the new endpoint that automatically excludes COMPLETED students
       const res = await fetch(`${API_BASE_URL}/attendance/students/`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
@@ -48,15 +47,8 @@ export default function AttendanceMarkingPage() {
       const studentsList = data.results || [];
       setStudents(studentsList);
       
-      // Initialize attendance records with default PRESENT
-      const initialRecords = {};
-      studentsList.forEach(student => {
-        initialRecords[student.id] = 'PRESENT';
-      });
-      setAttendanceRecords(initialRecords);
+      // Don't initialize records here - let fetchAttendance handle it
       
-      // Select all students by default
-      setSelectedStudents(studentsList.map(s => s.id));
     } catch (err) {
       console.error('Failed to load students', err);
       setMessage({ type: 'error', text: 'Failed to load students' });
@@ -65,9 +57,80 @@ export default function AttendanceMarkingPage() {
     }
   }, [accessToken, refreshAccessToken]);
 
+  // NEW: Fetch existing attendance for the selected date
+  const fetchAttendance = useCallback(async (studentsList) => {
+    try {
+      let token = accessToken || await refreshAccessToken();
+      if (!token) return;
+
+      const res = await fetch(
+        `${API_BASE_URL}/attendance/details/?date=${selectedDate}`,
+        {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error('Failed to fetch attendance');
+      }
+
+      const data = await res.json();
+      const existingAttendance = data.results || [];
+
+      // Create a map of existing attendance records
+      const attendanceMap = {};
+      existingAttendance.forEach(record => {
+        attendanceMap[record.student] = record.status;
+      });
+
+      // Initialize records for all students
+      const initialRecords = {};
+      const studentsToUse = studentsList || students;
+      
+      studentsToUse.forEach(student => {
+        // Use existing attendance if available, otherwise default to PRESENT
+        initialRecords[student.id] = attendanceMap[student.id] || 'PRESENT';
+      });
+
+      setAttendanceRecords(initialRecords);
+      
+      // Select all students by default
+      setSelectedStudents(studentsToUse.map(s => s.id));
+
+    } catch (err) {
+      console.error('Failed to fetch attendance', err);
+      // If fetch fails, initialize with PRESENT as default
+      const initialRecords = {};
+      const studentsToUse = studentsList || students;
+      studentsToUse.forEach(student => {
+        initialRecords[student.id] = 'PRESENT';
+      });
+      setAttendanceRecords(initialRecords);
+      setSelectedStudents(studentsToUse.map(s => s.id));
+    }
+  }, [accessToken, refreshAccessToken, selectedDate, students]);
+
+  // Load students on mount
   useEffect(() => {
     fetchStudents();
   }, [fetchStudents]);
+
+  // Fetch attendance when students are loaded or date changes
+  useEffect(() => {
+    if (students.length > 0) {
+      fetchAttendance(students);
+    }
+  }, [selectedDate, students.length]); // Re-fetch when date changes
+
+  // Handle date change
+  const handleDateChange = (newDate) => {
+    setSelectedDate(newDate);
+    // fetchAttendance will be called by useEffect
+  };
 
   // Handle individual student selection
   const handleToggleSelect = (studentId) => {
@@ -146,7 +209,9 @@ export default function AttendanceMarkingPage() {
         text: `Attendance marked successfully for ${records.length} students on ${selectedDate}` 
       });
 
-      // Optional: Auto-dismiss success message after 3 seconds
+      // Refresh attendance data after successful save
+      await fetchAttendance(students);
+
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
       console.error('Failed to save attendance', err);
@@ -189,10 +254,8 @@ export default function AttendanceMarkingPage() {
       <Navbar />
       
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <AttendanceMarkingHeader />
 
-        {/* Message Alert */}
         {message && (
           <Alert
             type={message.type}
@@ -201,22 +264,19 @@ export default function AttendanceMarkingPage() {
           />
         )}
 
-        {/* Date Selection & Quick Actions */}
         <DateSelector
           selectedDate={selectedDate}
-          onDateChange={setSelectedDate}
+          onDateChange={handleDateChange}  {/* Updated */}
           onMarkAllPresent={markAllPresent}
           selectedStudents={selectedStudents}
           onBulkMarkSelected={handleBulkMarkSelected}
         />
 
-        {/* Stats Cards */}
         <AttendanceStats
           totalStudents={students.length}
           statusCounts={statusCounts}
         />
 
-        {/* Students List */}
         <StudentAttendanceList
           students={students}
           attendanceRecords={attendanceRecords}
@@ -227,7 +287,6 @@ export default function AttendanceMarkingPage() {
           onToggleSelectAll={handleToggleSelectAll}
         />
 
-        {/* Submit Button */}
         <SubmitButton
           onSubmit={handleSubmit}
           saving={saving}
