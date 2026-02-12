@@ -266,7 +266,7 @@ export default function AttendanceMarkingPage() {
 
         <DateSelector
           selectedDate={selectedDate}
-          onDateChange={handleDateChange}  {/* Updated */}
+          onDateChange={handleDateChange}  
           onMarkAllPresent={markAllPresent}
           selectedStudents={selectedStudents}
           onBulkMarkSelected={handleBulkMarkSelected}
