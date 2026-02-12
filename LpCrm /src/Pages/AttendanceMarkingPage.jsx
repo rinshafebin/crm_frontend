@@ -57,62 +57,63 @@ export default function AttendanceMarkingPage() {
     }
   }, [accessToken, refreshAccessToken]);
 
-  // NEW: Fetch existing attendance for the selected date
-  const fetchAttendance = useCallback(async (studentsList) => {
-    try {
-      let token = accessToken || await refreshAccessToken();
-      if (!token) return;
+  // In AttendanceMarkingPage.jsx - fetchAttendance function
+const fetchAttendance = useCallback(async (studentsList) => {
+  try {
+    let token = accessToken || await refreshAccessToken();
+    if (!token) return;
 
-      const res = await fetch(
-        `${API_BASE_URL}/attendance/details/?date=${selectedDate}`,
-        {
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include'
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error('Failed to fetch attendance');
+    // Use the correct endpoint: /attendance/detail/ (not /details/)
+    const res = await fetch(
+      `${API_BASE_URL}/attendance/detail/?date=${selectedDate}`,
+      {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
       }
+    );
 
-      const data = await res.json();
-      const existingAttendance = data.results || [];
-
-      // Create a map of existing attendance records
-      const attendanceMap = {};
-      existingAttendance.forEach(record => {
-        attendanceMap[record.student] = record.status;
-      });
-
-      // Initialize records for all students
-      const initialRecords = {};
-      const studentsToUse = studentsList || students;
-      
-      studentsToUse.forEach(student => {
-        // Use existing attendance if available, otherwise default to PRESENT
-        initialRecords[student.id] = attendanceMap[student.id] || 'PRESENT';
-      });
-
-      setAttendanceRecords(initialRecords);
-      
-      // Select all students by default
-      setSelectedStudents(studentsToUse.map(s => s.id));
-
-    } catch (err) {
-      console.error('Failed to fetch attendance', err);
-      // If fetch fails, initialize with PRESENT as default
-      const initialRecords = {};
-      const studentsToUse = studentsList || students;
-      studentsToUse.forEach(student => {
-        initialRecords[student.id] = 'PRESENT';
-      });
-      setAttendanceRecords(initialRecords);
-      setSelectedStudents(studentsToUse.map(s => s.id));
+    if (!res.ok) {
+      throw new Error('Failed to fetch attendance');
     }
-  }, [accessToken, refreshAccessToken, selectedDate, students]);
+
+    const data = await res.json();
+    const existingAttendance = data.results || [];
+
+    // Create a map of existing attendance records
+    const attendanceMap = {};
+    existingAttendance.forEach(record => {
+      attendanceMap[record.student] = record.status;
+    });
+
+    // Initialize records for all students
+    const initialRecords = {};
+    const studentsToUse = studentsList || students;
+    
+    studentsToUse.forEach(student => {
+      // Use existing attendance if available, otherwise default to PRESENT
+      initialRecords[student.id] = attendanceMap[student.id] || 'PRESENT';
+    });
+
+    setAttendanceRecords(initialRecords);
+    
+    // Select all students by default
+    setSelectedStudents(studentsToUse.map(s => s.id));
+
+  } catch (err) {
+    console.error('Failed to fetch attendance', err);
+    // If fetch fails, initialize with PRESENT as default
+    const initialRecords = {};
+    const studentsToUse = studentsList || students;
+    studentsToUse.forEach(student => {
+      initialRecords[student.id] = 'PRESENT';
+    });
+    setAttendanceRecords(initialRecords);
+    setSelectedStudents(studentsToUse.map(s => s.id));
+  }
+}, [accessToken, refreshAccessToken, selectedDate, students]);
 
   // Load students on mount
   useEffect(() => {
