@@ -38,6 +38,7 @@ export const programOptions = [
   { value: 'AUSBUILDING', label: 'AUSBUILDING' },
   { value: 'GCC', label: 'GCC' },
   { value: 'FLAG', label: 'FLAG' },
+  { value: 'NURSING REQUIREMENTS', label: 'Nursing Requirements' },
 
 
 ];
