@@ -35,7 +35,7 @@ export const programOptions = [
   { value: 'B1 EXAM PREPERATION', label: 'B1 (Exam Preparation)' },
   { value: 'B2 EXAM PREPERATION', label: 'B2 (Exam Preparation)' },
   { value: 'PVP', label: 'PVP' },
-  { value: 'AUSBUILDING', label: 'AUSBUILDING' },
+  { value: 'AUSBILDUNG', label: 'AUSBILDUNG' },
   { value: 'GCC', label: 'GCC' },
   { value: 'FLAG', label: 'FLAG' },
   { value: 'NURSING RECRUITMENT', label: 'Nursing Recruitment' },
