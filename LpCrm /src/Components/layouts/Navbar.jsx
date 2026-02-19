@@ -5,11 +5,13 @@ import { getMenuForRole } from '../../config/roles';
 import DesktopNavbar from './DesktopNavbar';
 import MobileNavbar from './MobileNavbar';
 
+
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const navItems = getMenuForRole(user?.role);
 
   const handleNavigation = (path) => {
@@ -22,6 +24,11 @@ const Navbar = () => {
     navigate('/login');
   };
 
+  const handleChatOpen = () => {
+    navigate('/chat');
+    setIsMobileMenuOpen(false);
+  };
+
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -32,8 +39,9 @@ const Navbar = () => {
           isActive={isActive}
           handleNavigation={handleNavigation}
           handleLogout={handleLogout}
+          onChatOpen={handleChatOpen}
         />
-        
+
         <MobileNavbar
           navItems={navItems}
           isActive={isActive}
@@ -41,6 +49,7 @@ const Navbar = () => {
           handleLogout={handleLogout}
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
+          onChatOpen={handleChatOpen}
         />
       </div>
     </div>
