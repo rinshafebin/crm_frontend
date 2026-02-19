@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Paperclip, Search, MoreVertical, Phone, Video, ArrowLeft, Circle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
 const MOCK_CONTACTS = [
   {
     id: 1,
@@ -11,7 +10,7 @@ const MOCK_CONTACTS = [
     role: 'Admin',
     avatar: 'AJ',
     online: true,
-    lastMessage: 'Sure, I'll review that report shortly.',
+    lastMessage: "Sure, I'll review that report shortly.",
     lastTime: '10:42 AM',
     unread: 2,
   },
@@ -50,8 +49,8 @@ const MOCK_CONTACTS = [
 const MOCK_MESSAGES = {
   1: [
     { id: 1, from: 'them', text: 'Hey, did you get a chance to look at the Q3 report?', time: '10:30 AM' },
-    { id: 2, from: 'me', text: 'Not yet, been in meetings all morning. I'll check it now.', time: '10:35 AM' },
-    { id: 3, from: 'them', text: 'Sure, I'll review that report shortly.', time: '10:42 AM' },
+    { id: 2, from: 'me', text: "Not yet, been in meetings all morning. I'll check it now.", time: '10:35 AM' },
+    { id: 3, from: 'them', text: "Sure, I'll review that report shortly.", time: '10:42 AM' },
   ],
   2: [
     { id: 1, from: 'them', text: 'Hey, quick heads up — the 2 PM meeting has been moved.', time: 'Yesterday' },
@@ -68,7 +67,7 @@ const MOCK_MESSAGES = {
   ],
 };
 
-// ─── Avatar Component ─────────────────────────────────────────────────────────
+
 const Avatar = ({ initials, online, size = 'md' }) => {
   const sizes = {
     sm: 'w-8 h-8 text-xs',
@@ -93,7 +92,7 @@ const Avatar = ({ initials, online, size = 'md' }) => {
   );
 };
 
-// ─── ChatPage ─────────────────────────────────────────────────────────────────
+
 const ChatPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
