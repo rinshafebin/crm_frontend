@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Paperclip, Search, MoreVertical, Phone, Video, ArrowLeft, Circle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Navbar from '../Components/layouts/Navbar';
 
 const MOCK_CONTACTS = [
   {
@@ -323,10 +324,15 @@ const ChatPage = () => {
   );
 
   return (
+    <>
+    <Navbar />
     <div className="flex h-[calc(100vh-80px)] bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm max-w-7xl mx-auto">
+      
       {Sidebar}
       {ChatWindow}
     </div>
+    </>
+    
   );
 };
 
