@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../Components/layouts/Navbar';
 import { 
@@ -9,7 +9,6 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// ✅ FIXED: Move components outside to prevent recreation on every render (which causes cursor jump)
 const FormFields = ({ formData, handleInputChange, errors }) => (
   <div className="space-y-5">
     <div>
@@ -63,10 +62,11 @@ const FormFields = ({ formData, handleInputChange, errors }) => (
   </div>
 );
 
-const FileUploadSection = ({ label = 'Attach Files (Optional)', formData, errors, handleFileChange, removeFile, getFileIcon }) => (
+const FileUploadSection = ({ label = 'Attach Files (Optional)', formData, errors, handleFileChange, removeFile, getFileIcon, fileInputRef }) => (
   <div className="mt-5">
     <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
     <input
+      ref={fileInputRef}
       type="file" onChange={handleFileChange} multiple
       accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png"
       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -106,6 +106,9 @@ export default function MyReportsPage() {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingReport, setEditingReport] = useState(null);
+
+  const createFileInputRef = useRef(null);
+  const editFileInputRef = useRef(null);
   
   const [formData, setFormData] = useState({
     name: user?.name || user?.username || '',
@@ -121,9 +124,6 @@ export default function MyReportsPage() {
   const userName = user?.name || user?.username || 'User';
 
   // ── Helper: force-download via fetch → blob → programmatic click ─────────
-  // The HTML <a download> attribute is silently ignored for cross-origin URLs.
-  // Cloudinary is always cross-origin, so we fetch the bytes ourselves and
-  // create a local blob: URL — that way the browser always respects `download`.
   const downloadFile = async (attachment) => {
     const url = attachment.download_url || attachment.view_url;
     if (!url) return;
@@ -263,13 +263,20 @@ export default function MyReportsPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // ✅ FIXED: guard against non-File objects so strings don't silently replace uploads
   const buildFormData = () => {
     const submitData = new FormData();
     submitData.append('name', formData.name);
     submitData.append('heading', formData.heading);
     submitData.append('report_text', formData.report_text);
     submitData.append('report_date', formData.report_date);
-    formData.attached_files.forEach((file) => submitData.append('attached_files', file));
+    formData.attached_files.forEach((file) => {
+      if (file instanceof File) {
+        submitData.append('attached_files', file);
+      } else {
+        console.warn('Skipping non-File object in attached_files:', file);
+      }
+    });
     return submitData;
   };
 
@@ -277,21 +284,33 @@ export default function MyReportsPage() {
     if (!validateForm()) return;
     setSubmitting(true);
     try {
-      let token = accessToken || await refreshAccessToken();
-      if (!token) throw new Error('Authentication required');
+      let token = accessToken;
 
-      const response = await fetch(`${API_BASE_URL}/reports/create/`, {
+      // ✅ FIXED: always attempt, then retry on 401 (stale tokens are truthy but expired)
+      let response = await fetch(`${API_BASE_URL}/reports/create/`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: buildFormData(),
       });
 
+      if (response.status === 401) {
+        token = await refreshAccessToken();
+        if (!token) throw new Error('Session expired. Please log in again.');
+        response = await fetch(`${API_BASE_URL}/reports/create/`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: buildFormData(),
+        });
+      }
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to create report');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `Failed to create report (${response.status})`);
       }
 
       setShowCreateModal(false);
+      // ✅ FIXED: reset the file input DOM element so the same file can be re-selected next time
+      if (createFileInputRef.current) createFileInputRef.current.value = '';
       setFormData(resetForm());
       setErrors({});
       fetchReports();
@@ -323,23 +342,34 @@ export default function MyReportsPage() {
     if (!validateForm()) return;
     setSubmitting(true);
     try {
-      let token = accessToken || await refreshAccessToken();
-      if (!token) throw new Error('Authentication required');
+      let token = accessToken;
 
-      // ✅ FIXED: correct update URL matches urls.py pattern  reports/<pk>/edit/
-      const response = await fetch(`${API_BASE_URL}/reports/${editingReport.id}/edit/`, {
+      // ✅ FIXED: always attempt, then retry on 401
+      let response = await fetch(`${API_BASE_URL}/reports/${editingReport.id}/edit/`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}` },
         body: buildFormData(),
       });
 
+      if (response.status === 401) {
+        token = await refreshAccessToken();
+        if (!token) throw new Error('Session expired. Please log in again.');
+        response = await fetch(`${API_BASE_URL}/reports/${editingReport.id}/edit/`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: buildFormData(),
+        });
+      }
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to update report');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `Failed to update report (${response.status})`);
       }
 
       setShowEditModal(false);
       setEditingReport(null);
+      // ✅ FIXED: reset the file input DOM element
+      if (editFileInputRef.current) editFileInputRef.current.value = '';
       setFormData(resetForm());
       setErrors({});
       fetchReports();
@@ -518,12 +548,13 @@ export default function MyReportsPage() {
               <div className="p-6">
                 {errors.submit && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{errors.submit}</div>}
                 <FormFields formData={formData} handleInputChange={handleInputChange} errors={errors} />
-                <FileUploadSection 
-                  formData={formData} 
-                  errors={errors} 
-                  handleFileChange={handleFileChange} 
-                  removeFile={removeFile} 
+                <FileUploadSection
+                  formData={formData}
+                  errors={errors}
+                  handleFileChange={handleFileChange}
+                  removeFile={removeFile}
                   getFileIcon={getFileIcon}
+                  fileInputRef={createFileInputRef}
                 />
                 <div className="mt-8 flex gap-3 justify-end">
                   <button type="button" onClick={() => { setShowCreateModal(false); setErrors({}); setFormData(resetForm()); }} disabled={submitting} className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors">
@@ -552,7 +583,6 @@ export default function MyReportsPage() {
                 {errors.submit && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{errors.submit}</div>}
                 <FormFields formData={formData} handleInputChange={handleInputChange} errors={errors} />
 
-                {/* ✅ FIXED: was using attachment.attached_file for href — now uses attachment.view_url */}
                 {editingReport?.attachments?.length > 0 && (
                   <div className="mt-5">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Current Attachments</label>
@@ -576,13 +606,14 @@ export default function MyReportsPage() {
                   </div>
                 )}
 
-                <FileUploadSection 
-                  label="Add New Files (Optional)" 
-                  formData={formData} 
-                  errors={errors} 
-                  handleFileChange={handleFileChange} 
-                  removeFile={removeFile} 
+                <FileUploadSection
+                  label="Add New Files (Optional)"
+                  formData={formData}
+                  errors={errors}
+                  handleFileChange={handleFileChange}
+                  removeFile={removeFile}
                   getFileIcon={getFileIcon}
+                  fileInputRef={editFileInputRef}
                 />
 
                 <div className="mt-8 flex gap-3 justify-end">
@@ -645,7 +676,6 @@ export default function MyReportsPage() {
                               )}
                             </div>
                           </div>
-                          {/* ✅ FIXED: blob-based download so filename is always the original name */}
                           <button
                             onClick={() => downloadFile(attachment)}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2 transition-colors ml-3"
