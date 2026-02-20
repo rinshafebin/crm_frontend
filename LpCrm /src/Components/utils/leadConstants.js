@@ -38,7 +38,8 @@ export const programOptions = [
   { value: 'AUSBILDUNG', label: 'AUSBILDUNG' },
   { value: 'GCC', label: 'GCC' },
   { value: 'FLAG', label: 'FLAG' },
-  { value: 'NURSING RECRUITMENT', label: 'Nursing Recruitment' },
+  { value: 'NURSING RECRUITMENT', label: 'NURSING RECRUITMENT' },
+  { value: 'STUDY', label: 'STUDY' },
 
 
 ];
