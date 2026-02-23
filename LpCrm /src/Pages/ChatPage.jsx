@@ -10,7 +10,6 @@ import Navbar from '../Components/layouts/Navbar';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-/* ─── Helpers ─────────────────────────────────────────── */
 function formatTime(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
@@ -32,7 +31,6 @@ function getConversationName(conv, currentUser) {
   return other?.username || 'Unknown';
 }
 
-/* ─── Color system ─────────────────────────────────────── */
 const COLORS = [
   ['#e0e7ff', '#4338ca'], // indigo
   ['#ede9fe', '#6d28d9'], // violet
@@ -47,7 +45,6 @@ function getColor(name = '') {
   return COLORS[n % COLORS.length];
 }
 
-/* ─── Avatar ────────────────────────────────────────────── */
 const Avatar = ({ name = '', size = 'md', isGroup = false }) => {
   const px = { sm: 32, md: 40, lg: 48 }[size];
   const fs = { sm: 11, md: 13, lg: 15 }[size];
@@ -65,7 +62,6 @@ const Avatar = ({ name = '', size = 'md', isGroup = false }) => {
   );
 };
 
-/* ─── Empty state ───────────────────────────────────────── */
 const EmptyState = ({ icon: Icon, title, desc }) => (
   <div className="flex-1 flex flex-col items-center justify-center gap-4 p-10 text-center select-none">
     <div className="relative">
@@ -84,7 +80,6 @@ const EmptyState = ({ icon: Icon, title, desc }) => (
   </div>
 );
 
-/* ─── Employee Picker ───────────────────────────────────── */
 const EmployeePicker = ({ employees, selected, onToggle, search, onSearch, single = false, empLoading = false }) => (
   <div>
     <div className="relative mb-3">
@@ -153,7 +148,6 @@ const EmployeePicker = ({ employees, selected, onToggle, search, onSearch, singl
   </div>
 );
 
-/* ─── Modal ─────────────────────────────────────────────── */
 const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
   return (
@@ -180,7 +174,6 @@ const Modal = ({ open, onClose, title, children }) => {
   );
 };
 
-/* ─── Typing indicator ──────────────────────────────────── */
 const TypingDots = () => (
   <div className="flex items-center gap-1 px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm"
     style={{ background: 'white', border: '1px solid #f3f4f6', width: 'fit-content' }}>
@@ -191,7 +184,6 @@ const TypingDots = () => (
   </div>
 );
 
-/* ─── Main ChatPage ─────────────────────────────────────── */
 const ChatPage = () => {
   const navigate = useNavigate();
   const { user, accessToken, refreshAccessToken } = useAuth();
@@ -235,7 +227,7 @@ const ChatPage = () => {
       setEmpLoading(true);
       const token = await getToken();
       if (!token) return;
-      const res = await fetch(`${API_BASE_URL}/api/employees/`, {
+      const res = await fetch(`${API_BASE_URL}/employees/`, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         credentials: 'include',
       });
@@ -251,7 +243,7 @@ const ChatPage = () => {
       if (!silent) setLoading(true);
       const token = await getToken();
       if (!token) return;
-      const res = await fetch(`${API_BASE_URL}/api/conversations/`, {
+      const res = await fetch(`${API_BASE_URL}/conversations/`, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         credentials: 'include',
       });
@@ -268,7 +260,7 @@ const ChatPage = () => {
       setMsgLoading(true);
       const token = await getToken();
       if (!token) return;
-      const res = await fetch(`${API_BASE_URL}/api/messages/${convId}/`, {
+      const res = await fetch(`${API_BASE_URL}/messages/${convId}/`, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         credentials: 'include',
       });
