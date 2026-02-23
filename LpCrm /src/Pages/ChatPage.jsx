@@ -227,7 +227,7 @@ const ChatPage = () => {
       setEmpLoading(true);
       const token = await getToken();
       if (!token) return;
-      const res = await fetch(`${API_BASE_URL}/employees/`, {
+      const res = await fetch(`${API_BASE_URL}/employees-list/`, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         credentials: 'include',
       });
