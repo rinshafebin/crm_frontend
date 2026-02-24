@@ -306,7 +306,7 @@ const ChatPage = () => {
     try {
       const token = await getToken();
       if (!token) return;
-      const res = await fetch(`${API_BASE_URL}/chat/send/`, {
+      const res = await fetch(`${API_BASE_URL}/send/`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -334,7 +334,7 @@ const ChatPage = () => {
     setDirectSaving(true);
     try {
       const token = await getToken();
-      const res = await fetch(`${API_BASE_URL}/chat/create-direct/`, {
+      const res = await fetch(`${API_BASE_URL}/create-direct/`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -359,7 +359,7 @@ const ChatPage = () => {
     setGroupSaving(true);
     try {
       const token = await getToken();
-      const res = await fetch(`${API_BASE_URL}/chat/create-group/`, {
+      const res = await fetch(`${API_BASE_URL}/create-group/`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         credentials: 'include',
