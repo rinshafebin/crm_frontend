@@ -740,11 +740,29 @@ const ChatPage = () => {
       {/* ── New Group Modal ── */}
       <Modal open={showGroup} onClose={() => { setShowGroup(false); setGroupSelected([]); setGroupName(''); setGroupSearch(''); }} title="New Group Chat">
         <div>
-          <label style={{ fontSize: 12, fontWeight: 500, marginBottom: 6, display: 'block', color: '#475569' }}>Group Name</label>
-          <input type="text" value={groupName} onChange={e => setGroupName(e.target.value)} placeholder="e.g. Design Team"
-            style={{ width: '100%', padding: '10px 12px', fontSize: 13, borderRadius: 12, border: '1px solid #e2e8f0', color: '#1e293b', background: '#f9fafb', outline: 'none', boxSizing: 'border-box' }}
+          <label style={{ fontSize: 12, fontWeight: 500, marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#475569' }}>
+            <span>Group Name <span style={{ color: '#ef4444' }}>*</span></span>
+            {!groupName.trim() && groupSelected.length > 0 && (
+              <span style={{ fontSize: 11, color: '#ef4444', fontWeight: 400 }}>Required to create group</span>
+            )}
+          </label>
+          <input
+            type="text"
+            value={groupName}
+            onChange={e => setGroupName(e.target.value)}
+            placeholder="e.g. Design Team"
+            autoFocus
+            style={{
+              width: '100%', padding: '10px 12px', fontSize: 13, borderRadius: 12,
+              border: `1.5px solid ${!groupName.trim() && groupSelected.length > 0 ? '#fca5a5' : '#e2e8f0'}`,
+              color: '#1e293b', background: '#f9fafb', outline: 'none', boxSizing: 'border-box',
+              boxShadow: !groupName.trim() && groupSelected.length > 0 ? '0 0 0 3px #fee2e2' : 'none',
+            }}
             onFocus={e => { e.target.style.boxShadow = '0 0 0 3px #e0e7ff'; e.target.style.borderColor = '#818cf8'; }}
-            onBlur={e => { e.target.style.boxShadow = 'none'; e.target.style.borderColor = '#e2e8f0'; }}
+            onBlur={e => {
+              e.target.style.boxShadow = !groupName.trim() && groupSelected.length > 0 ? '0 0 0 3px #fee2e2' : 'none';
+              e.target.style.borderColor = !groupName.trim() && groupSelected.length > 0 ? '#fca5a5' : '#e2e8f0';
+            }}
           />
         </div>
         <div>
@@ -753,9 +771,42 @@ const ChatPage = () => {
           </label>
           <EmployeePicker employees={filteredForGroup} selected={groupSelected} onToggle={toggleGroup} search={groupSearch} onSearch={setGroupSearch} single={false} empLoading={empLoading} />
         </div>
-        <button onClick={handleCreateGroup} disabled={!groupName.trim() || groupSelected.length === 0 || groupSaving}
-          style={{ width: '100%', padding: '10px 0', fontSize: 13, borderRadius: 12, fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none', cursor: !groupName.trim() || groupSelected.length === 0 || groupSaving ? 'not-allowed' : 'pointer', background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', color: '#fff', opacity: !groupName.trim() || groupSelected.length === 0 || groupSaving ? 0.4 : 1 }}>
-          {groupSaving ? <Loader2 size={14} /> : <Users size={14} />} Create Group
+
+        {/* Validation summary */}
+        {(groupSelected.length === 0 || !groupName.trim()) && (
+          <div style={{ background: '#fafafa', border: '1px solid #f1f5f9', borderRadius: 10, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>To create a group:</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: groupName.trim() ? '#22c55e' : '#94a3b8' }}>
+              {groupName.trim()
+                ? <Check size={13} style={{ color: '#22c55e' }} />
+                : <div style={{ width: 13, height: 13, borderRadius: '50%', border: '1.5px solid #cbd5e1', flexShrink: 0 }} />}
+              Enter a group name
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: groupSelected.length > 0 ? '#22c55e' : '#94a3b8' }}>
+              {groupSelected.length > 0
+                ? <Check size={13} style={{ color: '#22c55e' }} />
+                : <div style={{ width: 13, height: 13, borderRadius: '50%', border: '1.5px solid #cbd5e1', flexShrink: 0 }} />}
+              Select at least 1 member
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={handleCreateGroup}
+          disabled={!groupName.trim() || groupSelected.length === 0 || groupSaving}
+          style={{
+            width: '100%', padding: '11px 0', fontSize: 13, borderRadius: 12, fontWeight: 600,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none',
+            cursor: !groupName.trim() || groupSelected.length === 0 || groupSaving ? 'not-allowed' : 'pointer',
+            background: !groupName.trim() || groupSelected.length === 0
+              ? '#e2e8f0'
+              : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+            color: !groupName.trim() || groupSelected.length === 0 ? '#94a3b8' : '#fff',
+            boxShadow: !groupName.trim() || groupSelected.length === 0 ? 'none' : '0 2px 8px rgba(99,102,241,0.3)',
+            transition: 'all 0.2s',
+          }}>
+          {groupSaving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Users size={14} />}
+          {groupSaving ? 'Creating...' : 'Create Group'}
         </button>
       </Modal>
     </>
