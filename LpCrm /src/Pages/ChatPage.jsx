@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Send, Paperclip, Search, MoreVertical, ArrowLeft, Users,
-  MessageSquare, X, Check, CheckCheck, Loader2, WifiOff,
-  RefreshCw, UserPlus, Hash, ChevronDown, Info, Shield,
-  Crown, User as UserIcon,
+  MessageSquare, X, Check, CheckCheck, Loader2,
+  RefreshCw, UserPlus, Info, Crown,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -33,95 +32,89 @@ function getConversationName(conv, currentUser) {
 }
 
 const COLORS = [
-  ['#e0e7ff', '#4338ca'],
-  ['#ede9fe', '#6d28d9'],
-  ['#e0f2fe', '#0369a1'],
-  ['#d1fae5', '#065f46'],
-  ['#fef3c7', '#92400e'],
-  ['#fce7f3', '#9d174d'],
+  ['bg-indigo-100', 'text-indigo-700'],
+  ['bg-violet-100', 'text-violet-700'],
+  ['bg-sky-100', 'text-sky-700'],
+  ['bg-emerald-100', 'text-emerald-700'],
+  ['bg-amber-100', 'text-amber-700'],
+  ['bg-pink-100', 'text-pink-700'],
 ];
 
-function getColor(name = '') {
+function getColorClass(name = '') {
   let n = 0;
   for (let i = 0; i < name.length; i++) n += name.charCodeAt(i);
   return COLORS[n % COLORS.length];
 }
 
 const Avatar = ({ name = '', size = 'md', isGroup = false }) => {
-  const px = { sm: 32, md: 40, lg: 48 }[size];
-  const fs = { sm: 11, md: 13, lg: 15 }[size];
-  const ic = { sm: 13, md: 16, lg: 19 }[size];
-  const [bg, fg] = getColor(name);
+  const sizeClasses = {
+    sm: 'w-8 h-8 text-[11px]',
+    md: 'w-10 h-10 text-sm',
+    lg: 'w-12 h-12 text-base',
+  };
+  const iconSize = { sm: 13, md: 16, lg: 19 }[size];
+  const [bg, fg] = getColorClass(name);
   return (
-    <div style={{
-      width: px, height: px, borderRadius: isGroup ? '12px' : '50%',
-      background: bg, color: fg, fontSize: fs, fontWeight: 700,
-      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-    }}>
-      {isGroup ? <Users size={ic} /> : getInitials(name)}
+    <div className={`${sizeClasses[size]} ${bg} ${fg} ${isGroup ? 'rounded-xl' : 'rounded-full'} flex items-center justify-center font-bold flex-shrink-0`}>
+      {isGroup ? <Users size={iconSize} /> : getInitials(name)}
     </div>
   );
 };
 
 const EmptyState = ({ icon: Icon, title, desc }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '48px 24px', color: '#94a3b8' }}>
+  <div className="flex flex-col items-center justify-center gap-3 py-12 px-6 text-slate-400">
     <Icon size={36} strokeWidth={1.2} />
-    <div style={{ textAlign: 'center' }}>
-      <p style={{ fontWeight: 600, color: '#475569', fontSize: 14 }}>{title}</p>
-      <p style={{ fontSize: 12, marginTop: 4 }}>{desc}</p>
+    <div className="text-center">
+      <p className="font-semibold text-slate-500 text-sm">{title}</p>
+      <p className="text-xs mt-1">{desc}</p>
     </div>
   </div>
 );
 
 const EmployeePicker = ({ employees, selected, onToggle, search, onSearch, single = false, empLoading = false }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-    <div style={{ position: 'relative' }}>
-      <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+  <div className="flex flex-col gap-2">
+    <div className="relative">
+      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
       <input
         value={search}
         onChange={e => onSearch(e.target.value)}
         placeholder="Search employees..."
-        className="w-full pl-8 pr-3 py-2.5 text-sm border rounded-xl focus:outline-none transition-shadow"
-        style={{ borderColor: '#e5e7eb', background: '#f9fafb', color: '#374151' }}
-        onFocus={e => { e.target.style.boxShadow = '0 0 0 3px #e0e7ff'; e.target.style.borderColor = '#818cf8'; }}
-        onBlur={e => { e.target.style.boxShadow = 'none'; e.target.style.borderColor = '#e5e7eb'; }}
+        className="w-full pl-8 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition"
       />
     </div>
-    <div style={{ maxHeight: 220, overflowY: 'auto', border: '1px solid #f1f5f9', borderRadius: 12 }}>
+    <div className="max-h-56 overflow-y-auto border border-slate-100 rounded-xl">
       {empLoading ? (
-        <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>Loading employees...</div>
+        <div className="p-4 text-center text-slate-400 text-sm">Loading employees...</div>
       ) : employees.length === 0 ? (
-        <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No employees found.</div>
+        <div className="p-4 text-center text-slate-400 text-sm">No employees found.</div>
       ) : (
         employees.map((emp, idx) => {
           const isSelected = selected.includes(emp.id);
-          const [bg, fg] = getColor(emp.username);
+          const [bg, fg] = getColorClass(emp.username);
           return (
             <button
               key={emp.id}
               onClick={() => onToggle(emp.id)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all"
-              style={{
-                background: isSelected ? '#eef2ff' : idx % 2 === 0 ? '#ffffff' : '#fafafa',
-                borderBottom: '1px solid #f3f4f6',
-              }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-all border-b border-gray-100 last:border-b-0
+                ${isSelected ? 'bg-indigo-50' : idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+                hover:bg-indigo-50`}
             >
-              <div style={{ width: 32, height: 32, borderRadius: '50%', background: bg, color: fg, fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div className={`w-8 h-8 rounded-full ${bg} ${fg} text-xs font-bold flex items-center justify-center flex-shrink-0`}>
                 {getInitials(emp.username)}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: '#1e293b', truncate: true }}>{emp.username}</p>
-                {emp.role && <p style={{ fontSize: 11, color: '#94a3b8' }}>{emp.role}</p>}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-800 truncate">{emp.username}</p>
+                {emp.role && <p className="text-xs text-slate-400">{emp.role}</p>}
               </div>
-              {isSelected && !single && <Check size={14} style={{ color: '#6366f1', flexShrink: 0 }} />}
-              {isSelected && single && <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1', flexShrink: 0 }} />}
+              {isSelected && !single && <Check size={14} className="text-indigo-500 flex-shrink-0" />}
+              {isSelected && single && <div className="w-2 h-2 rounded-full bg-indigo-500 flex-shrink-0" />}
             </button>
           );
         })
       )}
     </div>
     {!single && selected.length > 0 && (
-      <p style={{ fontSize: 11, color: '#6366f1', textAlign: 'right' }}>
+      <p className="text-xs text-indigo-500 text-right">
         {selected.length} member{selected.length > 1 ? 's' : ''} selected
       </p>
     )}
@@ -131,17 +124,18 @@ const EmployeePicker = ({ employees, selected, onToggle, search, onSearch, singl
 const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: '#fff', borderRadius: 20, boxShadow: '0 20px 60px rgba(0,0,0,0.15)', width: '100%', maxWidth: 440, maxHeight: '85vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 20px 0' }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>{title}</h2>
-          <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#334155'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94a3b8'; }}>
+    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between px-5 pt-5">
+          <h2 className="text-base font-bold text-slate-900">{title}</h2>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+          >
             <X size={16} />
           </button>
         </div>
-        <div style={{ padding: '16px 20px 20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="px-5 py-4 overflow-y-auto flex flex-col gap-4">
           {children}
         </div>
       </div>
@@ -149,86 +143,60 @@ const Modal = ({ open, onClose, title, children }) => {
   );
 };
 
-const TypingDots = () => (
-  <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '8px 12px' }}>
-    {[0, 1, 2].map(i => (
-      <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: '#94a3b8', animation: `bounce 1.2s ${i * 0.2}s infinite` }} />
-    ))}
-  </div>
-);
-
-/* ── Group Info Panel ── */
 const GroupInfoPanel = ({ conv, currentUser, onClose }) => {
   if (!conv || conv.type !== 'GROUP') return null;
   const participants = conv.participants || [];
   const createdBy = conv.created_by;
 
   return (
-    <div style={{
-      width: 280, borderLeft: '1px solid #f1f5f9', background: '#fafbff',
-      display: 'flex', flexDirection: 'column', flexShrink: 0, height: '100%', overflowY: 'auto',
-    }}>
-      {/* Header */}
-      <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Info size={15} style={{ color: '#6366f1' }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>Group Info</span>
+    <div className="w-72 border-l border-slate-100 bg-slate-50 flex flex-col flex-shrink-0 h-full overflow-y-auto">
+      <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Info size={15} className="text-indigo-500" />
+          <span className="text-sm font-bold text-slate-800">Group Info</span>
         </div>
-        <button onClick={onClose} style={{ padding: 4, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}
-          onMouseEnter={e => e.currentTarget.style.color = '#475569'}
-          onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>
+        <button onClick={onClose} className="p-1 rounded-md text-slate-400 hover:text-slate-600 transition">
           <X size={14} />
         </button>
       </div>
 
-      {/* Group avatar + name */}
-      <div style={{ padding: '20px 16px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, borderBottom: '1px solid #f1f5f9' }}>
-        <div style={{
-          width: 64, height: 64, borderRadius: 18, background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(99,102,241,0.15)',
-        }}>
-          <Users size={28} style={{ color: '#6366f1' }} />
+      <div className="px-4 py-5 flex flex-col items-center gap-3 border-b border-slate-100">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-100 to-indigo-200 flex items-center justify-center shadow-md">
+          <Users size={28} className="text-indigo-500" />
         </div>
-        <div style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{conv.name || 'Group'}</p>
-          <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 3 }}>Group · {participants.length} members</p>
+        <div className="text-center">
+          <p className="text-base font-bold text-slate-900">{conv.name || 'Group'}</p>
+          <p className="text-xs text-slate-400 mt-1">Group · {participants.length} members</p>
         </div>
       </div>
 
-      {/* Members list */}
-      <div style={{ padding: '14px 16px', flex: 1 }}>
-        <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-          Members
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div className="p-4 flex-1">
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Members</p>
+        <div className="flex flex-col gap-2">
           {participants.map((p) => {
             const isMe = p.id === currentUser?.id;
             const isAdmin = p.id === createdBy || p.is_admin;
-            const [bg, fg] = getColor(p.username || '');
+            const [bg, fg] = getColorClass(p.username || '');
             return (
-              <div key={p.id} style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px',
-                borderRadius: 12, background: isMe ? '#eef2ff' : '#fff',
-                border: `1px solid ${isMe ? '#e0e7ff' : '#f1f5f9'}`,
-                transition: 'all 0.15s',
-              }}>
-                <div style={{
-                  width: 34, height: 34, borderRadius: '50%', background: bg, color: fg,
-                  fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                }}>
+              <div
+                key={p.id}
+                className={`flex items-center gap-2.5 px-2.5 py-2 rounded-xl border transition
+                  ${isMe ? 'bg-indigo-50 border-indigo-100' : 'bg-white border-slate-100'}`}
+              >
+                <div className={`w-8 h-8 rounded-full ${bg} ${fg} text-xs font-bold flex items-center justify-center flex-shrink-0`}>
                   {getInitials(p.username)}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: '#1e293b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1">
+                    <p className="text-sm font-semibold text-slate-800 truncate">
                       {p.username}{isMe ? ' (You)' : ''}
                     </p>
-                    {isAdmin && <Crown size={11} style={{ color: '#f59e0b', flexShrink: 0 }} />}
+                    {isAdmin && <Crown size={11} className="text-amber-400 flex-shrink-0" />}
                   </div>
-                  {p.role && <p style={{ fontSize: 11, color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.role}</p>}
+                  {p.role && <p className="text-xs text-slate-400 truncate">{p.role}</p>}
                 </div>
                 {isAdmin && (
-                  <span style={{ fontSize: 10, fontWeight: 600, background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: 6, flexShrink: 0 }}>
+                  <span className="text-[10px] font-semibold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded flex-shrink-0">
                     Admin
                   </span>
                 )}
@@ -253,7 +221,6 @@ const ChatPage = () => {
   const [msgLoading, setMsgLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [employees, setEmployees] = useState([]);
   const [empLoading, setEmpLoading] = useState(false);
   const [showDirect, setShowDirect] = useState(false);
@@ -266,6 +233,8 @@ const ChatPage = () => {
   const [groupSearch, setGroupSearch] = useState('');
   const [groupSaving, setGroupSaving] = useState(false);
   const [showGroupInfo, setShowGroupInfo] = useState(false);
+  // Mobile: 'sidebar' | 'chat'
+  const [mobileView, setMobileView] = useState('sidebar');
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -275,7 +244,6 @@ const ChatPage = () => {
     return accessToken || await refreshAccessToken();
   }, [accessToken, refreshAccessToken]);
 
-  /* ─── API calls ─── */
   const fetchEmployees = useCallback(async () => {
     try {
       setEmpLoading(true);
@@ -324,11 +292,10 @@ const ChatPage = () => {
       if (!res.ok) throw new Error();
       const data = await res.json();
       setMessages(prev => ({ ...prev, [convId]: data.results || data }));
-    } catch { /* silent */ }
+    } catch { }
     finally { setMsgLoading(false); }
   }, [getToken]);
 
-  /* ─── Effects ─── */
   useEffect(() => { loadConversations(); fetchEmployees(); }, []);
 
   useEffect(() => {
@@ -347,7 +314,6 @@ const ChatPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, selectedConv]);
 
-  /* ─── Send message ─── */
   const handleSend = async () => {
     if (!input.trim() || !selectedConv || sending) return;
     const text = input.trim();
@@ -384,7 +350,17 @@ const ChatPage = () => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
-  /* ─── Create conversations ─── */
+  const handleSelectConv = (conv) => {
+    setSelectedConv(conv);
+    setMobileView('chat');
+  };
+
+  const handleBackToSidebar = () => {
+    setSelectedConv(null);
+    setMobileView('sidebar');
+    setShowGroupInfo(false);
+  };
+
   const handleCreateDirect = async () => {
     if (directSelected.length !== 1 || directSaving) return;
     setDirectSaving(true);
@@ -401,7 +377,7 @@ const ChatPage = () => {
       await loadConversations();
       setConversations(prev => {
         const found = prev.find(c => c.id === data.conversation_id);
-        if (found) setSelectedConv(found);
+        if (found) handleSelectConv(found);
         return prev;
       });
       setShowDirect(false); setDirectSelected([]); setDirectSearch('');
@@ -444,55 +420,61 @@ const ChatPage = () => {
   return (
     <>
       <Navbar />
-      <div style={{ display: 'flex', height: 'calc(100vh - 64px)', background: '#f8fafc', fontFamily: 'system-ui, sans-serif' }}>
+      <div className="flex h-[calc(100vh-64px)] bg-slate-50 font-sans overflow-hidden">
 
         {/* ── Sidebar ── */}
-        <div style={{
-          width: 320, minWidth: 280, borderRight: '1px solid #f1f5f9', background: '#fff',
-          display: 'flex', flexDirection: 'column', flexShrink: 0,
-        }}>
-          {/* Sidebar header */}
-          <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #f8fafc' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <button onClick={() => navigate(-1)} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#4f46e5'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94a3b8'; }}>
+        <div className={`
+          flex flex-col bg-white border-r border-slate-100 flex-shrink-0
+          w-full md:w-80 md:min-w-[280px]
+          ${mobileView === 'sidebar' ? 'flex' : 'hidden md:flex'}
+        `}>
+          {/* Header */}
+          <div className="px-4 pt-4 pb-3 border-b border-slate-50">
+            <div className="flex items-center gap-2 mb-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-indigo-500 transition"
+              >
                 <ArrowLeft size={16} />
               </button>
-              <span style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', flex: 1 }}>Messages</span>
-              <button onClick={() => setShowDirect(true)} title="New direct message" style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4, fontSize: 12 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#eef2ff'; e.currentTarget.style.color = '#4f46e5'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94a3b8'; }}>
+              <span className="text-base font-bold text-slate-900 flex-1">Messages</span>
+              <button
+                onClick={() => setShowDirect(true)}
+                title="New direct message"
+                className="p-1.5 rounded-lg text-slate-400 hover:bg-indigo-50 hover:text-indigo-500 transition"
+              >
                 <UserPlus size={15} />
               </button>
-              <button onClick={() => setShowGroup(true)} title="New group" style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#eef2ff'; e.currentTarget.style.color = '#4f46e5'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94a3b8'; }}>
+              <button
+                onClick={() => setShowGroup(true)}
+                title="New group"
+                className="p-1.5 rounded-lg text-slate-400 hover:bg-indigo-50 hover:text-indigo-500 transition"
+              >
                 <Users size={15} />
               </button>
             </div>
-            <div style={{ position: 'relative' }}>
-              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+            <div className="relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Search conversations..."
-                className="w-full pl-8 pr-3 py-2 text-sm rounded-xl focus:outline-none transition-shadow"
-                style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#1e293b', width: '100%', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8, fontSize: 13, borderRadius: 12, outline: 'none' }}
-                onFocus={e => { e.target.style.boxShadow = '0 0 0 3px #e0e7ff'; e.target.style.borderColor = '#818cf8'; }}
-                onBlur={e => { e.target.style.boxShadow = 'none'; e.target.style.borderColor = '#e2e8f0'; }}
+                className="w-full pl-8 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition"
               />
             </div>
           </div>
 
           {/* Conversation list */}
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div className="flex-1 overflow-y-auto">
             {loading ? (
-              <div style={{ padding: 24, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>Loading...</div>
+              <div className="p-6 text-center text-slate-400 text-sm">Loading...</div>
             ) : error ? (
-              <div style={{ padding: 24, textAlign: 'center' }}>
-                <p style={{ color: '#ef4444', fontSize: 13, marginBottom: 8 }}>{error}</p>
-                <button onClick={() => loadConversations()} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#6366f1', background: 'none', border: 'none', cursor: 'pointer', margin: '0 auto' }}>
+              <div className="p-6 text-center">
+                <p className="text-red-500 text-sm mb-2">{error}</p>
+                <button
+                  onClick={() => loadConversations()}
+                  className="flex items-center gap-1.5 text-xs font-medium text-indigo-500 cursor-pointer mx-auto bg-transparent border-none"
+                >
                   <RefreshCw size={12} /> Retry
                 </button>
               </div>
@@ -505,26 +487,25 @@ const ChatPage = () => {
                 const lastMsg = conv.last_message;
                 const group = conv.type === 'GROUP';
                 return (
-                  <button key={conv.id} onClick={() => setSelectedConv(conv)}
-                    style={{
-                      width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
-                      textAlign: 'left', background: isSel ? '#eef2ff' : 'transparent',
-                      borderBottom: '1px solid #f8fafc', borderLeft: `3px solid ${isSel ? '#6366f1' : 'transparent'}`,
-                      border: 'none', cursor: 'pointer', transition: 'all 0.15s',
-                    }}
-                    onMouseEnter={e => { if (!isSel) e.currentTarget.style.background = '#f8fafc'; }}
-                    onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = 'transparent'; }}
+                  <button
+                    key={conv.id}
+                    onClick={() => handleSelectConv(conv)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-slate-50 transition
+                      ${isSel
+                        ? 'bg-indigo-50 border-l-2 border-l-indigo-500'
+                        : 'border-l-2 border-l-transparent hover:bg-slate-50'
+                      }`}
                   >
                     <Avatar name={name} isGroup={group} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
-                        {lastMsg && <span style={{ fontSize: 11, color: '#94a3b8', flexShrink: 0, marginLeft: 8 }}>{formatTime(lastMsg.created_at)}</span>}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-sm font-semibold text-slate-900 truncate">{name}</span>
+                        {lastMsg && <span className="text-xs text-slate-400 flex-shrink-0 ml-2">{formatTime(lastMsg.created_at)}</span>}
                       </div>
-                      <p style={{ fontSize: 12, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <p className="text-xs text-slate-500 truncate">
                         {lastMsg ? (
                           <>
-                            {lastMsg.sender?.id === user?.id && <span style={{ fontWeight: 500 }}>You: </span>}
+                            {lastMsg.sender?.id === user?.id && <span className="font-medium">You: </span>}
                             {lastMsg.text}
                           </>
                         ) : 'No messages yet'}
@@ -538,20 +519,26 @@ const ChatPage = () => {
         </div>
 
         {/* ── Chat area ── */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <div className={`
+          flex-1 flex flex-col min-w-0
+          ${mobileView === 'chat' ? 'flex' : 'hidden md:flex'}
+        `}>
           {selectedConv ? (
             <>
               {/* Chat header */}
-              <div style={{ padding: '12px 20px', borderBottom: '1px solid #f1f5f9', background: '#fff', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-                <button onClick={() => setSelectedConv(null)}
-                  style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#64748b', display: 'none' }}
-                  className="md:hidden">
+              <div className="px-4 md:px-5 py-3 border-b border-slate-100 bg-white flex items-center gap-3 shadow-sm flex-shrink-0">
+                {/* Mobile back button */}
+                <button
+                  onClick={handleBackToSidebar}
+                  className="md:hidden p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 transition"
+                >
                   <ArrowLeft size={16} />
                 </button>
+
                 <Avatar name={convName} isGroup={isGroup} size="md" />
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{convName}</p>
-                  <p style={{ fontSize: 12, color: '#94a3b8' }}>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-slate-900 truncate">{convName}</p>
+                  <p className="text-xs text-slate-400">
                     {isGroup
                       ? `${selectedConv.participants?.length || 0} members`
                       : (() => {
@@ -562,41 +549,33 @@ const ChatPage = () => {
                   </p>
                 </div>
 
-                {/* Actions - only Info button for groups, MoreVertical for all */}
-                <div style={{ display: 'flex', gap: 4 }}>
+                <div className="flex gap-1">
                   {isGroup && (
                     <button
                       onClick={() => setShowGroupInfo(v => !v)}
                       title="Group Info"
-                      style={{
-                        padding: 8, borderRadius: 10, border: 'none', cursor: 'pointer', transition: 'all 0.15s',
-                        background: showGroupInfo ? '#eef2ff' : 'transparent',
-                        color: showGroupInfo ? '#6366f1' : '#94a3b8',
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#4f46e5'; }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.background = showGroupInfo ? '#eef2ff' : 'transparent';
-                        e.currentTarget.style.color = showGroupInfo ? '#6366f1' : '#94a3b8';
-                      }}
+                      className={`p-2 rounded-xl transition
+                        ${showGroupInfo
+                          ? 'bg-indigo-50 text-indigo-500'
+                          : 'text-slate-400 hover:bg-slate-100 hover:text-indigo-500'
+                        }`}
                     >
                       <Info size={17} />
                     </button>
                   )}
-                  <button style={{ padding: 8, borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8', transition: 'all 0.15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#4f46e5'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94a3b8'; }}>
+                  <button className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-indigo-500 transition">
                     <MoreVertical size={17} />
                   </button>
                 </div>
               </div>
 
-              {/* Chat body: messages + optional group info */}
-              <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+              {/* Messages + optional group info */}
+              <div className="flex-1 flex min-h-0">
                 {/* Messages */}
-                <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 4, background: '#f8fafc' }}>
+                <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 flex flex-col gap-1 bg-slate-50">
                   {msgLoading && currentMessages.length === 0 ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, color: '#94a3b8', fontSize: 13 }}>
-                      <Loader2 size={18} className="animate-spin" style={{ marginRight: 8 }} /> Loading messages...
+                    <div className="flex items-center justify-center flex-1 text-slate-400 text-sm gap-2">
+                      <Loader2 size={18} className="animate-spin" /> Loading messages...
                     </div>
                   ) : currentMessages.length === 0 ? (
                     <EmptyState icon={MessageSquare} title="No messages yet" desc="Say hello!" />
@@ -611,33 +590,32 @@ const ChatPage = () => {
                         return (
                           <div key={msg.id}>
                             {showDate && (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '12px 0' }}>
-                                <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
-                                <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>
+                              <div className="flex items-center gap-3 my-3">
+                                <div className="flex-1 h-px bg-slate-200" />
+                                <span className="text-xs text-slate-400 font-medium">
                                   {new Date(msg.created_at).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
                                 </span>
-                                <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
+                                <div className="flex-1 h-px bg-slate-200" />
                               </div>
                             )}
-                            <div style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginBottom: 2, gap: 8, alignItems: 'flex-end' }}>
+                            <div className={`flex mb-0.5 gap-2 items-end ${isMe ? 'justify-end' : 'justify-start'}`}>
                               {!isMe && <Avatar name={msg.sender?.username || ''} size="sm" />}
-                              <div style={{ maxWidth: '62%' }}>
+                              <div className="max-w-[80%] sm:max-w-[70%] md:max-w-[62%]">
                                 {!isMe && isGroup && (
-                                  <p style={{ fontSize: 11, fontWeight: 600, color: '#6366f1', marginBottom: 3, paddingLeft: 2 }}>{msg.sender?.username}</p>
+                                  <p className="text-xs font-semibold text-indigo-500 mb-1 pl-0.5">{msg.sender?.username}</p>
                                 )}
-                                <div style={{
-                                  padding: '9px 13px', borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                                  background: isMe ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)' : '#fff',
-                                  color: isMe ? '#fff' : '#1e293b', fontSize: 13, lineHeight: 1.5,
-                                  boxShadow: isMe ? '0 2px 8px rgba(99,102,241,0.25)' : '0 1px 4px rgba(0,0,0,0.06)',
-                                  opacity: msg.optimistic ? 0.7 : 1,
-                                }}>
+                                <div className={`px-3.5 py-2 text-sm leading-relaxed
+                                  ${isMe
+                                    ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-2xl rounded-br-sm shadow-md shadow-indigo-200'
+                                    : 'bg-white text-slate-800 rounded-2xl rounded-bl-sm shadow-sm'
+                                  }
+                                  ${msg.optimistic ? 'opacity-70' : ''}`}>
                                   {msg.text}
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', alignItems: 'center', gap: 4, marginTop: 3, paddingLeft: 2, paddingRight: 2 }}>
-                                  <span style={{ fontSize: 10, color: '#94a3b8' }}>{formatTime(msg.created_at)}</span>
-                                  {isMe && !msg.optimistic && <CheckCheck size={12} style={{ color: '#6366f1' }} />}
-                                  {isMe && msg.optimistic && <Check size={12} style={{ color: '#94a3b8' }} />}
+                                <div className={`flex items-center gap-1 mt-1 px-0.5 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                  <span className="text-[10px] text-slate-400">{formatTime(msg.created_at)}</span>
+                                  {isMe && !msg.optimistic && <CheckCheck size={12} className="text-indigo-400" />}
+                                  {isMe && msg.optimistic && <Check size={12} className="text-slate-400" />}
                                 </div>
                               </div>
                             </div>
@@ -649,25 +627,33 @@ const ChatPage = () => {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Group Info Panel */}
+                {/* Group Info Panel — desktop sidebar */}
                 {isGroup && showGroupInfo && (
-                  <GroupInfoPanel conv={selectedConv} currentUser={user} onClose={() => setShowGroupInfo(false)} />
+                  <div className="hidden lg:block">
+                    <GroupInfoPanel conv={selectedConv} currentUser={user} onClose={() => setShowGroupInfo(false)} />
+                  </div>
+                )}
+
+                {/* Group Info Panel — mobile/tablet overlay */}
+                {isGroup && showGroupInfo && (
+                  <div
+                    className="lg:hidden fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm flex justify-end"
+                    onClick={() => setShowGroupInfo(false)}
+                  >
+                    <div
+                      className="w-72 max-w-[90vw] bg-white h-full overflow-y-auto shadow-xl"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <GroupInfoPanel conv={selectedConv} currentUser={user} onClose={() => setShowGroupInfo(false)} />
+                    </div>
+                  </div>
                 )}
               </div>
 
               {/* Input bar */}
-              <div style={{ padding: '12px 20px 16px', background: '#fff', borderTop: '1px solid #f1f5f9' }}>
-                <div style={{
-                  display: 'flex', alignItems: 'flex-end', gap: 10, background: '#f8fafc',
-                  border: '1.5px solid #e2e8f0', borderRadius: 16, padding: '8px 12px',
-                  transition: 'all 0.15s',
-                }}
-                  onFocusCapture={e => { e.currentTarget.style.borderColor = '#818cf8'; e.currentTarget.style.boxShadow = '0 0 0 3px #e0e7ff'; }}
-                  onBlurCapture={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = 'none'; }}
-                >
-                  <button style={{ padding: 4, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8', transition: 'color 0.15s', flexShrink: 0 }}
-                    onMouseEnter={e => e.currentTarget.style.color = '#6366f1'}
-                    onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}>
+              <div className="px-4 md:px-5 pt-3 pb-4 bg-white border-t border-slate-100 flex-shrink-0">
+                <div className="flex items-end gap-2.5 bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 transition">
+                  <button className="p-1 text-slate-400 hover:text-indigo-500 transition flex-shrink-0 self-end mb-1">
                     <Paperclip size={16} />
                   </button>
                   <textarea
@@ -681,44 +667,44 @@ const ChatPage = () => {
                     onKeyDown={handleKeyDown}
                     placeholder="Type a message..."
                     rows={1}
-                    style={{ flex: 1, resize: 'none', background: 'transparent', fontSize: 13, outline: 'none', lineHeight: 1.5, maxHeight: 120, color: '#1e293b', border: 'none', fontFamily: 'inherit', paddingTop: 4, paddingBottom: 4 }}
+                    className="flex-1 resize-none bg-transparent text-sm text-slate-800 outline-none leading-relaxed max-h-28 py-1 font-[inherit] placeholder:text-slate-400"
                   />
-                  <button onClick={handleSend} disabled={!input.trim() || sending}
-                    style={{
-                      padding: 10, borderRadius: 12, border: 'none', cursor: input.trim() && !sending ? 'pointer' : 'not-allowed',
-                      background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', color: '#fff',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, alignSelf: 'flex-end',
-                      opacity: !input.trim() || sending ? 0.4 : 1,
-                      boxShadow: '0 2px 8px rgba(99,102,241,0.3)', transition: 'all 0.15s',
-                    }}>
-                    {sending ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
+                  <button
+                    onClick={handleSend}
+                    disabled={!input.trim() || sending}
+                    className={`p-2.5 rounded-xl flex-shrink-0 self-end flex items-center justify-center transition
+                      ${input.trim() && !sending
+                        ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-200 hover:from-indigo-600 hover:to-indigo-700 cursor-pointer'
+                        : 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                      }`}
+                  >
+                    {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                   </button>
                 </div>
-                <p style={{ textAlign: 'center', fontSize: 10, color: '#cbd5e1', marginTop: 6 }}>
-                  ↵ send · ⇧↵ new line
-                </p>
+                <p className="text-center text-[10px] text-slate-300 mt-1.5 hidden sm:block">↵ send · ⇧↵ new line</p>
               </div>
             </>
           ) : (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 24 }}>
-              <div style={{ width: 96, height: 96, borderRadius: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%)', boxShadow: 'inset 0 2px 8px rgba(99,102,241,0.1)' }}>
-                <MessageSquare size={38} strokeWidth={1.5} style={{ color: '#6366f1' }} />
+            /* Welcome / empty state — only shown on md+ when no conv selected */
+            <div className="flex-1 hidden md:flex items-center justify-center flex-col gap-6">
+              <div className="w-24 h-24 rounded-3xl flex items-center justify-center bg-gradient-to-br from-indigo-50 to-indigo-100 shadow-inner">
+                <MessageSquare size={38} strokeWidth={1.5} className="text-indigo-400" />
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: 18, fontWeight: 600, color: '#0f172a' }}>Your messages</p>
-                <p style={{ fontSize: 13, marginTop: 6, color: '#64748b' }}>Select a conversation or start a new one</p>
+              <div className="text-center">
+                <p className="text-lg font-semibold text-slate-900">Your messages</p>
+                <p className="text-sm mt-1.5 text-slate-500">Select a conversation or start a new one</p>
               </div>
-              <div style={{ display: 'flex', gap: 12 }}>
-                <button onClick={() => setShowDirect(true)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12, fontSize: 13, fontWeight: 500, background: '#6366f1', color: '#fff', border: 'none', cursor: 'pointer', boxShadow: '0 2px 8px rgba(99,102,241,0.3)', transition: 'all 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#4f46e5'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#6366f1'}>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDirect(true)}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-indigo-500 hover:bg-indigo-600 text-white shadow-md shadow-indigo-200 transition"
+                >
                   <UserPlus size={15} /> New Message
                 </button>
-                <button onClick={() => setShowGroup(true)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12, fontSize: 13, fontWeight: 500, background: '#f1f5f9', color: '#475569', border: 'none', cursor: 'pointer', transition: 'all 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#e2e8f0'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#f1f5f9'}>
+                <button
+                  onClick={() => setShowGroup(true)}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium bg-slate-100 hover:bg-slate-200 text-slate-600 transition"
+                >
                   <Users size={15} /> New Group
                 </button>
               </div>
@@ -727,23 +713,47 @@ const ChatPage = () => {
         </div>
       </div>
 
-      {/* ── New Direct Modal ── */}
-      <Modal open={showDirect} onClose={() => { setShowDirect(false); setDirectSelected([]); setDirectSearch(''); }} title="New Direct Message">
-        <p style={{ fontSize: 12, color: '#64748b', marginTop: -6 }}>Select an employee to start a private conversation.</p>
-        <EmployeePicker employees={filteredForDirect} selected={directSelected} onToggle={toggleDirect} search={directSearch} onSearch={setDirectSearch} single={true} empLoading={empLoading} />
-        <button onClick={handleCreateDirect} disabled={directSelected.length !== 1 || directSaving}
-          style={{ width: '100%', padding: '10px 0', fontSize: 13, borderRadius: 12, fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none', cursor: directSelected.length !== 1 || directSaving ? 'not-allowed' : 'pointer', background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', color: '#fff', opacity: directSelected.length !== 1 || directSaving ? 0.4 : 1 }}>
-          {directSaving ? <Loader2 size={14} /> : <UserPlus size={14} />} Start Conversation
+      {/* New Direct Modal */}
+      <Modal
+        open={showDirect}
+        onClose={() => { setShowDirect(false); setDirectSelected([]); setDirectSearch(''); }}
+        title="New Direct Message"
+      >
+        <p className="text-xs text-slate-500 -mt-2">Select an employee to start a private conversation.</p>
+        <EmployeePicker
+          employees={filteredForDirect}
+          selected={directSelected}
+          onToggle={toggleDirect}
+          search={directSearch}
+          onSearch={setDirectSearch}
+          single={true}
+          empLoading={empLoading}
+        />
+        <button
+          onClick={handleCreateDirect}
+          disabled={directSelected.length !== 1 || directSaving}
+          className={`w-full py-2.5 text-sm rounded-xl font-medium flex items-center justify-center gap-2 transition border-none
+            ${directSelected.length === 1 && !directSaving
+              ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-200 hover:from-indigo-600 hover:to-indigo-700 cursor-pointer'
+              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+            }`}
+        >
+          {directSaving ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />}
+          Start Conversation
         </button>
       </Modal>
 
-      {/* ── New Group Modal ── */}
-      <Modal open={showGroup} onClose={() => { setShowGroup(false); setGroupSelected([]); setGroupName(''); setGroupSearch(''); }} title="New Group Chat">
+      {/* New Group Modal */}
+      <Modal
+        open={showGroup}
+        onClose={() => { setShowGroup(false); setGroupSelected([]); setGroupName(''); setGroupSearch(''); }}
+        title="New Group Chat"
+      >
         <div>
-          <label style={{ fontSize: 12, fontWeight: 500, marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#475569' }}>
-            <span>Group Name <span style={{ color: '#ef4444' }}>*</span></span>
+          <label className="text-xs font-medium text-slate-600 mb-1.5 flex items-center justify-between">
+            <span>Group Name <span className="text-red-400">*</span></span>
             {!groupName.trim() && groupSelected.length > 0 && (
-              <span style={{ fontSize: 11, color: '#ef4444', fontWeight: 400 }}>Required to create group</span>
+              <span className="text-xs text-red-400 font-normal">Required to create group</span>
             )}
           </label>
           <input
@@ -752,40 +762,39 @@ const ChatPage = () => {
             onChange={e => setGroupName(e.target.value)}
             placeholder="e.g. Design Team"
             autoFocus
-            style={{
-              width: '100%', padding: '10px 12px', fontSize: 13, borderRadius: 12,
-              border: `1.5px solid ${!groupName.trim() && groupSelected.length > 0 ? '#fca5a5' : '#e2e8f0'}`,
-              color: '#1e293b', background: '#f9fafb', outline: 'none', boxSizing: 'border-box',
-              boxShadow: !groupName.trim() && groupSelected.length > 0 ? '0 0 0 3px #fee2e2' : 'none',
-            }}
-            onFocus={e => { e.target.style.boxShadow = '0 0 0 3px #e0e7ff'; e.target.style.borderColor = '#818cf8'; }}
-            onBlur={e => {
-              e.target.style.boxShadow = !groupName.trim() && groupSelected.length > 0 ? '0 0 0 3px #fee2e2' : 'none';
-              e.target.style.borderColor = !groupName.trim() && groupSelected.length > 0 ? '#fca5a5' : '#e2e8f0';
-            }}
+            className={`w-full px-3 py-2.5 text-sm rounded-xl border bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition
+              ${!groupName.trim() && groupSelected.length > 0 ? 'border-red-300 ring-2 ring-red-100' : 'border-slate-200'}`}
           />
         </div>
         <div>
-          <label style={{ fontSize: 12, fontWeight: 500, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8, color: '#475569' }}>
-            Add Members {groupSelected.length > 0 && <span style={{ color: '#6366f1' }}>{groupSelected.length} selected</span>}
+          <label className="text-xs font-medium text-slate-600 mb-1.5 flex items-center gap-2">
+            Add Members
+            {groupSelected.length > 0 && <span className="text-indigo-500">{groupSelected.length} selected</span>}
           </label>
-          <EmployeePicker employees={filteredForGroup} selected={groupSelected} onToggle={toggleGroup} search={groupSearch} onSearch={setGroupSearch} single={false} empLoading={empLoading} />
+          <EmployeePicker
+            employees={filteredForGroup}
+            selected={groupSelected}
+            onToggle={toggleGroup}
+            search={groupSearch}
+            onSearch={setGroupSearch}
+            single={false}
+            empLoading={empLoading}
+          />
         </div>
 
-        {/* Validation summary */}
         {(groupSelected.length === 0 || !groupName.trim()) && (
-          <div style={{ background: '#fafafa', border: '1px solid #f1f5f9', borderRadius: 10, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 5 }}>
-            <p style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>To create a group:</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: groupName.trim() ? '#22c55e' : '#94a3b8' }}>
+          <div className="bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-3 flex flex-col gap-1.5">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">To create a group:</p>
+            <div className={`flex items-center gap-2 text-xs ${groupName.trim() ? 'text-emerald-600' : 'text-slate-400'}`}>
               {groupName.trim()
-                ? <Check size={13} style={{ color: '#22c55e' }} />
-                : <div style={{ width: 13, height: 13, borderRadius: '50%', border: '1.5px solid #cbd5e1', flexShrink: 0 }} />}
+                ? <Check size={13} className="text-emerald-500" />
+                : <div className="w-3 h-3 rounded-full border-2 border-slate-300 flex-shrink-0" />}
               Enter a group name
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: groupSelected.length > 0 ? '#22c55e' : '#94a3b8' }}>
+            <div className={`flex items-center gap-2 text-xs ${groupSelected.length > 0 ? 'text-emerald-600' : 'text-slate-400'}`}>
               {groupSelected.length > 0
-                ? <Check size={13} style={{ color: '#22c55e' }} />
-                : <div style={{ width: 13, height: 13, borderRadius: '50%', border: '1.5px solid #cbd5e1', flexShrink: 0 }} />}
+                ? <Check size={13} className="text-emerald-500" />
+                : <div className="w-3 h-3 rounded-full border-2 border-slate-300 flex-shrink-0" />}
               Select at least 1 member
             </div>
           </div>
@@ -794,18 +803,13 @@ const ChatPage = () => {
         <button
           onClick={handleCreateGroup}
           disabled={!groupName.trim() || groupSelected.length === 0 || groupSaving}
-          style={{
-            width: '100%', padding: '11px 0', fontSize: 13, borderRadius: 12, fontWeight: 600,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none',
-            cursor: !groupName.trim() || groupSelected.length === 0 || groupSaving ? 'not-allowed' : 'pointer',
-            background: !groupName.trim() || groupSelected.length === 0
-              ? '#e2e8f0'
-              : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-            color: !groupName.trim() || groupSelected.length === 0 ? '#94a3b8' : '#fff',
-            boxShadow: !groupName.trim() || groupSelected.length === 0 ? 'none' : '0 2px 8px rgba(99,102,241,0.3)',
-            transition: 'all 0.2s',
-          }}>
-          {groupSaving ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Users size={14} />}
+          className={`w-full py-2.5 text-sm rounded-xl font-semibold flex items-center justify-center gap-2 transition border-none
+            ${groupName.trim() && groupSelected.length > 0 && !groupSaving
+              ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-md shadow-indigo-200 hover:from-indigo-600 hover:to-indigo-700 cursor-pointer'
+              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+            }`}
+        >
+          {groupSaving ? <Loader2 size={14} className="animate-spin" /> : <Users size={14} />}
           {groupSaving ? 'Creating...' : 'Create Group'}
         </button>
       </Modal>
