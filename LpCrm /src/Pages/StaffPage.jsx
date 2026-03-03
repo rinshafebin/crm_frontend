@@ -336,7 +336,7 @@ export default function StaffPage() {
 
                     <div className="mb-4">
                       <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">
-                        {staff.team}
+                        {staff.department}
                       </span>
                     </div>
 
