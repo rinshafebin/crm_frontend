@@ -108,6 +108,29 @@ function buildCharts(logs) {
   return { callsByHour, topAgents };
 }
 
+// ─── Agent name lookup hook ───────────────────────────────────────────────────
+
+function useAgentMap() {
+  const [agentMap, setAgentMap] = useState({});
+
+  useEffect(() => {
+    fetch(`${API_BASE}/voxbay/agents/?format=map`, { credentials: 'include' })
+      .then(r => r.ok ? r.json() : {})
+      .then(data => setAgentMap(data || {}))
+      .catch(() => {});
+  }, []);
+
+  return agentMap;
+}
+
+// Returns "Name (number)" if found, otherwise just the raw number
+function agentLabel(agentMap, number) {
+  if (!number) return null;
+  const name = agentMap[number] || agentMap[number?.replace(/^91/, '')] || agentMap[`91${number}`];
+  if (!name) return number;
+  return { name, number };
+}
+
 // ─── Small components ─────────────────────────────────────────────────────────
 
 function StatCard({ label, value, sub, Icon, bg, loading }) {
@@ -142,7 +165,22 @@ function StatusBadge({ status }) {
   );
 }
 
-// SVG Donut chart
+// Agent cell — shows name + number when available
+function AgentCell({ agentMap, number }) {
+  if (!number) return <span className="text-gray-300">—</span>;
+  const result = agentLabel(agentMap, number);
+  if (!result || typeof result === 'string') {
+    return <span className="font-mono text-gray-600">{number}</span>;
+  }
+  return (
+    <div>
+      <p className="font-semibold text-gray-800 text-xs">{result.name}</p>
+      <p className="font-mono text-gray-400 text-[10px]">{result.number}</p>
+    </div>
+  );
+}
+
+
 function DonutChart({ answered, total, loading }) {
   const r = 52, cx = 64, cy = 64, circ = 2 * Math.PI * r;
   const pct = total ? answered / total : 0;
@@ -205,6 +243,7 @@ export default function CallAnalyticsPage() {
   const { user } = useAuth();
   const userRole = user?.role || user?.user_role || '';
 
+  const agentMap = useAgentMap();
   const [dateRange,   setDateRange]   = useState('today');
   const [callType,    setCallType]    = useState('all');
   const [callStatus,  setCallStatus]  = useState('all');
@@ -429,18 +468,25 @@ export default function CallAnalyticsPage() {
               : (
                 <div className="space-y-2">
                   <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-2">Top Answered</p>
-                  {topAgents.slice(0, 3).map(({ name, calls, answered, rate }, i) => (
+                  {topAgents.slice(0, 3).map(({ name, calls, answered, rate }, i) => {
+                    const label = agentLabel(agentMap, name);
+                    const displayName = (label && typeof label === 'object') ? label.name : name;
+                    const displayNum  = (label && typeof label === 'object') ? label.number : null;
+                    return (
                     <div key={name} className={`p-2.5 rounded-xl ${i === 0 ? 'bg-emerald-50 border border-emerald-100' : 'bg-gray-50'}`}>
                       <div className="flex items-center justify-between mb-1">
-                        <p className="text-[11px] font-bold text-gray-700 font-mono truncate max-w-[120px]">{name}</p>
-                        <p className="text-xs font-black text-emerald-600">{rate}%</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-bold text-gray-800 truncate">{displayName}</p>
+                          {displayNum && <p className="font-mono text-[9px] text-gray-400">{displayNum}</p>}
+                        </div>
+                        <p className="text-xs font-black text-emerald-600 ml-2">{rate}%</p>
                       </div>
                       <div className="w-full h-1.5 bg-white rounded-full overflow-hidden">
                         <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${rate}%` }} />
                       </div>
                       <p className="text-[9px] text-gray-400 mt-0.5">{answered} answered · {calls} total</p>
                     </div>
-                  ))}
+                  )})}
                 </div>
               )}
           </div>
@@ -534,7 +580,9 @@ export default function CallAnalyticsPage() {
                       </td>
                       <td className="px-4 py-3 font-mono text-gray-700">{log.caller_number || '—'}</td>
                       <td className="px-4 py-3 font-mono text-gray-600">{log.called_number || log.destination || '—'}</td>
-                      <td className="px-4 py-3 font-mono text-gray-600">{log.agent_number || log.extension || '—'}</td>
+                      <td className="px-4 py-3">
+                        <AgentCell agentMap={agentMap} number={log.agent_number || log.extension} />
+                      </td>
                       <td className="px-4 py-3"><StatusBadge status={log.call_status} /></td>
                       <td className="px-4 py-3 font-mono text-gray-500">{log.duration_display || fmtSec(log.duration)}</td>
                       <td className="px-4 py-3 font-mono text-gray-500">{log.conversation_duration_display || fmtSec(log.conversation_duration)}</td>
