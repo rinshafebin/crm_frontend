@@ -93,7 +93,7 @@ export const roleNavigation = {
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
   
-  DOCUMENTATION:
+  Documentation executive:
     [
       { id: "overview", label: "Overview", icon: FileText, path: "/" },
       { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
