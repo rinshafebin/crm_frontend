@@ -92,7 +92,14 @@ export const roleNavigation = {
         { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
-
+  
+  DOCUMENTATION:
+    [
+      { id: "overview", label: "Overview", icon: FileText, path: "/" },
+      { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+      { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
+    ],
+  
   ACCOUNTS: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "penalties", label: "Penalties", icon: ShieldAlert, path: "/hr/penalties" },
