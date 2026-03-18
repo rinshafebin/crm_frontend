@@ -14,6 +14,16 @@ export const roleNavigation = {
     { id: "call", label: "call", icon: PhoneCall, path: "/call-analytics" },
 
   ],
+  CEO : [
+    { id: "overview", label: "Overview", icon: FileText, path: "/" },
+    { id: "leads", label: "Leads", icon: Users, path: "/leads" },
+    { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
+    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
+    { id: "Reports", label: "Reports", icon: FileText, path: "/daily/reports" },
+    { id: "call", label: "call", icon: PhoneCall, path: "/call-analytics" },
+
+  ],
 
   BUSINESS_HEAD: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
