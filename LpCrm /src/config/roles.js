@@ -13,13 +13,13 @@ import {
 // ✅ Role-based navigation config
 export const roleNavigation = {
   ADMIN: [
-    { id: "overview", label: "Overview", icon: FileText, path: "/" },
-    { id: "leads", label: "Leads", icon: Users, path: "/leads" },
-    { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
-    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
-    { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
-    { id: "reports", label: "Reports", icon: FileText, path: "/daily/reports" },
-    { id: "call", label: "Call Analytics", icon: PhoneCall, path: "/call-analytics" }
+    { id: "overview", label: "Overview", path: "/" },
+    { id: "leads", label: "Leads", path: "/leads" },
+    { id: "staff", label: "Staff",  path: "/staff" },
+    { id: "tasks", label: "Tasks",  path: "/staff/tasks" },
+    { id: "students", label: "Students",  path: "/students" },
+    { id: "reports", label: "Reports", path: "/daily/reports" },
+    { id: "call", label: "Call Analytics", path: "/call-analytics" }
   ],
 
   CEO: [
