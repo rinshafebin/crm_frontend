@@ -19,7 +19,7 @@ export const roleNavigation = {
     { id: "tasks", label: "Tasks",  path: "/staff/tasks" },
     { id: "students", label: "Students",  path: "/students" },
     { id: "reports", label: "Reports", path: "/daily/reports" },
-    { id: "call", label: "Call Analytics", path: "/call-analytics" }
+    { id: "call", label: "Voxbay", path: "/call-analytics" }
   ],
 
   CEO: [
@@ -30,7 +30,7 @@ export const roleNavigation = {
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
     { id: "reports", label: "Reports", icon: FileText, path: "/daily/reports" },
-    { id: "call", label: "Call Analytics", icon: PhoneCall, path: "/call-analytics" }
+    { id: "call", label: "Voxbay", icon: PhoneCall, path: "/call-analytics" }
   ],
 
   BUSINESS_HEAD: [
