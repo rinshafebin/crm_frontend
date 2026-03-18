@@ -1,29 +1,36 @@
 import {
-  Users, UserCheck, ListTodo, FileText, GraduationCap,
-  CalendarCheck, ShieldAlert, FolderClock, PhoneCall
+  Users,
+  UserCheck,
+  ListTodo,
+  FileText,
+  GraduationCap,
+  CalendarCheck,
+  ShieldAlert,
+  FolderClock,
+  PhoneCall
 } from "lucide-react";
 
+// ✅ Role-based navigation config
 export const roleNavigation = {
   ADMIN: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
-    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
-    { id: "Reports", label: "Reports", icon: FileText, path: "/daily/reports" },
-    { id: "call", label: "call", icon: PhoneCall, path: "/call-analytics" },
-
+    { id: "reports", label: "Reports", icon: FileText, path: "/daily/reports" },
+    { id: "call", label: "Call Analytics", icon: PhoneCall, path: "/call-analytics" }
   ],
-  CEO : [
+
+  CEO: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
-    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
-    { id: "Reports", label: "Reports", icon: FileText, path: "/daily/reports" },
-    { id: "call", label: "call", icon: PhoneCall, path: "/call-analytics" },
-
+    { id: "reports", label: "Reports", icon: FileText, path: "/daily/reports" },
+    { id: "call", label: "Call Analytics", icon: PhoneCall, path: "/call-analytics" }
   ],
 
   BUSINESS_HEAD: [
@@ -39,27 +46,27 @@ export const roleNavigation = {
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
-    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
 
   ADM_MANAGER: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
-    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
 
   ADM_EXEC: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
-    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
 
   MEDIA: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
-    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
 
@@ -67,14 +74,14 @@ export const roleNavigation = {
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "students", label: "Students", icon: GraduationCap, path: "/students" },
     { id: "markAttendance", label: "Mark Attendance", icon: CalendarCheck, path: "/attendance/mark" },
-    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
 
   BDM: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
-    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
 
@@ -82,8 +89,7 @@ export const roleNavigation = {
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
-    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
-
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" },
     { id: "staffReports", label: "Staff Reports", icon: FileText, path: "/daily/reports" }
   ],
@@ -93,31 +99,31 @@ export const roleNavigation = {
     { id: "staff", label: "Staff", icon: UserCheck, path: "/staff" },
     { id: "penalties", label: "Penalties", icon: ShieldAlert, path: "/hr/penalties" },
     { id: "attendanceDocs", label: "Attendance Docs", icon: FolderClock, path: "/hr/attendance" },
-    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
 
   FOE: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "leads", label: "Leads", icon: Users, path: "/leads" },
-        { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
-  
-  Documentation executive:
-    [
-      { id: "overview", label: "Overview", icon: FileText, path: "/" },
-      { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
-      { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
-    ],
-  
+
+  DOCUMENTATION: [
+    { id: "overview", label: "Overview", icon: FileText, path: "/" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
+  ],
+
   ACCOUNTS: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
     { id: "penalties", label: "Penalties", icon: ShieldAlert, path: "/hr/penalties" },
-    { id: "Tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ]
 };
 
-export const getMenuForRole = role =>
+// ✅ Safe getter
+export const getMenuForRole = (role) =>
   role ? roleNavigation[role.toUpperCase()] || [] : [];
