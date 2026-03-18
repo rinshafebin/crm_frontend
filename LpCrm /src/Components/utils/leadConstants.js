@@ -2,7 +2,8 @@ export const statusOptions = [
   { value: 'ENQUIRY', label: 'Enquiry' },
   { value: 'QUALIFIED', label: 'Qualified' },
   { value: 'CONVERTED', label: 'Converted' },
-  { value: 'LOST', label: 'Lost' }
+  { value: 'NOT_INTERESTED', label: 'Not Interested' },
+  { value: 'CNR', label: 'Could Not Reach' }
 ];
 
 export const sourceOptions = [
