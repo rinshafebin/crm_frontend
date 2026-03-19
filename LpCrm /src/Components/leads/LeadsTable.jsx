@@ -58,12 +58,16 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, userRole = '' }) => {
                 <td className="px-6 py-5">
                   <div className="space-y-2">
                     {/* Email */}
-                    <div className="flex items-center gap-2 text-sm text-gray-700">
-                      <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <a
+                      href={lead.email && lead.email !== 'No email provided' ? `mailto:${lead.email}` : undefined}
+                      className={`flex items-center gap-2 text-sm text-gray-700 group/email ${lead.email && lead.email !== 'No email provided' ? 'cursor-pointer hover:text-blue-600 transition-colors' : ''}`}
+                      title={lead.email && lead.email !== 'No email provided' ? `Compose email to ${lead.email}` : ''}
+                    >
+                      <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center group-hover/email:bg-blue-200 transition-colors">
                         <Mail size={14} className="text-blue-600" />
                       </div>
-                      <span className="font-medium">{lead.email}</span>
-                    </div>
+                      <span className="font-medium group-hover/email:underline">{lead.email}</span>
+                    </a>
 
                     {/* Phone */}
                     <div className="flex items-center gap-2 text-sm text-gray-700">
