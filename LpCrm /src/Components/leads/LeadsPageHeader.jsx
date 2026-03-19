@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Plus, Sparkles, Upload, X, CheckCircle, AlertCircle, FileSpreadsheet, Loader2, Info, Download } from 'lucide-react';
+
+const TEMPLATE_URL = '/leads_bulk_upload_template.xlsx'; 
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext'
 
@@ -22,16 +24,7 @@ const Pill = ({ children, color = 'blue' }) => {
   );
 };
 
-/* ─────────────────────────────────────────────────────────────
-   BulkUploadModal
-   Corrected to match BulkLeadUploadView / BulkLeadCreateSerializer:
-     Required  : name · phone · assigned_to
-     Optional  : email · source · status · priority · program · location
-     source    : NOT required (backend defaults to null)
-     status    : defaults to ENQUIRY if omitted
-     priority  : defaults to MEDIUM  if omitted
-     assigned_to must be the staff member's username (case-insensitive on backend)
-───────────────────────────────────────────────────────────── */
+
 const BulkUploadModal = ({ onClose, authFetch }) => {
   const fileInputRef = useRef(null);
   const [file, setFile]           = useState(null);
@@ -179,6 +172,17 @@ const BulkUploadModal = ({ onClose, authFetch }) => {
               </div>
             </div>
           </div>
+
+          {/* ── Download template ── */}
+          <a
+            href={TEMPLATE_URL}
+            download="leads_bulk_upload_template.xlsx"
+            className="flex items-center justify-center gap-2.5 w-full py-3 rounded-xl border-2 border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-sm transition-all duration-200 group"
+          >
+            <Download size={16} className="group-hover:-translate-y-0.5 transition-transform duration-200" />
+            Download Excel Template
+            <span className="text-indigo-400 font-normal text-xs">(.xlsx)</span>
+          </a>
 
           {/* ── Drop zone ── */}
           {!result && (
