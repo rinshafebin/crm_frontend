@@ -12,6 +12,7 @@ export const sourceOptions = [
   { value: 'WEBSITE', label: 'Website' },
   { value: 'WALK_IN', label: 'Walk-in' },
   { value: 'AUTOMATION', label: 'Automation' },
+  { value: 'Ads', label: 'Ads' },
   { value: 'OTHER', label: 'Other' }
 ];
 
