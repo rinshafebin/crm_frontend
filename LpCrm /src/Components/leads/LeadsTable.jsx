@@ -1,10 +1,10 @@
 import React from 'react';
 import {
   Mail, Phone, MapPin, Calendar, Edit, Trash2,
-  ExternalLink, UserCheck, Users, Eye, History,
+  ExternalLink, UserCheck, Users, History,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { canViewCallHistory } from '../../Components/utils/callPermissions'
+import { canViewCallHistory } from '../../Components/utils/callPermissions';
 
 const LeadsTable = ({ leads, statusColors, onDeleteLead, userRole = '' }) => {
   const navigate = useNavigate();
@@ -176,12 +176,6 @@ const LeadsTable = ({ leads, statusColors, onDeleteLead, userRole = '' }) => {
                         <History size={18} className="group-hover/btn:rotate-12 transition-transform" />
                       </button>
                     )}
-
-                    {/* View */}
-                    <button onClick={() => navigate(`/leads/${lead.id}`)}
-                      className="group/btn p-2.5 text-green-600 hover:bg-green-100 rounded-xl transition-all duration-200 hover:shadow-md hover:scale-110" title="View details">
-                      <Eye size={18} className="group-hover/btn:scale-110 transition-transform" />
-                    </button>
 
                     {/* Edit */}
                     <button onClick={() => navigate(`/leads/edit/${lead.id}`)}
