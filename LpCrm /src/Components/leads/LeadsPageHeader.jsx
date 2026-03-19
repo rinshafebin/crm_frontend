@@ -1,11 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { Plus, Sparkles, Upload, X, CheckCircle, AlertCircle, FileSpreadsheet, Loader2, Info, Download } from 'lucide-react';
 
-const TEMPLATE_URL = '/leads_bulk_upload_template.xlsx'; 
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const TEMPLATE_URL = '/leads_bulk_upload_template.xlsx'; 
 
 /* ─────────────────────────────────────────────────────────────
    Inline helper: coloured pill
