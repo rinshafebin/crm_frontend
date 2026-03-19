@@ -4,26 +4,24 @@ import LeadsPageHeader from '../Components/leads/LeadsPageHeader';
 import LeadsStatsCards from '../Components/leads/LeadsStatsCards';
 import LeadsFilters from '../Components/leads/LeadsFilters';
 import LeadsTable from '../Components/leads/LeadsTable';
-import IncomingCallModal from '../Components/leads/IncomingCallModal.jsx';
 import { Users, UserPlus, CheckCircle, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Pagination from '../Components/common/Pagination';
-import { canReceiveIncoming } from '../Components/utils/callPermissions.js'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const PAGE_SIZE = 50;
 
-const EXCLUDED_STAFF_ROLES = ['TRAINER', 'ACCOUNTS','HR','MEDIA','ADMIN']; 
+const EXCLUDED_STAFF_ROLES = ['TRAINER', 'ACCOUNTS', 'HR', 'MEDIA', 'ADMIN'];
 
 export default function LeadsPage() {
   const { accessToken, refreshAccessToken, loading: authLoading, user } = useAuth();
 
   const userRole = user?.role || user?.user_role || '';
 
-  const [leads, setLeads] = useState([]);
-  const [stats, setStats] = useState({ new: 0, qualified: 0, converted: 0 });
+  const [leads, setLeads]                     = useState([]);
+  const [stats, setStats]                     = useState({ new: 0, qualified: 0, converted: 0 });
   const [searchTerm, setSearchTerm]           = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');   
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filterStatus, setFilterStatus]       = useState('all');
   const [filterPriority, setFilterPriority]   = useState('all');
   const [filterSource, setFilterSource]       = useState('all');
@@ -33,8 +31,6 @@ export default function LeadsPage() {
   const [page, setPage]                       = useState(1);
   const [totalPages, setTotalPages]           = useState(1);
   const [totalCount, setTotalCount]           = useState(0);
-
-  const [incomingCall, setIncomingCall] = useState({ isOpen: false, callData: null });
 
   // Debounce search – wait 400 ms after the user stops typing
   const debounceTimer = useRef(null);
@@ -85,136 +81,84 @@ export default function LeadsPage() {
     }
   };
 
-  const simulateIncomingCall = useCallback(() => {
-    if (!canReceiveIncoming(userRole) || leads.length === 0) return;
-    const lead = leads[Math.floor(Math.random() * leads.length)];
-    setIncomingCall({
-      isOpen: true,
-      callData: { leadName: lead.name, phoneNumber: lead.phone, program: lead.program, leadId: lead.id },
-    });
-  }, [leads, userRole]);
-
-  // Fetch staff members with better error handling
+  // Fetch staff members
   useEffect(() => {
     if (authLoading || !accessToken) return;
-    
+
     const fetchStaff = async () => {
       try {
         const res = await authFetch(`${API_BASE_URL}/employees/`);
-        
+
         if (!res.ok) {
-          const errorText = await res.text();
-          console.error('Staff API Error:', res.status, errorText);
-          throw new Error(`Failed to fetch staff: ${res.status}`);
-        }
-        
-        const data = await res.json();
-        console.log('Raw staff data:', data);
-        
-        // Handle different response formats
-        const staffArray = Array.isArray(data) ? data : (data.results || data.employees || []);
-        
-        if (!Array.isArray(staffArray)) {
-          console.error('Invalid staff data format:', data);
+          console.error('Staff API Error:', res.status, await res.text());
           return;
         }
-        
-        const filtered = staffArray.filter(
-          u => !EXCLUDED_STAFF_ROLES.includes((u.role || '').toUpperCase())
+
+        const data = await res.json();
+        const staffArray = Array.isArray(data) ? data : (data.results || data.employees || []);
+
+        if (!Array.isArray(staffArray)) return;
+
+        setStaffMembers(
+          staffArray.filter(u => !EXCLUDED_STAFF_ROLES.includes((u.role || '').toUpperCase()))
         );
-        
-        console.log('Filtered staff members:', filtered);
-        setStaffMembers(filtered);
       } catch (err) {
         console.error('Failed to load staff members:', err);
-        // Don't show alert - this is not critical for page functionality
       }
     };
-    
+
     fetchStaff();
   }, [authLoading, accessToken, authFetch]);
 
-  // Fetch leads – uses debouncedSearch instead of searchTerm
+  // Fetch leads
   useEffect(() => {
     if (authLoading || !accessToken) return;
+
     const fetchLeads = async () => {
       setLoading(true);
       try {
-        // Build params object
-        const paramsObj = {
-          page,
-          page_size: PAGE_SIZE,
-        };
+        const paramsObj = { page, page_size: PAGE_SIZE };
 
-        // Add search if present
-        if (debouncedSearch) {
-          paramsObj.search = debouncedSearch;
-        }
+        if (debouncedSearch)        paramsObj.search   = debouncedSearch;
+        if (filterStatus !== 'all') paramsObj.status   = filterStatus.toUpperCase();
+        if (filterPriority !== 'all') paramsObj.priority = filterPriority.toUpperCase();
+        if (filterSource !== 'all') paramsObj.source   = filterSource.toUpperCase();
 
-        // Add status filter
-        if (filterStatus !== 'all') {
-          paramsObj.status = filterStatus.toUpperCase();
-        }
-
-        // Add priority filter
-        if (filterPriority !== 'all') {
-          paramsObj.priority = filterPriority.toUpperCase();
-        }
-
-        // Add source filter
-        if (filterSource !== 'all') {
-          paramsObj.source = filterSource.toUpperCase();
-        }
-
-        // Handle staff/assignment filter - FIXED FOR UNASSIGNED
         if (filterStaff !== 'all') {
           if (filterStaff === 'unassigned') {
-            // Try multiple approaches for unassigned leads
-            // Your backend might expect one of these formats:
-            paramsObj.assigned_to__isnull = 'true';  // Django/DRF common format
-            // OR: paramsObj.assigned_to = '';          // Empty string
-            // OR: paramsObj.unassigned = 'true';       // Custom field
-            
-            // Log to help debug which format your backend expects
-            console.log('Filtering for unassigned leads');
+            paramsObj.assigned_to__isnull = 'true';
           } else {
             paramsObj.assigned_to = filterStaff;
           }
         }
 
-        const params = new URLSearchParams(paramsObj);
-        const url = `${API_BASE_URL}/leads/?${params}`;
-        
-        console.log('Fetching leads with URL:', url);
-        console.log('Filter params:', paramsObj);
-        
-        const res = await authFetch(url);
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error('Leads API Error:', res.status, errorText);
-          throw new Error('Failed to fetch leads');
-        }
-        
-        const data = await res.json();
-        console.log('Leads response:', data);
+        const res = await authFetch(`${API_BASE_URL}/leads/?${new URLSearchParams(paramsObj)}`);
+        if (!res.ok) throw new Error('Failed to fetch leads');
 
+        const data = await res.json();
         const leadsData = data.results?.leads || data.results || [];
         const statsData = data.results?.stats || {};
 
         setLeads(leadsData.map(l => ({
-          id: l.id, name: l.name, phone: l.phone,
-          email:    l.email    || 'No email provided',
-          location: l.location || 'No location',
-          status:   l.status.toLowerCase(),
-          source:   l.source,
-          interest: l.program, program: l.program,
-          priority: l.priority,
-          assigned_to:     l.assigned_to,     assigned_by:     l.assigned_by,
-          sub_assigned_to: l.sub_assigned_to, sub_assigned_by: l.sub_assigned_by,
+          id:              l.id,
+          name:            l.name,
+          phone:           l.phone,
+          email:           l.email    || 'No email provided',
+          location:        l.location || 'No location',
+          status:          l.status.toLowerCase(),
+          source:          l.source,
+          interest:        l.program,
+          program:         l.program,
+          priority:        l.priority,
+          assigned_to:     l.assigned_to,
+          assigned_by:     l.assigned_by,
+          sub_assigned_to: l.sub_assigned_to,
+          sub_assigned_by: l.sub_assigned_by,
           current_handler: l.current_handler,
-          date: new Date(l.created_at).toLocaleDateString('en-IN'),
-          created_at: l.created_at,
+          date:            new Date(l.created_at).toLocaleDateString('en-IN'),
+          created_at:      l.created_at,
         })));
+
         setStats(statsData);
         setTotalCount(data.count || 0);
         setTotalPages(Math.ceil((data.count || 0) / PAGE_SIZE));
@@ -225,12 +169,13 @@ export default function LeadsPage() {
         setLoading(false);
       }
     };
+
     fetchLeads();
   }, [authLoading, accessToken, authFetch, page, debouncedSearch, filterStatus, filterPriority, filterSource, filterStaff]);
 
   const statsCards = useMemo(() => [
-    { label: 'Total Leads', value: totalCount,          color: 'bg-blue-500',   icon: Users       },
-    { label: 'New Leads',   value: stats.new || 0,      color: 'bg-indigo-500', icon: UserPlus    },
+    { label: 'Total Leads', value: totalCount,           color: 'bg-blue-500',   icon: Users       },
+    { label: 'New Leads',   value: stats.new || 0,       color: 'bg-indigo-500', icon: UserPlus    },
     { label: 'Qualified',   value: stats.qualified || 0, color: 'bg-purple-500', icon: CheckCircle },
     { label: 'Converted',   value: stats.converted || 0, color: 'bg-green-500',  icon: TrendingUp  },
   ], [totalCount, stats]);
@@ -250,16 +195,6 @@ export default function LeadsPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <LeadsPageHeader />
 
-        {/* ── Demo trigger – remove in production ── */}
-        {canReceiveIncoming(userRole) && (
-          <div className="mb-4">
-            <button onClick={simulateIncomingCall}
-              className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-sm transition-colors">
-              📞 Simulate Incoming Call (Demo)
-            </button>
-          </div>
-        )}
-
         {loading && page === 1 ? (
           <div className="text-center py-10 text-gray-500">Loading leads…</div>
         ) : (
@@ -268,7 +203,7 @@ export default function LeadsPage() {
 
             <LeadsFilters
               searchTerm={searchTerm}
-              setSearchTerm={handleSearchChange}           // ← debounced handler
+              setSearchTerm={handleSearchChange}
               filterStatus={filterStatus}
               setFilterStatus={v  => { setPage(1); setFilterStatus(v); }}
               filterPriority={filterPriority}
@@ -293,15 +228,6 @@ export default function LeadsPage() {
           </>
         )}
       </div>
-
-
-      {canReceiveIncoming(userRole) && (
-        <IncomingCallModal
-          isOpen={incomingCall.isOpen}
-          callData={incomingCall.callData}
-          onClose={action => { console.log('Call', action); setIncomingCall({ isOpen: false, callData: null }); }}
-        />
-      )}
     </div>
   );
 }
