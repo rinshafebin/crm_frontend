@@ -40,7 +40,7 @@ export default function TaskCreationPage() {
           }
         }
 
-        const res = await fetch(`${API_BASE_URL}/employees/`, {
+        const res = await fetch(`${API_BASE_URL}/employees/list/`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
