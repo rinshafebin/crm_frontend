@@ -17,7 +17,7 @@ export default function TeamMemberSelector({
 
   // Role display configuration (ADMIN roles are excluded from selection)
   const roleConfig = {
-    'ADM_EXEC': { label: 'Admin Executive', color: 'bg-purple-100 text-purple-700'},
+    'ADM_EXEC': { label: 'Admission Executive', color: 'bg-purple-100 text-purple-700'},
     'ADM_MANAGER': { label: 'Admin Manager', color: 'bg-blue-100 text-blue-700'},
     'MEDIA': { label: 'Media', color: 'bg-pink-100 text-pink-700'},
     'FOE': { label: 'Front of Exec', color: 'bg-cyan-100 text-cyan-700'},
@@ -25,6 +25,7 @@ export default function TeamMemberSelector({
     'ACCOUNTS': { label: 'Accounts', color: 'bg-amber-100 text-amber-700' },
     'CM': { label: 'Central Manager', color: 'bg-teal-100 text-teal-700' },
     'OPS': { label: 'Operations', color: 'bg-orange-100 text-orange-700' },
+    'CEO': { label: 'Chief executive', color: 'bg-teal-100 text-teal-700' },
   };
 
   // Get initials for avatar
