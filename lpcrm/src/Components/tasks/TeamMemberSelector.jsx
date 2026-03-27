@@ -66,8 +66,7 @@ export default function TeamMemberSelector({
   const getRoleInfo = (role) => {
     return roleConfig[role] || { 
       label: role.replace(/_/g, ' '), 
-      color: 'bg-gray-100 text-gray-700',
-      icon: '👤'
+      color: 'bg-gray-100 text-gray-700'
     };
   };
 
