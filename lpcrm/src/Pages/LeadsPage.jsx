@@ -87,7 +87,7 @@ export default function LeadsPage() {
 
     const fetchStaff = async () => {
       try {
-        const res = await authFetch(`${API_BASE_URL}/employees/`);
+        const res = await authFetch(`${API_BASE_URL}/employees/list/`);
 
         if (!res.ok) {
           console.error('Staff API Error:', res.status, await res.text());
