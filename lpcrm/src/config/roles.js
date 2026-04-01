@@ -56,6 +56,12 @@ export const roleNavigation = {
     { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
     { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
   ],
+  ADM_COUNSELLOR: [
+    { id: "overview", label: "Overview", icon: FileText, path: "/" },
+    { id: "leads", label: "Leads", icon: Users, path: "/leads" },
+    { id: "tasks", label: "Tasks", icon: ListTodo, path: "/staff/tasks" },
+    { id: "myReports", label: "My Reports", icon: FileText, path: "/myreports" }
+  ],
 
   ADM_EXEC: [
     { id: "overview", label: "Overview", icon: FileText, path: "/" },
