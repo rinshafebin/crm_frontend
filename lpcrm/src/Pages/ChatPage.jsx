@@ -8,10 +8,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../Components/layouts/Navbar';
+import Pusher from "pusher-js";
+
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
 
 function formatTime(dateStr) {
   if (!dateStr) return '';
@@ -331,7 +332,6 @@ const ChatPage = () => {
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  const pollRef = useRef(null);
 
   const getToken = useCallback(async () => {
     return accessToken || await refreshAccessToken();
@@ -399,12 +399,41 @@ const ChatPage = () => {
     if (!selectedConv) return;
     loadMessages(selectedConv.id);
     setShowGroupInfo(false);
-    clearInterval(pollRef.current);
-    pollRef.current = setInterval(() => {
-      loadMessages(selectedConv.id);
-      loadConversations(true);
-    }, 5000);
-    return () => clearInterval(pollRef.current);
+  }, [selectedConv]);
+
+  useEffect(() => {
+    if (!selectedConv) return;
+
+    // ✅ Initialize Pusher
+    const pusher = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
+      cluster: import.meta.env.VITE_PUSHER_CLUSTER,
+    });
+
+    // ✅ Subscribe to conversation channel
+    const channel = pusher.subscribe(`chat-${selectedConv.id}`);
+
+    // ✅ Listen for new messages
+    channel.bind("new-message", (data) => {
+      setMessages((prev) => ({
+        ...prev,
+        [selectedConv.id]: [...(prev[selectedConv.id] || []), data],
+      }));
+
+      // Update sidebar last message
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === selectedConv.id
+            ? { ...c, last_message: data }
+            : c
+        )
+      );
+    });
+
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+      pusher.disconnect();
+    };
   }, [selectedConv]);
 
   useEffect(() => {
@@ -476,8 +505,7 @@ const ChatPage = () => {
       });
 
       if (!res.ok) throw new Error('Send failed');
-      await loadMessages(selectedConv.id);
-      loadConversations(true);
+      // ℹ️ No loadMessages here — Pusher will deliver the new message in real-time
     } catch {
       // Roll back optimistic message and restore input
       setMessages(prev => ({
