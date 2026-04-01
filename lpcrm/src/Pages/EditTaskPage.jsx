@@ -70,7 +70,7 @@ export default function EditTaskPage() {
         });
 
         // Fetch team members
-        const membersResponse = await fetch(`${API_BASE_URL}/employees/`, {
+        const membersResponse = await fetch(`${API_BASE_URL}/employees/list/`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
