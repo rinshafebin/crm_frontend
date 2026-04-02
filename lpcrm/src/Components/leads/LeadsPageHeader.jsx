@@ -3,9 +3,8 @@ import { Plus, Sparkles, Upload, X, CheckCircle, AlertCircle, FileSpreadsheet, L
 
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext'
-import templateFile from '../../config/leads_bulk_upload_template.xlsx';
 
-const TEMPLATE_URL = templateFile; 
+const TEMPLATE_URL = '/leads_bulk_upload_template.xlsx';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
