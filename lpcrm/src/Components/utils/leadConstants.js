@@ -13,7 +13,9 @@ export const sourceOptions = [
   { value: 'WALK_IN', label: 'Walk-in' },
   { value: 'AUTOMATION', label: 'Automation' },
   { value: 'Ads', label: 'Ads' },
+  { value: 'BULK DATA', label: 'BULK DATA' },
   { value: 'OTHER', label: 'Other' }
+
 ];
 
 export const priorityOptions = [
