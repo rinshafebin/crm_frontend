@@ -8,15 +8,49 @@ import { Users, UserPlus, CheckCircle, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Pagination from '../Components/common/Pagination';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const PAGE_SIZE = 50;
 
-const EXCLUDED_STAFF_ROLES = ['TRAINER', 'ACCOUNTS', 'HR', 'MEDIA', 'ADMIN','CEO'];
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const PAGE_SIZE = 20; 
+
+const EXCLUDED_STAFF_ROLES = ['TRAINER', 'ACCOUNTS', 'HR', 'MEDIA', 'ADMIN', 'CEO','PROCESSING','DOCUMENTATION'];
+
+const SkeletonRow = () => (
+  <tr className="animate-pulse">
+    {Array.from({ length: 8 }).map((_, i) => (
+      <td key={i} className="px-6 py-5">
+        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
+        <div className="h-3 bg-gray-100 rounded w-1/2" />
+      </td>
+    ))}
+  </tr>
+);
+
+const TableSkeleton = () => (
+  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-gray-200">
+          <tr>
+            {['Lead Info', 'Contact', 'Status', 'Source', 'Priority', 'Assignment', 'Date', 'Actions'].map(h => (
+              <th key={h} className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-100">
+          {Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)}
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
 
 export default function LeadsPage() {
   const { accessToken, refreshAccessToken, loading: authLoading, user } = useAuth();
 
   const userRole = user?.role || user?.user_role || '';
+
+  const tokenRef = useRef(accessToken);
+  useEffect(() => { tokenRef.current = accessToken; }, [accessToken]);
 
   const [leads, setLeads]                     = useState([]);
   const [stats, setStats]                     = useState({ new: 0, qualified: 0, converted: 0 });
@@ -27,12 +61,13 @@ export default function LeadsPage() {
   const [filterSource, setFilterSource]       = useState('all');
   const [filterStaff, setFilterStaff]         = useState('all');
   const [loading, setLoading]                 = useState(false);
+  const [initialLoad, setInitialLoad]         = useState(true);
   const [staffMembers, setStaffMembers]       = useState([]);
   const [page, setPage]                       = useState(1);
   const [totalPages, setTotalPages]           = useState(1);
   const [totalCount, setTotalCount]           = useState(0);
 
-  // Debounce search – wait 400 ms after the user stops typing
+  // Debounce search — wait 400ms after user stops typing
   const debounceTimer = useRef(null);
   const handleSearchChange = useCallback((value) => {
     setSearchTerm(value);
@@ -52,20 +87,26 @@ export default function LeadsPage() {
     lost:       'bg-red-100    text-red-700',
   }), []);
 
-  const authFetch = useCallback(async (url, options = {}, retry = true) => {
-    if (!accessToken) throw new Error('No access token');
+  // ✅ authFetch no longer depends on accessToken — uses ref, stays stable
+  const authFetch = useCallback(async (url, options = {}, signal = null, retry = true) => {
+    let token = tokenRef.current;
+    if (!token) throw new Error('No access token');
+
     const res = await fetch(url, {
       ...options,
+      signal,
       credentials: 'include',
-      headers: { ...(options.headers || {}), Authorization: `Bearer ${accessToken}` },
+      headers: { ...(options.headers || {}), Authorization: `Bearer ${token}` },
     });
+
     if (res.status === 401 && retry) {
       const tok = await refreshAccessToken();
       if (!tok) throw new Error('Session expired');
-      return authFetch(url, options, false);
+      tokenRef.current = tok;
+      return authFetch(url, options, signal, false);
     }
     return res;
-  }, [accessToken, refreshAccessToken]);
+  }, [refreshAccessToken]);
 
   const handleDeleteLead = async (id) => {
     if (!window.confirm('Are you sure you want to delete this lead? This action cannot be undone.')) return;
@@ -81,61 +122,57 @@ export default function LeadsPage() {
     }
   };
 
-  // Fetch staff members
+  //  Stable filter setters — prevents LeadsFilters re-rendering on every render
+  const handleSetFilterStatus   = useCallback(v => { setPage(1); setFilterStatus(v);   }, []);
+  const handleSetFilterPriority = useCallback(v => { setPage(1); setFilterPriority(v); }, []);
+  const handleSetFilterSource   = useCallback(v => { setPage(1); setFilterSource(v);   }, []);
+  const handleSetFilterStaff    = useCallback(v => { setPage(1); setFilterStaff(v);    }, []);
+
+  //  Single effect: staff + leads fetched in parallel; stale requests aborted automatically
   useEffect(() => {
     if (authLoading || !accessToken) return;
 
-    const fetchStaff = async () => {
-      try {
-        const res = await authFetch(`${API_BASE_URL}/employees/list/`);
+    const controller = new AbortController();
+    const { signal } = controller;
 
-        if (!res.ok) {
-          console.error('Staff API Error:', res.status, await res.text());
-          return;
-        }
-
-        const data = await res.json();
-        const staffArray = Array.isArray(data) ? data : (data.results || data.employees || []);
-
-        if (!Array.isArray(staffArray)) return;
-
-        setStaffMembers(
-          staffArray.filter(u => !EXCLUDED_STAFF_ROLES.includes((u.role || '').toUpperCase()))
-        );
-      } catch (err) {
-        console.error('Failed to load staff members:', err);
-      }
-    };
-
-    fetchStaff();
-  }, [authLoading, accessToken, authFetch]);
-
-  // Fetch leads
-  useEffect(() => {
-    if (authLoading || !accessToken) return;
-
-    const fetchLeads = async () => {
+    const fetchAll = async () => {
       setLoading(true);
       try {
         const paramsObj = { page, page_size: PAGE_SIZE };
 
-        if (debouncedSearch)        paramsObj.search   = debouncedSearch;
-        if (filterStatus !== 'all') paramsObj.status   = filterStatus.toUpperCase();
-        if (filterPriority !== 'all') paramsObj.priority = filterPriority.toUpperCase();
-        if (filterSource !== 'all') paramsObj.source   = filterSource.toUpperCase();
-
+        if (debouncedSearch)          paramsObj.search    = debouncedSearch;
+        if (filterStatus !== 'all')   paramsObj.status    = filterStatus.toUpperCase();
+        if (filterPriority !== 'all') paramsObj.priority  = filterPriority.toUpperCase();
+        if (filterSource !== 'all')   paramsObj.source    = filterSource.toUpperCase();
         if (filterStaff !== 'all') {
-          if (filterStaff === 'unassigned') {
-            paramsObj.assigned_to__isnull = 'true';
-          } else {
-            paramsObj.assigned_to = filterStaff;
+          if (filterStaff === 'unassigned') paramsObj.assigned_to__isnull = 'true';
+          else                              paramsObj.assigned_to          = filterStaff;
+        }
+
+        //  Parallel: staff only on first load, leads every time
+        const [leadsRes, staffRes] = await Promise.all([
+          authFetch(`${API_BASE_URL}/leads/?${new URLSearchParams(paramsObj)}`, {}, signal),
+          initialLoad ? authFetch(`${API_BASE_URL}/employees/list/`, {}, signal) : Promise.resolve(null),
+        ]);
+
+        if (signal.aborted) return;
+
+        // Process staff (first load only)
+        if (staffRes && staffRes.ok) {
+          const staffData = await staffRes.json();
+          const staffArray = Array.isArray(staffData)
+            ? staffData
+            : (staffData.results || staffData.employees || []);
+          if (Array.isArray(staffArray)) {
+            setStaffMembers(
+              staffArray.filter(u => !EXCLUDED_STAFF_ROLES.includes((u.role || '').toUpperCase()))
+            );
           }
         }
 
-        const res = await authFetch(`${API_BASE_URL}/leads/?${new URLSearchParams(paramsObj)}`);
-        if (!res.ok) throw new Error('Failed to fetch leads');
-
-        const data = await res.json();
+        // Process leads
+        if (!leadsRes.ok) throw new Error('Failed to fetch leads');
+        const data = await leadsRes.json();
         const leadsData = data.results?.leads || data.results || [];
         const statsData = data.results?.stats || {};
 
@@ -162,16 +199,25 @@ export default function LeadsPage() {
         setStats(statsData);
         setTotalCount(data.count || 0);
         setTotalPages(Math.ceil((data.count || 0) / PAGE_SIZE));
+        setInitialLoad(false);
       } catch (err) {
-        console.error('Failed to load leads:', err);
+        if (err.name === 'AbortError') return; // silently ignore cancelled requests
+        console.error('Failed to load data:', err);
         alert('Failed to load leads. Please try again.');
       } finally {
-        setLoading(false);
+        if (!signal.aborted) setLoading(false);
       }
     };
 
-    fetchLeads();
-  }, [authLoading, accessToken, authFetch, page, debouncedSearch, filterStatus, filterPriority, filterSource, filterStaff]);
+    fetchAll();
+
+    // Cancel in-flight request when filters change before it completes
+    return () => controller.abort();
+  }, [
+    authLoading, accessToken, authFetch,
+    page, debouncedSearch,
+    filterStatus, filterPriority, filterSource, filterStaff,
+  ]);
 
   const statsCards = useMemo(() => [
     { label: 'Total Leads', value: totalCount,           color: 'bg-blue-500',   icon: Users       },
@@ -195,25 +241,33 @@ export default function LeadsPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <LeadsPageHeader />
 
-        {loading && page === 1 ? (
-          <div className="text-center py-10 text-gray-500">Loading leads…</div>
+        {/* Stats + filters always visible — no layout jump on load */}
+        <LeadsStatsCards stats={statsCards} />
+
+        <LeadsFilters
+          searchTerm={searchTerm}
+          setSearchTerm={handleSearchChange}
+          filterStatus={filterStatus}
+          setFilterStatus={handleSetFilterStatus}
+          filterPriority={filterPriority}
+          setFilterPriority={handleSetFilterPriority}
+          filterSource={filterSource}
+          setFilterSource={handleSetFilterSource}
+          filterStaff={filterStaff}
+          setFilterStaff={handleSetFilterStaff}
+          staffMembers={staffMembers}
+        />
+
+        {/* Skeleton on first load; stale table + subtle banner on filter changes */}
+        {initialLoad && loading ? (
+          <TableSkeleton />
         ) : (
           <>
-            <LeadsStatsCards stats={statsCards} />
-
-            <LeadsFilters
-              searchTerm={searchTerm}
-              setSearchTerm={handleSearchChange}
-              filterStatus={filterStatus}
-              setFilterStatus={v  => { setPage(1); setFilterStatus(v); }}
-              filterPriority={filterPriority}
-              setFilterPriority={v => { setPage(1); setFilterPriority(v); }}
-              filterSource={filterSource}
-              setFilterSource={v  => { setPage(1); setFilterSource(v); }}
-              filterStaff={filterStaff}
-              setFilterStaff={v   => { setPage(1); setFilterStaff(v); }}
-              staffMembers={staffMembers}
-            />
+            {loading && (
+              <div className="text-center py-2 text-sm text-blue-600 font-medium animate-pulse mb-2">
+                Updating results…
+              </div>
+            )}
 
             <LeadsTable
               leads={leads}
@@ -223,7 +277,12 @@ export default function LeadsPage() {
             />
 
             {totalPages > 1 && (
-              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} className="mt-8" />
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                className="mt-8"
+              />
             )}
           </>
         )}
