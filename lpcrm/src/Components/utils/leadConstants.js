@@ -12,7 +12,7 @@ export const sourceOptions = [
   { value: 'WEBSITE', label: 'Website' },
   { value: 'WALK_IN', label: 'Walk-in' },
   { value: 'AUTOMATION', label: 'Automation' },
-  { value: 'Ads', label: 'Ads' },
+  { value: 'ADS', label: 'Ads' },
   { value: 'BULK DATA', label: 'BULK DATA' },
   { value: 'OTHER', label: 'Other' },
   { value: 'VOXBAY CALL', label: 'VOXBAY CALL' },
