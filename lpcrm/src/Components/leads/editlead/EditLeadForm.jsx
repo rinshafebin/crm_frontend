@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import EditLeadFormUI from './EditLeadFormUI.jsx';
 
 export default function EditLeadForm({
@@ -14,6 +14,9 @@ export default function EditLeadForm({
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState(initialApiError);
+
+  // Track the original assignedTo so we only call assign/unassign when it actually changes
+  const originalAssignedTo = useRef(formData.assignedTo);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -67,16 +70,20 @@ export default function EditLeadForm({
     setSubmitting(true);
     setApiError('');
 
-    // Parse assignedTo properly
-    let assignedToValue = null;
-    if (formData.assignedTo && formData.assignedTo !== '') {
-      const parsed = parseInt(formData.assignedTo, 10);
-      if (!isNaN(parsed)) {
-        assignedToValue = parsed;
-      }
-    }
+    // Helper to parse assignedTo string → number or null
+    const parseAssignedTo = (val) => {
+      if (!val || val === '') return null;
+      const parsed = parseInt(val, 10);
+      return isNaN(parsed) ? null : parsed;
+    };
 
-    // Prepare the payload
+    const currentAssignedTo = parseAssignedTo(formData.assignedTo);
+    const previousAssignedTo = parseAssignedTo(originalAssignedTo.current);
+
+    // Only call assign/unassign API if the assignment actually changed
+    const assignmentChanged = currentAssignedTo !== previousAssignedTo;
+
+    // Prepare the lead update payload (no assignment fields — handled separately)
     const payload = {
       name: formData.name.trim(),
       phone: formData.phone.trim(),
@@ -103,17 +110,15 @@ export default function EditLeadForm({
         // Handle backend validation errors
         if (responseData && typeof responseData === 'object') {
           const backendErrors = {};
-          // Map backend field names to frontend field names
           Object.keys(responseData).forEach(key => {
             if (Array.isArray(responseData[key])) {
-              backendErrors[key] = responseData[key][0]; // Take first error message
+              backendErrors[key] = responseData[key][0];
             } else if (typeof responseData[key] === 'string') {
               backendErrors[key] = responseData[key];
             }
           });
           setErrors(backendErrors);
 
-          // Set a general error message if no specific field errors
           if (Object.keys(backendErrors).length === 0) {
             setApiError(responseData?.detail || responseData?.message || 'Failed to update lead');
           }
@@ -121,42 +126,48 @@ export default function EditLeadForm({
         throw new Error('Validation failed');
       }
 
-      // Step 2: Handle assignment separately
-      if (assignedToValue !== null) {
-        const assignPayload = {
-          lead_id: parseInt(leadId),
-          assigned_to_id: assignedToValue
-        };
+      // Step 2: Only handle assignment if it actually changed
+      if (assignmentChanged) {
+        if (currentAssignedTo !== null) {
+          // Assign to the newly selected user
+          const assignPayload = {
+            lead_id: parseInt(leadId),
+            assigned_to_id: currentAssignedTo
+          };
 
-        const assignRes = await authFetch(`${apiBaseUrl}/leads/assign/`, {
-          method: 'POST',
-          body: JSON.stringify(assignPayload)
-        });
+          const assignRes = await authFetch(`${apiBaseUrl}/leads/assign/`, {
+            method: 'POST',
+            body: JSON.stringify(assignPayload)
+          });
 
-        if (!assignRes.ok) {
-          const assignData = await assignRes.json();
-          const errorMsg = assignData?.error || assignData?.detail || 'Unknown error';
-          setApiError(`Lead updated but assignment failed: ${errorMsg}`);
-          return; // Don't redirect on assignment failure
+          if (!assignRes.ok) {
+            const assignData = await assignRes.json();
+            const errorMsg = assignData?.error || assignData?.detail || 'Unknown error';
+            setApiError(`Lead updated but assignment failed: ${errorMsg}`);
+            return;
+          }
+        } else if (previousAssignedTo !== null) {
+          // Only unassign if there was a previous assignment being cleared
+          const unassignPayload = {
+            lead_id: parseInt(leadId),
+            unassign_type: 'PRIMARY'
+          };
+
+          const unassignRes = await authFetch(`${apiBaseUrl}/leads/unassign/`, {
+            method: 'POST',
+            body: JSON.stringify(unassignPayload)
+          });
+
+          if (!unassignRes.ok) {
+            const unassignData = await unassignRes.json();
+            const errorMsg = unassignData?.error || unassignData?.detail || 'Unknown error';
+            setApiError(`Lead updated but unassignment failed: ${errorMsg}`);
+            return;
+          }
         }
-      } else {
-        // Step 3: Unassign if assignedTo is null/empty
-        const unassignPayload = {
-          lead_id: parseInt(leadId),
-          unassign_type: 'PRIMARY'
-        };
 
-        const unassignRes = await authFetch(`${apiBaseUrl}/leads/unassign/`, {
-          method: 'POST',
-          body: JSON.stringify(unassignPayload)
-        });
-
-        if (!unassignRes.ok) {
-          const unassignData = await unassignRes.json();
-          const errorMsg = unassignData?.error || unassignData?.detail || 'Unknown error';
-          setApiError(`Lead updated but unassignment failed: ${errorMsg}`);
-          return; // Don't redirect on unassignment failure
-        }
+        // Sync the ref so a second save doesn't re-trigger assignment
+        originalAssignedTo.current = formData.assignedTo;
       }
 
       // Success!
