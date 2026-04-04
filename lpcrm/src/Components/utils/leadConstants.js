@@ -13,9 +13,9 @@ export const sourceOptions = [
   { value: 'WALK_IN', label: 'Walk-in' },
   { value: 'AUTOMATION', label: 'Automation' },
   { value: 'ADS', label: 'Ads' },
-  { value: 'BULK DATA', label: 'BULK DATA' },
+  { value: 'BULK DATA', label: 'Bulk data' },
   { value: 'OTHER', label: 'Other' },
-  { value: 'VOXBAY CALL', label: 'VOXBAY CALL' },
+  { value: 'VOXBAY CALL', label: 'Voxbay' },
 
 ];
 
