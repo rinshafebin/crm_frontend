@@ -44,6 +44,6 @@ export const programOptions = [
   { value: 'FLAG', label: 'FLAG' },
   { value: 'NURSING RECRUITMENT', label: 'NURSING RECRUITMENT' },
   { value: 'STUDY', label: 'STUDY' },
-  { value: 'Switzerland', label: 'Switzerland' },
+  { value: 'SWITZERLAND', label: 'SWITZERLAND' },
 ];
 
