@@ -51,6 +51,7 @@ const AssignedToSection = ({ formData, errors, onChange }) => {
         u.role === 'ADM_MANAGER' || 
         u.role === 'ADM_EXEC' || 
         u.role === 'FOE'
+        u.role === 'ADM_COUNSELLOR'
       );
     }
 
@@ -67,6 +68,7 @@ const AssignedToSection = ({ formData, errors, onChange }) => {
       'ADMIN': 'General Manager',
       'OPS': 'Operations Manager',
       'ADM_MANAGER': 'Admission Manager',
+      'ADM_COUNSELLOR': 'Admission Counsellor',
       'ADM_EXEC': 'Admission Executive',
       'CM': 'Center Manager',
       'BDM': 'Business Development Manager',
