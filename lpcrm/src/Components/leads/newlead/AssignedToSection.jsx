@@ -50,7 +50,7 @@ const AssignedToSection = ({ formData, errors, onChange }) => {
       return users.filter(u => 
         u.role === 'ADM_MANAGER' || 
         u.role === 'ADM_EXEC' || 
-        u.role === 'FOE'
+        u.role === 'FOE' ||
         u.role === 'ADM_COUNSELLOR'
       );
     }
