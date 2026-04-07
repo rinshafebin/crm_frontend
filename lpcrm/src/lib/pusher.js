@@ -1,10 +1,11 @@
+// src/lib/pusher.js
 import Pusher from 'pusher-js';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 let pusherInstance = null;
 
-export const getPusherClient = (accessToken) => {
+export const getPusherClient = (getToken) => {
   if (pusherInstance) return pusherInstance;
 
   pusherInstance = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
@@ -13,20 +14,24 @@ export const getPusherClient = (accessToken) => {
     authorizer: (channel) => ({
       authorize: async (socketId, callback) => {
         try {
+          // getToken is a function, call it fresh each time
+          const token = await getToken();
           const res = await fetch(`${API_BASE_URL}/pusher/auth/`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${accessToken}`,
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
               socket_id: socketId,
               channel_name: channel.name,
             }),
           });
+          if (!res.ok) throw new Error(`Auth failed: ${res.status}`);
           const data = await res.json();
           callback(null, data);
         } catch (err) {
+          console.error('[Pusher] Auth error:', err);
           callback(err, null);
         }
       },
