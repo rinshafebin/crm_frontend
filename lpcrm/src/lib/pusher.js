@@ -13,7 +13,7 @@ export const getPusherClient = (accessToken) => {
     authorizer: (channel) => ({
       authorize: async (socketId, callback) => {
         try {
-          const res = await fetch(`${API_BASE_URL}/chat/pusher/auth/`, {
+          const res = await fetch(`${API_BASE_URL}/pusher/auth/`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
