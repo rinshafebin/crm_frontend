@@ -9,7 +9,6 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// ✅ FIXED: Move components outside to prevent recreation on every render (which causes cursor jump)
 const FormFields = ({ formData, handleInputChange, errors }) => (
   <div className="space-y-5">
     <div>
@@ -120,22 +119,21 @@ export default function MyReportsPage() {
 
   const userName = user?.name || user?.username || 'User';
 
-  // ── Helper: force-download via fetch → blob → programmatic click ─────────
-  // The HTML <a download> attribute is silently ignored for cross-origin URLs.
-  // Cloudinary is always cross-origin, so we fetch the bytes ourselves and
-  // create a local blob: URL — that way the browser always respects `download`.
+  // ── Helper: download via Django proxy (same approach as admin pages) ──────
+  // We NEVER fetch Cloudinary directly — it's cross-origin and blocks requests.
+  // Instead we go through the Django endpoint which proxies Cloudinary server-side
+  // and responds with Content-Disposition: attachment so the browser saves the file.
   const downloadFile = async (attachment) => {
-    const url = attachment.download_url || attachment.view_url;
-    if (!url) return;
-
-    const filename = attachment.original_filename || url.split('/').pop().split('?')[0] || 'download';
-
+    if (!attachment?.id) return;
+    const filename = attachment.original_filename || 'download';
     try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Network error');
+      const response = await fetch(
+        `${API_BASE_URL}/reports/attachments/${attachment.id}/download/`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      if (!response.ok) throw new Error(`Server error ${response.status}`);
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
-
       const link = document.createElement('a');
       link.href = blobUrl;
       link.download = filename;
@@ -144,8 +142,41 @@ export default function MyReportsPage() {
       document.body.removeChild(link);
       URL.revokeObjectURL(blobUrl);
     } catch (err) {
-      console.error('Download failed, falling back to new tab:', err);
-      window.open(url, '_blank', 'noopener,noreferrer');
+      console.error('Download failed:', err);
+      alert('Download failed. Please try again.');
+    }
+  };
+
+  // ── Helper: view attachment in new tab via Django proxy ───────────────────
+  // PDFs and images open in a new tab; other file types fall back to download.
+  const viewAttachment = async (attachment) => {
+    if (!attachment?.id) return;
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/reports/attachments/${attachment.id}/download/`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      if (!response.ok) throw new Error(`Server error ${response.status}`);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const filename = (attachment.original_filename || '').toLowerCase();
+      const isPdf = filename.includes('.pdf');
+      const isImage = filename.match(/\.(jpg|jpeg|png|gif|webp)$/);
+      if (isPdf || isImage) {
+        window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        // Word docs and other files — just download them
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = attachment.original_filename || 'file';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+      }
+    } catch (err) {
+      console.error('View failed:', err);
+      alert('Failed to open file. Please try again.');
     }
   };
 
@@ -563,12 +594,22 @@ export default function MyReportsPage() {
                           <span className="text-sm text-gray-700 flex-1 truncate">
                             {attachment.original_filename || getFileName(attachment.view_url)}
                           </span>
-                          <button
-                            onClick={() => downloadFile(attachment)}
-                            className="text-blue-600 hover:text-blue-700"
-                          >
-                            <Download className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => viewAttachment(attachment)}
+                              className="text-indigo-600 hover:text-indigo-700"
+                              title="View"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => downloadFile(attachment)}
+                              className="text-blue-600 hover:text-blue-700"
+                              title="Download"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -645,13 +686,20 @@ export default function MyReportsPage() {
                               )}
                             </div>
                           </div>
-                          {/* ✅ FIXED: blob-based download so filename is always the original name */}
-                          <button
-                            onClick={() => downloadFile(attachment)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2 transition-colors ml-3"
-                          >
-                            <Download className="w-4 h-4" /> Download
-                          </button>
+                          <div className="flex items-center gap-2 ml-3">
+                            <button
+                              onClick={() => viewAttachment(attachment)}
+                              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold flex items-center gap-2 transition-colors"
+                            >
+                              <Eye className="w-4 h-4" /> View
+                            </button>
+                            <button
+                              onClick={() => downloadFile(attachment)}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold flex items-center gap-2 transition-colors"
+                            >
+                              <Download className="w-4 h-4" /> Download
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
