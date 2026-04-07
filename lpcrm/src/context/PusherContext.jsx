@@ -1,3 +1,4 @@
+// src/context/PusherContext.jsx
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { getPusherClient, destroyPusherClient } from '../lib/pusher';
 import { useAuth } from './AuthContext';
@@ -5,7 +6,7 @@ import { useAuth } from './AuthContext';
 const PusherContext = createContext(null);
 
 export const PusherProvider = ({ children }) => {
-  const { accessToken, isAuthenticated } = useAuth();
+  const { accessToken, refreshAccessToken, isAuthenticated } = useAuth();
   const pusherRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -17,7 +18,12 @@ export const PusherProvider = ({ children }) => {
       return;
     }
 
-    pusherRef.current = getPusherClient(accessToken);
+    // Pass a function so authorizer always gets a fresh token
+    const getToken = async () => {
+      return accessToken || await refreshAccessToken();
+    };
+
+    pusherRef.current = getPusherClient(getToken);
     setIsReady(true);
 
     return () => {
