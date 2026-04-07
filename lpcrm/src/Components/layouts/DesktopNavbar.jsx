@@ -46,3 +46,5 @@ const DesktopNavbar = ({
     </div>
   );
 };
+
+export default DesktopNavbar;
