@@ -82,6 +82,9 @@ const LeadsFilters = ({
               <option value="website">Website</option>
               <option value="walk_in">Walk-in</option>
               <option value="automation">Automation</option>
+              <option value="ads">Ads</option>
+              <option value="voxbay call">Voxbay</option>
+              <option value="bulk data">Bulk Data</option>
               <option value="other">Other</option>
             </select>
             <SlidersHorizontal className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
