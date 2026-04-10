@@ -26,6 +26,7 @@ import AttendanceDocumentsPage from "./Pages/AttendanceDocumentsPage.jsx";
 import PenaltyManagementPage from "./Pages/PenaltyManagementPage.jsx";
 import CallAnalyticsPage from "./Pages/CallAnalyticsPage.jsx";
 import ChatPage from "./Pages/ChatPage.jsx";
+import FollowUpsPage from './pages/FollowUpsPage';
 
 
 const ProtectedRoute = ({ children }) => {
@@ -45,6 +46,8 @@ export default function App() {
         <Route path="/leads/edit/:id" element={<ProtectedRoute><EditLeadPage /></ProtectedRoute>} />
         <Route path="/addnewlead" element={<ProtectedRoute><AddLeadPage /></ProtectedRoute>} />
         <Route path="/leads/:id" element={<ProtectedRoute><LeadDetailPage /></ProtectedRoute>} />
+
+        <Route path="/follow-ups" element={<FollowUpsPage />} />
 
         <Route path="/staff" element={<ProtectedRoute><StaffPage /></ProtectedRoute>} />
         <Route path="/staff/create" element={<ProtectedRoute><AddStaffPage /></ProtectedRoute>} />
