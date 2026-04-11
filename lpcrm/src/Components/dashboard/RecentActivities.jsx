@@ -65,7 +65,7 @@ const formatFullDate = (timestamp) => {
 // ── Entity type options for filter ────────────────────────────────
 const ENTITY_TYPES = ['Lead', 'Task', 'Staff', 'Student', 'FollowUp', 'MicroWork', 'Trainer', 'Attendance'];
 
-export default function RecentActivitiesTab({ fetchWithAuth, apiBaseUrl }) {
+export default function RecentActivities({ fetchWithAuth, apiBaseUrl }) {
   const [activities, setActivities]   = useState([]);
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState(null);
