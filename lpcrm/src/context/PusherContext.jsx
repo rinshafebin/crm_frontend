@@ -25,9 +25,7 @@ export const PusherProvider = ({ children }) => {
     const client = getPusherClient(getToken);
     pusherRef.current = client;
 
-    // ✅ Only set ready after Pusher is actually connected
     const handleConnected = () => {
-      console.log('[Pusher] Connected, setting isReady');
       setIsReady(true);
     };
 
@@ -37,7 +35,6 @@ export const PusherProvider = ({ children }) => {
     };
 
     const handleError = (err) => {
-      console.error('[Pusher] Connection error:', err);
       setIsReady(false);
     };
 
