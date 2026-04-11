@@ -32,6 +32,14 @@ const MobileNavbar = ({
             <MessageSquare size={20} />
           </button>
 
+           {/* 🔔 Bell goes here */}
+            <NotificationBell
+              notifications={notifications}
+              unreadCount={unreadCount}
+              onClearNotifications={onClearNotifications}
+              onMarkRead={onMarkRead}
+            />
+
           {/* Logout Button */}
           <button
             onClick={handleLogout}
