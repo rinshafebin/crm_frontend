@@ -9,7 +9,7 @@ import UpcomingTasks from '../Components/dashboard/UpcomingTasks';
 import UpcomingTasksSection from '../Components/dashboard/UpcomingTasksSection';
 import ErrorAlert from '../Components/dashboard/ErrorAlert';
 import LoadingSpinner from '../Components/dashboard/LoadingSpinner';
-import RecentActivitiesTab from '../Components/dashboard/RecentActivitiesTab';
+import RecentActivities from '../Components/dashboard/RecentActivities'
 import { formatTimeAgo, formatTaskTime, getPriorityColor } from '../Components/utils/dashboardHelpers';
 import { LayoutDashboard, Activity } from 'lucide-react';
 
@@ -185,7 +185,7 @@ export default function DashboardOverview() {
 
         {activeTab === 'activities' && (
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-            <RecentActivitiesTab
+            <RecentActivities
               fetchWithAuth={fetchWithAuth}
               apiBaseUrl={API_BASE_URL}
             />
