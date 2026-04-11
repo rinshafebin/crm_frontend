@@ -1,5 +1,7 @@
 import React from 'react';
 import { LogOut, Menu, X, MessageSquare } from 'lucide-react';
+import NotificationBell from './NotificationBell';
+
 
 const MobileNavbar = ({
   navItems,
