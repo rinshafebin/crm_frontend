@@ -4,10 +4,17 @@ import Navbar from '../Components/layouts/Navbar';
 import { 
   FileText, Plus, Send, X, Calendar, User, Clock,
   CheckCircle2, XCircle, AlertCircle, Download, Eye,
-  Search, Loader2, Edit, FileSpreadsheet, File, Image, Paperclip
+  Search, Loader2, Edit, FileSpreadsheet, Paperclip
 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// ── Excel-only validation constants ──────────────────────────────────────────
+const ALLOWED_EXCEL_TYPES = [
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
+const ALLOWED_EXCEL_EXT = /\.(xls|xlsx)$/i;
 
 const FormFields = ({ formData, handleInputChange, errors }) => (
   <div className="space-y-5">
@@ -62,20 +69,20 @@ const FormFields = ({ formData, handleInputChange, errors }) => (
   </div>
 );
 
-const FileUploadSection = ({ label = 'Attach Files (Optional)', formData, errors, handleFileChange, removeFile, getFileIcon }) => (
+const FileUploadSection = ({ label = 'Attach Excel File (Optional)', formData, errors, handleFileChange, removeFile, getFileIcon }) => (
   <div className="mt-5">
     <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
     <input
       type="file" onChange={handleFileChange} multiple
-      accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png"
+      accept=".xls,.xlsx"
       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
     />
-    <p className="mt-1 text-xs text-gray-500">Max 10MB per file. PDF, DOC, DOCX, XLS, XLSX, TXT, JPG, PNG</p>
+    <p className="mt-1 text-xs text-gray-500">Max 10MB per file. Excel files only (.xls, .xlsx)</p>
     {errors.attached_files && <p className="mt-1 text-sm text-red-500">{errors.attached_files}</p>}
     {formData.attached_files.length > 0 && (
       <div className="mt-3 space-y-2">
         <p className="text-sm font-medium text-gray-700">
-          {label === 'Attach Files (Optional)' ? 'Selected' : 'New'} Files ({formData.attached_files.length}):
+          {label === 'Attach Excel File (Optional)' ? 'Selected' : 'New'} Files ({formData.attached_files.length}):
         </p>
         {formData.attached_files.map((file, index) => (
           <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
@@ -119,10 +126,7 @@ export default function MyReportsPage() {
 
   const userName = user?.name || user?.username || 'User';
 
-  // ── Helper: download via Django proxy (same approach as admin pages) ──────
-  // We NEVER fetch Cloudinary directly — it's cross-origin and blocks requests.
-  // Instead we go through the Django endpoint which proxies Cloudinary server-side
-  // and responds with Content-Disposition: attachment so the browser saves the file.
+  // ── Helper: download via Django proxy ────────────────────────────────────
   const downloadFile = async (attachment) => {
     if (!attachment?.id) return;
     const filename = attachment.original_filename || 'download';
@@ -147,8 +151,7 @@ export default function MyReportsPage() {
     }
   };
 
-  // ── Helper: view attachment in new tab via Django proxy ───────────────────
-  // PDFs and images open in a new tab; other file types fall back to download.
+  // ── Helper: view attachment — Excel files always download ─────────────────
   const viewAttachment = async (attachment) => {
     if (!attachment?.id) return;
     try {
@@ -159,21 +162,13 @@ export default function MyReportsPage() {
       if (!response.ok) throw new Error(`Server error ${response.status}`);
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
-      const filename = (attachment.original_filename || '').toLowerCase();
-      const isPdf = filename.includes('.pdf');
-      const isImage = filename.match(/\.(jpg|jpeg|png|gif|webp)$/);
-      if (isPdf || isImage) {
-        window.open(blobUrl, '_blank', 'noopener,noreferrer');
-      } else {
-        // Word docs and other files — just download them
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = attachment.original_filename || 'file';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(blobUrl);
-      }
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = attachment.original_filename || 'file';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
     } catch (err) {
       console.error('View failed:', err);
       alert('Failed to open file. Please try again.');
@@ -181,13 +176,7 @@ export default function MyReportsPage() {
   };
 
   const getFileIcon = (fileUrl) => {
-    if (!fileUrl) return <FileText className="w-8 h-8 text-blue-600" />;
-    const fileName = (typeof fileUrl === 'string' ? fileUrl : fileUrl.name || '').toLowerCase();
-    if (fileName.match(/\.(xlsx|xls)$/)) return <FileSpreadsheet className="w-8 h-8 text-green-600" />;
-    if (fileName.includes('.pdf'))        return <File className="w-8 h-8 text-red-600" />;
-    if (fileName.match(/\.(doc|docx)$/))  return <FileText className="w-8 h-8 text-blue-600" />;
-    if (fileName.match(/\.(jpg|jpeg|png|gif|webp)$/)) return <Image className="w-8 h-8 text-purple-600" />;
-    return <FileText className="w-8 h-8 text-gray-600" />;
+    return <FileSpreadsheet className="w-8 h-8 text-green-600" />;
   };
 
   const getFileName = (file) => {
@@ -245,6 +234,7 @@ export default function MyReportsPage() {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
+  // ── Excel-only file validation ────────────────────────────────────────────
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
@@ -253,15 +243,20 @@ export default function MyReportsPage() {
     const fileErrors = [];
 
     files.forEach((file) => {
-      if (file.size > 10 * 1024 * 1024) {
-        fileErrors.push(`${file.name} is too large (max 10MB)`);
+      const nameOk = ALLOWED_EXCEL_EXT.test(file.name);
+      const typeOk = ALLOWED_EXCEL_TYPES.includes(file.type);
+
+      if (!nameOk && !typeOk) {
+        fileErrors.push(`"${file.name}" is not allowed. Only Excel files (.xls, .xlsx) are accepted.`);
+      } else if (file.size > 10 * 1024 * 1024) {
+        fileErrors.push(`"${file.name}" is too large (max 10MB).`);
       } else {
         validFiles.push(file);
       }
     });
 
     if (fileErrors.length > 0) {
-      setErrors(prev => ({ ...prev, attached_files: fileErrors.join(', ') }));
+      setErrors(prev => ({ ...prev, attached_files: fileErrors.join(' ') }));
       return;
     }
 
@@ -357,7 +352,6 @@ export default function MyReportsPage() {
       let token = accessToken || await refreshAccessToken();
       if (!token) throw new Error('Authentication required');
 
-      // ✅ FIXED: correct update URL matches urls.py pattern  reports/<pk>/edit/
       const response = await fetch(`${API_BASE_URL}/reports/${editingReport.id}/edit/`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -547,7 +541,7 @@ export default function MyReportsPage() {
                 </button>
               </div>
               <div className="p-6">
-                {errors.submit && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{errors.submit}</div>}
+                {errors.submit && <div className="mb-6 p4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{errors.submit}</div>}
                 <FormFields formData={formData} handleInputChange={handleInputChange} errors={errors} />
                 <FileUploadSection 
                   formData={formData} 
@@ -583,7 +577,6 @@ export default function MyReportsPage() {
                 {errors.submit && <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{errors.submit}</div>}
                 <FormFields formData={formData} handleInputChange={handleInputChange} errors={errors} />
 
-                {/* ✅ FIXED: was using attachment.attached_file for href — now uses attachment.view_url */}
                 {editingReport?.attachments?.length > 0 && (
                   <div className="mt-5">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Current Attachments</label>
@@ -598,7 +591,7 @@ export default function MyReportsPage() {
                             <button
                               onClick={() => viewAttachment(attachment)}
                               className="text-indigo-600 hover:text-indigo-700"
-                              title="View"
+                              title="Download"
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -618,7 +611,7 @@ export default function MyReportsPage() {
                 )}
 
                 <FileUploadSection 
-                  label="Add New Files (Optional)" 
+                  label="Add New Excel File (Optional)" 
                   formData={formData} 
                   errors={errors} 
                   handleFileChange={handleFileChange} 
