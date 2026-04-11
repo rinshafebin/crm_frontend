@@ -167,7 +167,7 @@ export default function DashboardOverview() {
                 tasks={tasks}
                 formatTaskTime={formatTaskTime}
                 getPriorityColor={getPriorityColor}
-                onViewAll={() => navigate('/tasks?filter=pending')}
+                onViewAll={() => navigate('/staff/tasks')}
               />
             </div>
 
@@ -177,7 +177,7 @@ export default function DashboardOverview() {
                 tasks={upcomingTasks}
                 formatTaskTime={formatTaskTime}
                 getPriorityColor={getPriorityColor}
-                onViewAll={() => navigate('/tasks?filter=upcoming')}
+                onViewAll={() => navigate('/staff/tasks')}
               />
             </div>
           </div>
