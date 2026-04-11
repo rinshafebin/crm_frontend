@@ -47,7 +47,8 @@ export default function App() {
         <Route path="/addnewlead" element={<ProtectedRoute><AddLeadPage /></ProtectedRoute>} />
         <Route path="/leads/:id" element={<ProtectedRoute><LeadDetailPage /></ProtectedRoute>} />
 
-        <Route path="/follow-ups" element={<FollowUpsPage />} />
+        {/*  Follow-Ups — now protected */}
+        <Route path="/follow-ups" element={<ProtectedRoute><FollowUpsPage /></ProtectedRoute>} />
 
         <Route path="/staff" element={<ProtectedRoute><StaffPage /></ProtectedRoute>} />
         <Route path="/staff/create" element={<ProtectedRoute><AddStaffPage /></ProtectedRoute>} />
