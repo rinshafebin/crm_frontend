@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import {
   Activity, Search, Filter, ChevronDown, X,
   User, FileText, CheckSquare, Users, GraduationCap,
   Calendar, LogIn, LogOut, AlertTriangle, Clock,
   RefreshCw, ChevronLeft, ChevronRight
 } from 'lucide-react';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // ── Action metadata ────────────────────────────────────────────────
 const ACTION_META = {
@@ -65,19 +68,42 @@ const formatFullDate = (timestamp) => {
 // ── Entity type options for filter ────────────────────────────────
 const ENTITY_TYPES = ['Lead', 'Task', 'Staff', 'Student', 'FollowUp', 'MicroWork', 'Trainer', 'Attendance'];
 
-export default function RecentActivities({ fetchWithAuth, apiBaseUrl }) {
-  const [activities, setActivities]   = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState(null);
-  const [search, setSearch]           = useState('');
+export default function RecentActivities() {
+  const { accessToken, refreshAccessToken } = useAuth();
+
+  const [activities, setActivities]     = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState(null);
+  const [search, setSearch]             = useState('');
   const [filterAction, setFilterAction] = useState('');
   const [filterEntity, setFilterEntity] = useState('');
-  const [dateFrom, setDateFrom]       = useState('');
-  const [dateTo, setDateTo]           = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [page, setPage]               = useState(1);
-  const [totalCount, setTotalCount]   = useState(0);
+  const [dateFrom, setDateFrom]         = useState('');
+  const [dateTo, setDateTo]             = useState('');
+  const [showFilters, setShowFilters]   = useState(false);
+  const [page, setPage]                 = useState(1);
+  const [totalCount, setTotalCount]     = useState(0);
   const PAGE_SIZE = 20;
+
+  // Own fetch helper — doesn't depend on parent re-renders
+  const fetchWithAuth = useCallback(async (url) => {
+    let token = accessToken;
+    const makeRequest = (t) =>
+      fetch(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${t}`,
+        },
+      });
+
+    let res = await makeRequest(token);
+    if (res.status === 401) {
+      token = await refreshAccessToken();
+      if (!token) throw new Error('Unable to refresh token');
+      res = await makeRequest(token);
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    return res.json();
+  }, [accessToken, refreshAccessToken]);
 
   const buildUrl = useCallback(() => {
     const params = new URLSearchParams();
@@ -87,30 +113,35 @@ export default function RecentActivities({ fetchWithAuth, apiBaseUrl }) {
     if (dateFrom)     params.set('date_from', dateFrom);
     if (dateTo)       params.set('date_to', dateTo);
     params.set('ordering', '-created_at');
-    params.set('limit', PAGE_SIZE);
-    params.set('offset', (page - 1) * PAGE_SIZE);
-    return `${apiBaseUrl}/activities/?${params.toString()}`;
-  }, [search, filterAction, filterEntity, dateFrom, dateTo, page, apiBaseUrl]);
+    params.set('limit', String(PAGE_SIZE));
+    params.set('offset', String((page - 1) * PAGE_SIZE));
+    return `${API_BASE_URL}/activities/?${params.toString()}`;
+  }, [search, filterAction, filterEntity, dateFrom, dateTo, page]);
 
   const fetchActivities = useCallback(async () => {
+    if (!accessToken) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchWithAuth(buildUrl());
-      // Support both paginated {count, results} and plain array
+      const url = buildUrl();
+      console.debug('[Activities] fetching:', url);
+      const data = await fetchWithAuth(url);
+      console.debug('[Activities] response:', data);
+
       if (Array.isArray(data)) {
         setActivities(data);
         setTotalCount(data.length);
       } else {
-        setActivities(data.results || []);
-        setTotalCount(data.count || 0);
+        setActivities(data.results ?? []);
+        setTotalCount(data.count ?? 0);
       }
     } catch (err) {
-      setError('Failed to load activities. Please try again.');
+      console.error('[Activities] error:', err);
+      setError(`Failed to load activities: ${err.message}`);
     } finally {
       setLoading(false);
     }
-  }, [buildUrl, fetchWithAuth]);
+  }, [accessToken, buildUrl, fetchWithAuth]);
 
   useEffect(() => {
     fetchActivities();
