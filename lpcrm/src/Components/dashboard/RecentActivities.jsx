@@ -68,8 +68,11 @@ const formatFullDate = (timestamp) => {
 // ── Entity type options for filter ────────────────────────────────
 const ENTITY_TYPES = ['Lead', 'Task', 'Staff', 'Student', 'FollowUp', 'MicroWork', 'Trainer', 'Attendance'];
 
+const ADMIN_ROLES = ['ADMIN', 'BUSINESS_HEAD', 'CEO'];
+
 export default function RecentActivities() {
-  const { accessToken, refreshAccessToken } = useAuth();
+  const { accessToken, refreshAccessToken, user } = useAuth();
+  const isAdmin = ADMIN_ROLES.includes(user?.role?.toUpperCase());
 
   const [activities, setActivities]     = useState([]);
   const [loading, setLoading]           = useState(true);
@@ -165,12 +168,20 @@ export default function RecentActivities() {
     <div className="space-y-4">
       {/* ── Header bar ── */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Activity className="w-5 h-5 text-indigo-600" />
-          <h2 className="text-lg font-bold text-gray-900">Activity Log</h2>
+          <h2 className="text-lg font-bold text-gray-900">
+            {isAdmin ? 'Activity Log' : 'My Activities'}
+          </h2>
           {totalCount > 0 && (
             <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-100 text-indigo-700 rounded-full">
               {totalCount}
+            </span>
+          )}
+          {!isAdmin && (
+            <span className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
+              <User className="w-3 h-3" />
+              Showing your activities only
             </span>
           )}
         </div>
