@@ -26,7 +26,7 @@ import AttendanceDocumentsPage from "./Pages/AttendanceDocumentsPage.jsx";
 import PenaltyManagementPage from "./Pages/PenaltyManagementPage.jsx";
 import CallAnalyticsPage from "./Pages/CallAnalyticsPage.jsx";
 import ChatPage from "./Pages/ChatPage.jsx";
-import FollowUpsPage from './pages/FollowUpsPage';
+import FollowUpsPage from './Pages/FollowUpsPage';
 
 
 const ProtectedRoute = ({ children }) => {
