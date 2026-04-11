@@ -8,10 +8,13 @@ const MobileNavbar = ({
   isActive,
   handleNavigation,
   handleLogout,
-  notificationCount,
   isMobileMenuOpen,
   setIsMobileMenuOpen,
   onChatOpen,
+  notifications,           
+  unreadCount,            
+  onClearNotifications,    
+  onMarkRead,              
 }) => {
   return (
     <div className="lg:hidden">
