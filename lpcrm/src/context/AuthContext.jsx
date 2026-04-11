@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          refresh_token: storedRefreshToken  // ✅ Send in request body
+          refresh_token: storedRefreshToken  
         }),
       });
 
@@ -34,11 +34,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await res.json();
-      console.log('✅ Token refreshed successfully');
 
       setAccessToken(data.access);
 
-      // ✅ Update refresh token if backend sends a new one
       if (data.refresh) {
         localStorage.setItem('refreshToken', data.refresh);
       }
