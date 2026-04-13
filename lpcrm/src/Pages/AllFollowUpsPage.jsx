@@ -6,9 +6,8 @@ import {
   CalendarClock, Phone, MessageSquare, Mail, Users,
   AlertTriangle, ArrowLeft, RefreshCw, Search, SlidersHorizontal,
   CheckCircle, Clock, Trash2, X, ChevronDown, ChevronUp,
-  Calendar, Sunrise, Star
+  Calendar, Sunrise, Star, UserCheck
 } from 'lucide-react';
-
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const TYPE_ICON = {
@@ -20,6 +19,13 @@ const TYPE_COLOR = {
   email:    'bg-blue-100 text-blue-700 border-blue-200',
   meeting:  'bg-purple-100 text-purple-700 border-purple-200',
 };
+
+const assignedName = item.assigned_to
+  ? (item.assigned_to.first_name
+      ? `${item.assigned_to.first_name} ${item.assigned_to.last_name || ''}`.trim()
+      : item.assigned_to.username)
+  : null;
+
 const STATUS_COLOR = {
   pending:        'bg-yellow-100 text-yellow-700',
   contacted:      'bg-green-100 text-green-700',
@@ -76,6 +82,12 @@ const FollowUpCard = ({ item, onStatusChange, onDelete }) => {
   const priorityColor = PRIORITY_COLOR[item.priority] || PRIORITY_COLOR.medium;
   const [typeBg, typeText] = typeColor.split(' ');
 
+  const assignedName = item.assigned_to
+    ? (item.assigned_to.first_name
+        ? `${item.assigned_to.first_name} ${item.assigned_to.last_name || ''}`.trim()
+        : item.assigned_to.username)
+    : null;
+
   return (
     <div className={`group bg-white rounded-2xl border-2 p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ${
       item.is_overdue
@@ -96,6 +108,12 @@ const FollowUpCard = ({ item, onStatusChange, onDelete }) => {
               <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                 <Phone size={10} />
                 {item.phone_number}
+              </p>
+            )}
+            {assignedName && (
+              <p className="text-xs text-indigo-500 flex items-center gap-1 mt-0.5 font-semibold">
+                <UserCheck size={10} />
+                {assignedName}
               </p>
             )}
           </div>
