@@ -168,7 +168,7 @@ export default function DashboardOverview() {
             <div className="lg:col-span-1">
              <TodayFollowUps
                 followUps={todayFollowUps}
-                onViewAll={() => navigate('/followups/today')}
+                onViewAll={() => navigate('/followups')}
               />
             </div>
           </div>
