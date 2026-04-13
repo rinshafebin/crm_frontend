@@ -8,6 +8,7 @@ import {
   CheckCircle, Clock, Trash2, X, ChevronDown, ChevronUp,
   Calendar, Sunrise, Star, UserCheck
 } from 'lucide-react';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const TYPE_ICON = {
@@ -19,13 +20,6 @@ const TYPE_COLOR = {
   email:    'bg-blue-100 text-blue-700 border-blue-200',
   meeting:  'bg-purple-100 text-purple-700 border-purple-200',
 };
-
-const assignedName = item.assigned_to
-  ? (item.assigned_to.first_name
-      ? `${item.assigned_to.first_name} ${item.assigned_to.last_name || ''}`.trim()
-      : item.assigned_to.username)
-  : null;
-
 const STATUS_COLOR = {
   pending:        'bg-yellow-100 text-yellow-700',
   contacted:      'bg-green-100 text-green-700',
@@ -44,6 +38,8 @@ const PRIORITY_COLOR = {
   low:    'bg-gray-100 text-gray-600',
 };
 
+const EXCLUDED_STAFF_ROLES = ['TRAINER', 'ACCOUNTS', 'HR', 'MEDIA', 'ADMIN', 'CEO', 'PROCESSING', 'DOCUMENTATION'];
+
 function formatTime(t) {
   if (!t) return '';
   const [h, m] = t.split(':');
@@ -52,7 +48,7 @@ function formatTime(t) {
 }
 
 function toLocalISO(date) {
-  return date.toLocaleDateString('en-CA'); // YYYY-MM-DD
+  return date.toLocaleDateString('en-CA');
 }
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -73,13 +69,13 @@ const SkeletonCard = () => (
   </div>
 );
 
-// ── Single card ───────────────────────────────────────────────────────────────
+// ── Follow-Up Card ────────────────────────────────────────────────────────────
 const FollowUpCard = ({ item, onStatusChange, onDelete }) => {
-  const TypeIcon    = TYPE_ICON[item.followup_type]  || Phone;
-  const typeColor   = TYPE_COLOR[item.followup_type] || 'bg-gray-100 text-gray-600 border-gray-200';
-  const statusColor = STATUS_COLOR[item.status]      || 'bg-gray-100 text-gray-600';
-  const statusLabel = STATUS_LABEL[item.status]      || item.status;
-  const priorityColor = PRIORITY_COLOR[item.priority] || PRIORITY_COLOR.medium;
+  const TypeIcon      = TYPE_ICON[item.followup_type]  || Phone;
+  const typeColor     = TYPE_COLOR[item.followup_type] || 'bg-gray-100 text-gray-600 border-gray-200';
+  const statusColor   = STATUS_COLOR[item.status]      || 'bg-gray-100 text-gray-600';
+  const statusLabel   = STATUS_LABEL[item.status]      || item.status;
+  const priorityColor = PRIORITY_COLOR[item.priority]  || PRIORITY_COLOR.medium;
   const [typeBg, typeText] = typeColor.split(' ');
 
   const assignedName = item.assigned_to
@@ -190,14 +186,13 @@ const FollowUpCard = ({ item, onStatusChange, onDelete }) => {
   );
 };
 
-// ── Section block ─────────────────────────────────────────────────────────────
+// ── Section ───────────────────────────────────────────────────────────────────
 const Section = ({ title, subtitle, icon: Icon, iconBg, items, loading,
                    onStatusChange, onDelete, defaultOpen = true }) => {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
     <div className="mb-8">
-      {/* Section header */}
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between mb-4 group"
@@ -253,9 +248,11 @@ const Section = ({ title, subtitle, icon: Icon, iconBg, items, loading,
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function AllFollowUpsPage() {
   const navigate  = useNavigate();
-  const { accessToken, refreshAccessToken, loading: authLoading } = useAuth();
+  const { accessToken, refreshAccessToken, loading: authLoading, user } = useAuth();
   const tokenRef  = useRef(accessToken);
   useEffect(() => { tokenRef.current = accessToken; }, [accessToken]);
+
+  const isAdmin = ['ADMIN', 'CEO', 'OPS'].includes(user?.role?.toUpperCase());
 
   const today    = toLocalISO(new Date());
   const tomorrow = toLocalISO(new Date(Date.now() + 86400000));
@@ -273,6 +270,8 @@ export default function AllFollowUpsPage() {
   const [filterStatus,   setFilterStatus]   = useState('all');
   const [filterType,     setFilterType]     = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
+  const [filterStaff,    setFilterStaff]    = useState('all');
+  const [staffList,      setStaffList]      = useState([]);
 
   const authFetch = useCallback(async (url, options = {}, retry = true) => {
     let token = tokenRef.current;
@@ -295,6 +294,20 @@ export default function AllFollowUpsPage() {
     return res;
   }, [refreshAccessToken]);
 
+  // Fetch staff list (admin only)
+  useEffect(() => {
+    if (!accessToken || !isAdmin) return;
+    authFetch(`${API_BASE_URL}/employees/list/`)
+      .then(r => r.json())
+      .then(data => {
+        const arr = Array.isArray(data) ? data : (data.results || data.employees || []);
+        setStaffList(
+          arr.filter(u => !EXCLUDED_STAFF_ROLES.includes((u.role || '').toUpperCase()))
+        );
+      })
+      .catch(console.error);
+  }, [accessToken, isAdmin, authFetch]);
+
   const fetchSection = useCallback(async (params, setter, setLoadingFn) => {
     setLoadingFn(true);
     try {
@@ -312,11 +325,8 @@ export default function AllFollowUpsPage() {
   }, [authFetch]);
 
   const loadAll = useCallback(() => {
-    // Today
-    fetchSection({ date: today }, setTodayItems, setLoadingToday);
-    // Tomorrow
+    fetchSection({ date: today },   setTodayItems,    setLoadingToday);
     fetchSection({ date: tomorrow }, setTomorrowItems, setLoadingTomorrow);
-    // Upcoming (after tomorrow) — use start_date with a far end_date
     const farFuture = toLocalISO(new Date(Date.now() + 365 * 86400000));
     fetchSection(
       { start_date: toLocalISO(new Date(Date.now() + 2 * 86400000)), end_date: farFuture },
@@ -356,15 +366,17 @@ export default function AllFollowUpsPage() {
     } catch { alert('Delete failed'); }
   };
 
-  // Client-side filter applied to each section
   const applyFilter = (items) => items.filter(item => {
     const q = searchTerm.toLowerCase();
     const matchSearch = !q ||
       (item.name || '').toLowerCase().includes(q) ||
       (item.phone_number || '').includes(q) ||
       (item.notes || '').toLowerCase().includes(q);
+    const matchStaff = filterStaff === 'all' ||
+      String(item.assigned_to?.id) === String(filterStaff);
     return (
       matchSearch &&
+      matchStaff &&
       (filterStatus   === 'all' || item.status       === filterStatus) &&
       (filterType     === 'all' || item.followup_type === filterType) &&
       (filterPriority === 'all' || item.priority      === filterPriority)
@@ -376,14 +388,15 @@ export default function AllFollowUpsPage() {
     setFilterStatus('all');
     setFilterType('all');
     setFilterPriority('all');
+    setFilterStaff('all');
   };
-
-  const hasFilters = searchTerm || filterStatus !== 'all' || filterType !== 'all' || filterPriority !== 'all';
 
   const filteredToday    = applyFilter(todayItems);
   const filteredTomorrow = applyFilter(tomorrowItems);
   const filteredOther    = applyFilter(otherItems);
   const totalVisible     = filteredToday.length + filteredTomorrow.length + filteredOther.length;
+  const hasFilters       = searchTerm || filterStatus !== 'all' || filterType !== 'all' ||
+                           filterPriority !== 'all' || filterStaff !== 'all';
 
   const todayLabel    = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
   const tomorrowLabel = new Date(Date.now() + 86400000).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -411,7 +424,6 @@ export default function AllFollowUpsPage() {
             <ArrowLeft size={18} />
             Back
           </button>
-
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <div className="flex items-center gap-3 mb-1">
@@ -422,11 +434,8 @@ export default function AllFollowUpsPage() {
                   All Follow-Ups
                 </h1>
               </div>
-              <p className="text-gray-500 ml-[52px] text-sm">
-                Today · Tomorrow · Upcoming
-              </p>
+              <p className="text-gray-500 ml-[52px] text-sm">Today · Tomorrow · Upcoming</p>
             </div>
-
             <button
               onClick={loadAll}
               disabled={loadingToday && loadingTomorrow && loadingOther}
@@ -441,10 +450,10 @@ export default function AllFollowUpsPage() {
         {/* Summary chips */}
         <div className="flex flex-wrap gap-3 mb-6">
           {[
-            { label: "Today",    value: todayItems.length,    color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-            { label: "Tomorrow", value: tomorrowItems.length, color: "bg-blue-50 text-blue-700 border-blue-200" },
-            { label: "Upcoming", value: otherItems.length,    color: "bg-purple-50 text-purple-700 border-purple-200" },
-            { label: "Total",    value: todayItems.length + tomorrowItems.length + otherItems.length, color: "bg-gray-100 text-gray-700 border-gray-200" },
+            { label: 'Today',    value: todayItems.length,    color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+            { label: 'Tomorrow', value: tomorrowItems.length, color: 'bg-blue-50 text-blue-700 border-blue-200' },
+            { label: 'Upcoming', value: otherItems.length,    color: 'bg-purple-50 text-purple-700 border-purple-200' },
+            { label: 'Total',    value: todayItems.length + tomorrowItems.length + otherItems.length, color: 'bg-gray-100 text-gray-700 border-gray-200' },
           ].map(({ label, value, color }) => (
             <div key={label} className={`flex items-center gap-2 px-4 py-2 rounded-xl border font-semibold text-sm ${color}`}>
               <span className="text-xl font-bold">{value}</span>
@@ -456,6 +465,8 @@ export default function AllFollowUpsPage() {
         {/* Filters */}
         <div className="bg-white rounded-2xl p-5 mb-8 shadow-lg border border-gray-100">
           <div className="space-y-4">
+
+            {/* Search */}
             <div className="relative group">
               <Search
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors"
@@ -475,7 +486,9 @@ export default function AllFollowUpsPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Dropdowns */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+
               {/* Status */}
               <div className="relative">
                 <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
@@ -514,6 +527,22 @@ export default function AllFollowUpsPage() {
                 <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
               </div>
 
+              {/* Staff filter — admin only */}
+              {isAdmin && (
+                <div className="relative">
+                  <select value={filterStaff} onChange={e => setFilterStaff(e.target.value)}
+                    className="appearance-none w-full px-4 py-2.5 pr-9 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 transition-all font-semibold text-gray-700 bg-white text-sm">
+                    <option value="all">All Staff</option>
+                    {staffList.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.username || `${s.first_name || ''} ${s.last_name || ''}`.trim() || `Staff #${s.id}`}
+                      </option>
+                    ))}
+                  </select>
+                  <UserCheck className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={14} />
+                </div>
+              )}
+
               {/* Clear */}
               <button onClick={clearFilters}
                 className="flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-gray-200 rounded-xl hover:bg-red-50 hover:border-red-300 font-semibold text-gray-600 hover:text-red-600 transition-all text-sm">
@@ -530,7 +559,7 @@ export default function AllFollowUpsPage() {
           )}
         </div>
 
-        {/* ── Today section ── */}
+        {/* ── Today ── */}
         <Section
           title="Today"
           subtitle={todayLabel}
@@ -543,7 +572,7 @@ export default function AllFollowUpsPage() {
           defaultOpen={true}
         />
 
-        {/* ── Tomorrow section ── */}
+        {/* ── Tomorrow ── */}
         <Section
           title="Tomorrow"
           subtitle={tomorrowLabel}
@@ -556,7 +585,7 @@ export default function AllFollowUpsPage() {
           defaultOpen={true}
         />
 
-        {/* ── Upcoming section ── */}
+        {/* ── Upcoming ── */}
         <Section
           title="Upcoming"
           subtitle="After tomorrow"
