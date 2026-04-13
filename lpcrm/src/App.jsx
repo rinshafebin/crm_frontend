@@ -26,7 +26,7 @@ import AttendanceDocumentsPage from "./Pages/AttendanceDocumentsPage.jsx";
 import PenaltyManagementPage from "./Pages/PenaltyManagementPage.jsx";
 import CallAnalyticsPage from "./Pages/CallAnalyticsPage.jsx";
 import ChatPage from "./Pages/ChatPage.jsx";
-import TodayFollowUpsPage from './Pages/TodayFollowUpsPage';
+import AllFollowUpsPage from './Pages/AllFollowUpsPage';
 
 
 const ProtectedRoute = ({ children }) => {
@@ -46,7 +46,7 @@ export default function App() {
         <Route path="/leads/edit/:id" element={<ProtectedRoute><EditLeadPage /></ProtectedRoute>} />
         <Route path="/addnewlead" element={<ProtectedRoute><AddLeadPage /></ProtectedRoute>} />
         <Route path="/leads/:id" element={<ProtectedRoute><LeadDetailPage /></ProtectedRoute>} />
-        <Route path="/followups/today"element={<ProtectedRoute><TodayFollowUpsPage /></ProtectedRoute>} />
+        <Route path="/followups"element={<ProtectedRoute><AllFollowUpsPage /></ProtectedRoute>} />
 
 
         <Route path="/staff" element={<ProtectedRoute><StaffPage /></ProtectedRoute>} />
