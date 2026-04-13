@@ -45,7 +45,7 @@ function formatTime(t) {
 export default function TodayFollowUps({ followUps = [], onViewAll }) {
   return (
     <Card className="h-full">
-      <SectionHeader title="Today's Follow-Ups" onActionClick={onViewAll} />
+      <SectionHeader title="Today's Follow-Ups" />
       <div className="space-y-2">
         {followUps.length === 0 ? (
           <EmptyState
