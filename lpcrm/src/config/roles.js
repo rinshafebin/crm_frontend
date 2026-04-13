@@ -37,7 +37,6 @@ export const roleNavigation = {
   BUSINESS_HEAD: [
     { id: "overview",   label: "Overview",    icon: FileText,      path: "/" },
     { id: "leads",      label: "Leads",       icon: Users,         path: "/leads" },
-    { id: "followups",  label: "Follow-Ups",  icon: CalendarClock, path: "/follow-ups" },
     { id: "staff",      label: "Staff",       icon: UserCheck,     path: "/staff" },
     { id: "myTasks",    label: "My Tasks",    icon: ListTodo,      path: "/mytasks" },
     { id: "allTasks",   label: "All Tasks",   icon: ListTodo,      path: "/staff/tasks" },
@@ -47,7 +46,6 @@ export const roleNavigation = {
   OPS: [
     { id: "overview",   label: "Overview",    icon: FileText,      path: "/" },
     { id: "leads",      label: "Leads",       icon: Users,         path: "/leads" },
-    { id: "followups",  label: "Follow-Ups",  icon: CalendarClock, path: "/follow-ups" },
     { id: "staff",      label: "Staff",       icon: UserCheck,     path: "/staff" },
     { id: "tasks",      label: "Tasks",       icon: ListTodo,      path: "/staff/tasks" },
     { id: "myReports",  label: "My Reports",  icon: FileText,      path: "/myreports" },
@@ -56,7 +54,6 @@ export const roleNavigation = {
   ADM_MANAGER: [
     { id: "overview",   label: "Overview",    icon: FileText,      path: "/" },
     { id: "leads",      label: "Leads",       icon: Users,         path: "/leads" },
-    { id: "followups",  label: "Follow-Ups",  icon: CalendarClock, path: "/follow-ups" },
     { id: "tasks",      label: "Tasks",       icon: ListTodo,      path: "/staff/tasks" },
     { id: "myReports",  label: "My Reports",  icon: FileText,      path: "/myreports" },
   ],
@@ -64,7 +61,6 @@ export const roleNavigation = {
   ADM_COUNSELLOR: [
     { id: "overview",   label: "Overview",    icon: FileText,      path: "/" },
     { id: "leads",      label: "Leads",       icon: Users,         path: "/leads" },
-    { id: "followups",  label: "Follow-Ups",  icon: CalendarClock, path: "/follow-ups" },
     { id: "tasks",      label: "Tasks",       icon: ListTodo,      path: "/staff/tasks" },
     { id: "myReports",  label: "My Reports",  icon: FileText,      path: "/myreports" },
   ],
@@ -72,7 +68,6 @@ export const roleNavigation = {
   ADM_EXEC: [
     { id: "overview",   label: "Overview",    icon: FileText,      path: "/" },
     { id: "leads",      label: "Leads",       icon: Users,         path: "/leads" },
-    { id: "followups",  label: "Follow-Ups",  icon: CalendarClock, path: "/follow-ups" },
     { id: "tasks",      label: "Tasks",       icon: ListTodo,      path: "/staff/tasks" },
     { id: "myReports",  label: "My Reports",  icon: FileText,      path: "/myreports" },
   ],
@@ -94,7 +89,6 @@ export const roleNavigation = {
   BDM: [
     { id: "overview",   label: "Overview",    icon: FileText,      path: "/" },
     { id: "leads",      label: "Leads",       icon: Users,         path: "/leads" },
-    { id: "followups",  label: "Follow-Ups",  icon: CalendarClock, path: "/follow-ups" },
     { id: "tasks",      label: "Tasks",       icon: ListTodo,      path: "/staff/tasks" },
     { id: "myReports",  label: "My Reports",  icon: FileText,      path: "/myreports" },
   ],
@@ -103,7 +97,6 @@ export const roleNavigation = {
     { id: "overview",      label: "Overview",      icon: FileText,      path: "/" },
     { id: "staff",         label: "Staff",         icon: UserCheck,     path: "/staff" },
     { id: "leads",         label: "Leads",         icon: Users,         path: "/leads" },
-    { id: "followups",     label: "Follow-Ups",    icon: CalendarClock, path: "/follow-ups" },
     { id: "tasks",         label: "Tasks",         icon: ListTodo,      path: "/staff/tasks" },
     { id: "myReports",     label: "My Reports",    icon: FileText,      path: "/myreports" },
     { id: "staffReports",  label: "Staff Reports", icon: FileText,      path: "/daily/reports" },
@@ -121,7 +114,6 @@ export const roleNavigation = {
   FOE: [
     { id: "overview",   label: "Overview",    icon: FileText,      path: "/" },
     { id: "leads",      label: "Leads",       icon: Users,         path: "/leads" },
-    { id: "followups",  label: "Follow-Ups",  icon: CalendarClock, path: "/follow-ups" },
     { id: "tasks",      label: "Tasks",       icon: ListTodo,      path: "/staff/tasks" },
     { id: "myReports",  label: "My Reports",  icon: FileText,      path: "/myreports" },
   ],
