@@ -41,7 +41,8 @@ export default function DashboardOverview() {
   const [upcomingTasks, setUpcomingTasks] = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
-
+  const [todayFollowUps, setTodayFollowUps] = useState([]);
+  
   const userRole = user?.role || 'User';
   const userName = user?.name || user?.username || 'User';
   const isAdmin  = userRole?.toUpperCase() === 'ADMIN';
@@ -88,6 +89,7 @@ export default function DashboardOverview() {
       setError(null);
 
       const fetchPromises = [
+        fetchData('/followups/today/', setTodayFollowUps, 'Failed to load today\'s follow-ups'),
         fetchData('/activities/', setActivities, 'Failed to load recent activities'),
         fetchData('/tasks/pending/', setTasks, 'Failed to load pending tasks'),
         fetchData('/upcoming/', setUpcomingTasks, 'Failed to load upcoming tasks'),
@@ -137,6 +139,8 @@ export default function DashboardOverview() {
           <UserQuickActions
             tasksCount={tasks.length}
             upcomingCount={upcomingTasks.length}
+            followUpsCount={todayFollowUps.length}
+            followUps={todayFollowUps}
           />
         )}
 
