@@ -128,15 +128,12 @@ export default function ConversionDetailSection({ lead }) {
 
           {/* Text / date / number fields */}
           {[
-            { label: 'Student Name',  key: 'student_name',  type: 'text',   required: true },
-            { label: 'Course',        key: 'course',        type: 'text',   required: true },
-            { label: 'Enrollment ID', key: 'enrollment_id', type: 'text',   required: false },
-            { label: 'Joining Date',  key: 'joining_date',  type: 'date',   required: false },
-            { label: 'Batch Name',    key: 'batch_name',    type: 'text',   required: false },
-            { label: 'Batch Timing',  key: 'batch_timing',  type: 'text',   required: false },
-            { label: 'Total Fees (₹)',key: 'total_fees',    type: 'number', required: false },
-            { label: 'Amount Paid (₹)',key:'amount_paid',   type: 'number', required: false },
-            { label: 'Meeting Date',  key: 'meeting_date',  type: 'date',   required: false },
+            { label: 'Course',         key: 'course',       type: 'text',   required: true  },
+            { label: 'Batch Name',     key: 'batch_name',   type: 'text',   required: false },
+            { label: 'Batch Timing',   key: 'batch_timing', type: 'text',   required: false },
+            { label: 'Joining Date',   key: 'joining_date', type: 'date',   required: false },
+            { label: 'Total Fees (₹)', key: 'total_fees',   type: 'number', required: false },
+            { label: 'Amount Paid (₹)',key: 'amount_paid',  type: 'number', required: false },
           ].map(({ label, key, type, required }) => (
             <div key={key}>
               <label className="block text-xs font-semibold text-gray-600 mb-1">
@@ -209,16 +206,13 @@ export default function ConversionDetailSection({ lead }) {
       {!editing && detail && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {[
-            { label: 'Student Name',    value: detail.student_name },
             { label: 'Course',          value: detail.course },
-            { label: 'Enrollment ID',   value: detail.enrollment_id },
-            { label: 'Joining Date',    value: detail.joining_date },
             { label: 'Batch Name',      value: detail.batch_name },
             { label: 'Batch Timing',    value: detail.batch_timing },
-            { label: 'Total Fees',      value: detail.total_fees    ? `₹${detail.total_fees}`    : null },
-            { label: 'Amount Paid',     value: detail.amount_paid   ? `₹${detail.amount_paid}`   : null },
+            { label: 'Joining Date',    value: detail.joining_date },
+            { label: 'Total Fees',      value: detail.total_fees   ? `₹${detail.total_fees}`   : null },
+            { label: 'Amount Paid',     value: detail.amount_paid  ? `₹${detail.amount_paid}`  : null },
             { label: 'Payment Status',  value: detail.payment_status },
-            { label: 'Meeting Date',    value: detail.meeting_date },
             { label: 'Last Updated By', value: detail.updated_by ? `${detail.updated_by.first_name} ${detail.updated_by.last_name}`.trim() : null },
           ].map(({ label, value }) => (
             <div key={label} className="bg-gray-50 rounded-xl p-3">
