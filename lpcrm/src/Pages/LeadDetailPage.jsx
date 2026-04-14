@@ -9,6 +9,8 @@ import {
 import { useAuth } from '../context/AuthContext';
 import Navbar from '../Components/layouts/Navbar';
 import LeadFollowUps from '../Components/leads/LeadFollowUps';
+import ConversionDetailSection from '../Components/leads/ConversionDetailSection';
+
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -314,6 +316,10 @@ export default function LeadDetailPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Conversion Details */}
+                <ConversionDetailSection lead={lead} />
+
               </div>
             )}
 
