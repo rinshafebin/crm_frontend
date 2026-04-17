@@ -133,7 +133,7 @@ export default function CandidatesPage() {
       if (searchTerm)               params.set('search', searchTerm);
       if (filterStatus !== 'all')   params.set('status', filterStatus);
 
-      const res = await fetch(`${API_BASE_URL}/hr/candidates/?${params}`, {
+      const res = await fetch(`${API_BASE_URL}/candidates/?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error('Failed to fetch candidates');
@@ -223,7 +223,7 @@ export default function CandidatesPage() {
             </div>
             {canManage && (
               <button
-                onClick={() => navigate('/hr/candidates/new')}
+                onClick={() => navigate('/candidates/new')}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
               >
                 <Plus size={20} />
@@ -311,7 +311,7 @@ export default function CandidatesPage() {
             </p>
             {count === 0 && canManage && (
               <button
-                onClick={() => navigate('/hr/candidates/new')}
+                onClick={() => navigate('/candidates/new')}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 rounded-xl font-semibold inline-flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
               >
                 <Plus size={20} />
@@ -340,7 +340,7 @@ export default function CandidatesPage() {
                       <div className="flex items-start gap-3 mb-2 flex-wrap">
                         <h3
                           className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
-                          onClick={() => navigate(`/hr/candidates/${candidate.id}`)}
+                          onClick={() => navigate(`/candidates/${candidate.id}`)}
                         >
                           {candidate.name}
                         </h3>
@@ -395,7 +395,7 @@ export default function CandidatesPage() {
                     </button>
                     {canManage && (
                       <button
-                        onClick={() => navigate(`/hr/candidates/edit/${candidate.id}`)}
+                        onClick={() => navigate(`/candidates/edit/${candidate.id}`)}
                         className="flex-1 lg:flex-none px-4 py-2.5 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-200 text-sm font-semibold border border-indigo-200 hover:border-indigo-300 hover:shadow-md"
                       >
                         Edit
