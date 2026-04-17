@@ -165,7 +165,7 @@ export default function CandidateFormPage() {
       }
 
       showToast(isEdit ? 'Candidate updated successfully!' : 'Candidate added successfully!');
-      setTimeout(() => navigate('/hr/candidates'), 1200);
+      setTimeout(() => navigate('/candidates'), 1200);
     } catch (err) {
       showToast(err.message || 'Something went wrong', 'error');
     } finally {
