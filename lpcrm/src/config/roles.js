@@ -107,6 +107,7 @@ export const roleNavigation = {
     { id: "staff",           label: "Staff",           icon: UserCheck,   path: "/staff" },
     { id: "penalties",       label: "Penalties",       icon: ShieldAlert, path: "/hr/penalties" },
     { id: "attendanceDocs",  label: "Attendance Docs", icon: FolderClock, path: "/hr/attendance" },
+    { id: "candidates",      label: "Candidates",      icon: Users,       path: "/candidates" },
     { id: "tasks",           label: "Tasks",           icon: ListTodo,    path: "/staff/tasks" },
     { id: "myReports",       label: "My Reports",      icon: FileText,    path: "/myreports" },
   ],
