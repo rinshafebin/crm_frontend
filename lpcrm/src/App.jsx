@@ -27,7 +27,7 @@ import PenaltyManagementPage from "./Pages/PenaltyManagementPage.jsx";
 import CallAnalyticsPage from "./Pages/CallAnalyticsPage.jsx";
 import ChatPage from "./Pages/ChatPage.jsx";
 import AllFollowUpsPage from './Pages/AllFollowUpsPage';
-import CandidateListPage from "./Pages/CandidateListPage";
+import CandidatesPage from "./Pages/CandidatesPage";
 import CandidateDetailPage from "./Pages/CandidateDetailPage";
 
 const ProtectedRoute = ({ children }) => {
@@ -72,7 +72,7 @@ export default function App() {
 
         <Route path="/hr/attendance" element={<ProtectedRoute><AttendanceDocumentsPage /></ProtectedRoute>} />
         <Route path="/hr/penalties" element={<ProtectedRoute><PenaltyManagementPage /></ProtectedRoute>} />
-        <Route path="/candidates" element={<ProtectedRoute><CandidateListPage /></ProtectedRoute>} />
+        <Route path="/candidates" element={<ProtectedRoute><CandidatesPage /></ProtectedRoute>} />
         <Route path="/candidates/:id" element={<ProtectedRoute><CandidateDetailPage /></ProtectedRoute>} />
         <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
 
