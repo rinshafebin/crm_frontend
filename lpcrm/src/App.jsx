@@ -29,6 +29,7 @@ import ChatPage from "./Pages/ChatPage.jsx";
 import AllFollowUpsPage from './Pages/AllFollowUpsPage';
 import CandidatesPage from "./Pages/CandidatesPage";
 import CandidateDetailPage from "./Pages/CandidateDetailPage";
+import CandidateFormPage from "./Pages/CandidateFormPage";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -74,8 +75,9 @@ export default function App() {
         <Route path="/hr/penalties" element={<ProtectedRoute><PenaltyManagementPage /></ProtectedRoute>} />
         <Route path="/candidates" element={<ProtectedRoute><CandidatesPage /></ProtectedRoute>} />
         <Route path="/candidates/:id" element={<ProtectedRoute><CandidateDetailPage /></ProtectedRoute>} />
+        <Route path="/candidates/new" element={<ProtectedRoute><CandidateFormPage /></ProtectedRoute>} />
         <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
-
+        
         <Route path="/call-analytics" element={<ProtectedRoute><CallAnalyticsPage /></ProtectedRoute>} />
         <Route path="*" element={<div>404 Not Found</div>} />
       </Routes>
