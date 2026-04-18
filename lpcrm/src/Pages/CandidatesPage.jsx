@@ -388,7 +388,7 @@ export default function CandidatesPage() {
                   {/* Right: actions */}
                   <div className="flex items-center gap-2 flex-wrap lg:flex-col lg:items-stretch lg:min-w-[160px]">
                     <button
-                      onClick={() => navigate(`/hr/candidates/${candidate.id}`)}
+                      onClick={() => navigate(`/candidates/${candidate.id}`)}
                       className="flex-1 lg:flex-none px-4 py-2.5 text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 text-sm font-semibold border border-blue-200 hover:border-blue-300 hover:shadow-md"
                     >
                       View Details
