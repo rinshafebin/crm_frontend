@@ -121,6 +121,8 @@ export default function CandidateFormPage() {
     if (!form.position_applied.trim()) errs.position_applied = 'Position is required';
     if (form.rating && (isNaN(form.rating) || form.rating < 1 || form.rating > 10))
       errs.rating = 'Rating must be between 1 and 10';
+
+    if (!isEdit && !form.resume) errs.resume = 'Resume is required';
     return errs;
   };
 
@@ -382,7 +384,7 @@ export default function CandidateFormPage() {
                 />
               </FieldWrapper>
 
-              <FieldWrapper label="Resume" icon={Upload}>
+              <FieldWrapper label="Resume" icon={Upload} required={!isEdit} error={errors.resume}>
                 <div className="relative">
                   <label className={`flex items-center gap-3 px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
                     resumeFileName
