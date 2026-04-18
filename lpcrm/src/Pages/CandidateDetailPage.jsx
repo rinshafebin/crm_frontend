@@ -158,7 +158,7 @@ export default function CandidateDetailPage() {
       });
       if (!res.ok) throw new Error('Failed to delete');
       showToast('Candidate deleted successfully');
-      setTimeout(() => navigate('/hr/candidates'), 1200);
+      setTimeout(() => navigate('/candidates'), 1200);
     } catch (err) {
       showToast(err.message, 'error');
       setShowDelete(false);
